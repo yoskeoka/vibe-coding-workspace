@@ -73,6 +73,3 @@ for repo_url in "${REPOS[@]}"; do
 
     echo "-----------------------------------"
 done
-
-# After all cloning/updating is done, run the sync-rules script
-echo "Running sync-rules.sh to enforce AI workflow structure by ./sync-rules.sh"

@@ -1,16 +1,16 @@
 # Manage AI Workflow Skill
 
-This skill is responsible for synchronizing the AI-Centered Development workflow rules, directory structures, and templates to managed projects.
+This skill contains the templates and documentation for the AI-Centered Development workflow.
 
-## Usage
+## Structure
 
-Run the `run.sh` script to propagate the workflow configuration to all sub-projects in the workspace.
+- `templates/`: Contains the directory structure and placeholder markdown files for `docs/`.
+- `AI_WORKFLOW.md`: The canonical workflow documentation (at the root of this repo).
+- `AGENTS.md`: The canonical agent instructions (at the root of this repo).
 
-```bash
-./skills/manage-workflow/run.sh [optional-target-directory]
-```
+## Usage in Sub-Projects
 
-## Maintenance
+To use this workflow in a sub-project:
 
-- `templates/`: Contains the directory structure and placeholder markdown files copied to `docs/`.
-- `run.sh`: The logic for copying files and ensuring consistency.
+1.  Clone this repository (or subtree) into the sub-project's skills directory.
+2.  Or use `setup.sh` in the meta-repo to manage the sub-project alongside this repo.
