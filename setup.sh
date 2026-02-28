@@ -2,7 +2,7 @@
 
 # List of repositories to manage
 REPOS=(
-    "https://github.com/yoskeoka/reversi-adventure"
+    "git@github.com:yoskeoka/reversi-adventure.git"
 )
 
 # Loop through the list
