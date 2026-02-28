@@ -31,3 +31,27 @@ This workspace is managed using a strict **AI-first workflow**. The core idea is
 5.  **Verify**: Ensure specs and code match, then move the plan to `done/`.
 
 For a new project, run `./skills/manage-workflow/run.sh <project-dir>` to apply this structure.
+
+## Using Skills in Child Projects
+
+To set up the AI workflow skills in a child repository:
+
+```bash
+# From inside the child repo
+/path/to/vibe-coding-workspace/setup-skills.sh
+
+# Or specify the child repo path
+/path/to/vibe-coding-workspace/setup-skills.sh /path/to/child-repo
+```
+
+This will:
+1. Add this repo as a shallow Git submodule at `.claude/vendor/workflow/`
+2. Create symlinks in `.claude/skills/` for each workflow skill
+3. Copy `docs/` templates, `CLAUDE.md`, and `AGENTS.md` if they don't exist
+
+Child repos can add project-specific skills directly to `.claude/skills/`.
+
+To update skills later:
+```bash
+git submodule update --remote --depth 1 .claude/vendor/workflow
+```
