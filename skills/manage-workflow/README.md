@@ -1,12 +1,23 @@
 # Manage AI Workflow Skill
 
-This skill contains the templates and documentation for the AI-Centered Development workflow.
+This skill initializes and manages the AI-Centered Development workflow structure for a project. It provides the `docs/` directory templates for bootstrapping new projects.
+
+## Related Skills
+
+The workflow is split into step-specific skills for precise triggering:
+
+| Skill | Workflow Step | Trigger |
+|---|---|---|
+| `skills/manage-workflow/` | Setup | Project workspace initialization, scaffolding |
+| `skills/plan-project/` | Step 1 | Defining goals, requirements, project vision |
+| `skills/plan-execution/` | Step 2 | Planning features, bug fixes, creating task plans |
+| `skills/execute-task/` | Step 3 | Implementing code, updating specs, logging issues |
+| `skills/review-task/` | Step 4 | Creating PRs, preparing verification artifacts |
 
 ## Structure
 
+- `SKILL.md`: Claude Skill definition for workflow setup/initialization.
 - `templates/`: Contains the directory structure and placeholder markdown files for `docs/`.
-- `AI_WORKFLOW.md`: The canonical workflow documentation (at the root of this repo).
-- `AGENTS.md`: The canonical agent instructions (at the root of this repo).
 
 ## Usage in Sub-Projects
 
