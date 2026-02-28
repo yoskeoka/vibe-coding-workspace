@@ -30,4 +30,4 @@ This workspace is managed using a strict **AI-first workflow**. The core idea is
 4.  **Code**: Implement the change.
 5.  **Verify**: Ensure specs and code match, then move the plan to `done/`.
 
-For a new project, run `./sync-rules.sh <project-dir>` to apply this structure.
+For a new project, run `./skills/manage-workflow/run.sh <project-dir>` to apply this structure.

@@ -1,11 +1,13 @@
 #!/bin/bash
 
-# sync-rules.sh
+# run.sh (formerly sync-rules.sh)
 # Synchronizes the AI-Centered Development workflow rules and directory structure
 # to managed sub-projects.
 
-WORKSPACE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TEMPLATES_DIR="$WORKSPACE_ROOT/templates"
+# Location of this script
+SKILL_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WORKSPACE_ROOT="$(cd "$SKILL_ROOT/../.." && pwd)"  # Go up two levels from skills/manage-workflow
+TEMPLATES_DIR="$SKILL_ROOT/templates"
 WORKFLOW_DOC="$WORKSPACE_ROOT/AI_WORKFLOW.md"
 
 # Function to sync a single project
@@ -24,10 +26,7 @@ sync_project() {
     cp "$WORKFLOW_DOC" "$project_dir/AI_WORKFLOW.md"
     echo "  - Updated AI_WORKFLOW.md"
 
-    # Copy AGENTS.md (if it doesn't exist, or maybe we want to enforce it? 
-    # For now, let's copy it as AGENTS_RULES.md and include it in the project's main AGENTS.md if possible,
-    # or just overwrite if it's a managed project. The user said: "rules ... manage in this repository".
-    # So we'll enforce it.
+    # Copy AGENTS.md
     cp "$WORKSPACE_ROOT/AGENTS.md" "$project_dir/AGENTS.md"
     echo "  - Updated AGENTS.md"
 
