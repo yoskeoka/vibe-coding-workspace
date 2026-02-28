@@ -1,5 +1,9 @@
 ---
+name: manage-workflow
 description: When setting up a new project workspace, initializing the AI-Centered Development workflow, creating the docs/ directory structure, scaffolding a project from scratch, or bootstrapping the AI workflow for a new repository.
+metadata:
+  author: yoskeoka
+  version: '1.0.0'
 ---
 
 # Manage AI-Centered Development Workflow
@@ -17,9 +21,17 @@ The AI-Centered Development workflow consists of 4 repeating phases:
 
 ## Core Principles
 
+### Process Principles
+
 1. **AI-Centric Context**: All necessary information must be immediately accessible to AI in the `docs/` directory. Files should be structured for easy parsing and context retrieval.
 2. **Spec-Code Parity**: `docs/specs/` must strictly match the actual code. No PR is reviewable without verification that specs and code are in sync.
 3. **Verification First**: Human review happens _after_ mechanical tests and "visual" verification data are ready.
+
+### Code Quality Principles
+
+4. **Simplicity First**: Make every change as simple as possible. Prefer the straightforward approach.
+5. **No Laziness**: Find root causes. No temporary fixes. Maintain senior developer standards.
+6. **Minimal Impact**: Only touch what's necessary. Avoid introducing bugs through unnecessary changes.
 
 ## Directory Structure to Initialize
 

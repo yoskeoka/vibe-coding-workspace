@@ -1,5 +1,9 @@
 ---
+name: review-task
 description: When creating a pull request, preparing a PR for review, generating verification artifacts, collecting test results or screenshots for review, submitting changes for human review, or checking that all PR requirements (code, specs, plan, verification) are met.
+metadata:
+  author: yoskeoka
+  version: '1.0.0'
 ---
 
 # Review Task (Workflow Step 4)
@@ -16,6 +20,16 @@ Create a Pull Request that includes all required artifacts for human review.
 2. **Spec updates**: The updated `docs/specs/` files that match the code.
 3. **Plan file moved to `done/`**: The execution plan in `docs/exec-plan/done/` proving the task was completed through the proper workflow.
 4. **Verification artifacts**: Test results, screenshots, logs, or other evidence for human reviewers. Human review happens _after_ mechanical tests and verification data are ready.
+
+### Verification Standards by Task Type
+
+| Task Type   | Minimum Verification             |
+| ----------- | -------------------------------- |
+| Bug fix     | Reproduce → Fix → Verify fixed   |
+| Feature     | Tests pass + manual demo         |
+| Refactor    | Behavior unchanged + tests pass  |
+| Performance | Before/after metrics             |
+| Security    | Specific vulnerability addressed |
 
 ### Pre-PR Checklist
 

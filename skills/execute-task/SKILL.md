@@ -1,5 +1,9 @@
 ---
+name: execute-task
 description: When implementing code, writing code for a planned task, updating specs before coding, executing an existing plan, coding a feature or fix, updating docs/specs, logging unrelated issues found during implementation, or moving a completed plan from todo to done.
+metadata:
+  author: yoskeoka
+  version: '1.0.0'
 ---
 
 # Execute Task (Workflow Step 3)
@@ -12,7 +16,7 @@ Implement the changes described in the active execution plan, following strict o
 
 ### Rules — Execution Order
 
-1. **Spec First**: Update `docs/specs/` to reflect the intended changes *before* modifying any code.
+1. **Spec First**: Update `docs/specs/` to reflect the intended changes _before_ modifying any code.
 2. **Implement**: Write the code to match the updated spec exactly.
 3. **Log Issues**: If unrelated problems are found during implementation, log them in `docs/issues/<name>.md`. Do **not** fix them within the current plan unless they are blockers.
 4. **Completion**: When all work in the plan is done, move the plan file from `docs/exec-plan/todo/` to `docs/exec-plan/done/`.
@@ -31,6 +35,30 @@ When encountering unrelated issues during execution:
 2. Document the issue clearly.
 3. Continue with the current plan — do not get sidetracked.
 4. These issues can become future execution plans.
+
+### Self-Improvement Loop
+
+After ANY correction from the user:
+
+1. Create or update `docs/issues/lessons.md` with the pattern.
+2. Use this format:
+   - **Mistake**: What went wrong (be specific)
+   - **Pattern**: The underlying cause or anti-pattern
+   - **Rule**: Concrete, actionable rule to prevent recurrence
+   - **Applied**: Where this rule applies (specific files, patterns, situations)
+3. Review `docs/issues/lessons.md` at session start for relevant learnings.
+
+> "Be more careful" is not a rule. Rules must be specific and testable.
+
+### Elegance Check
+
+For non-trivial changes, pause and ask: **"Is there a more elegant way?"**
+
+- If a fix feels hacky → reconsider the approach before committing
+- If similar code exists elsewhere → look for reuse or abstraction
+- If the change touches 5+ files → verify it's the minimal approach
+
+**Skip this for**: single-line fixes, obvious corrections, established patterns in the codebase. Don't over-engineer.
 
 ### Completing the Plan
 

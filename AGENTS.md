@@ -32,3 +32,25 @@ You are an expert software engineer and architect working in an **AI-Centered De
 2.  Reproduction steps go into the plan.
 3.  Execute the fix following the **Spec First** rule.
 4.  Move plan to `done/`.
+
+## Subagent Strategy
+
+Keep the main context window clean by delegating to subagents.
+
+### Delegate to subagents:
+- Codebase exploration and search (grep, file structure investigation)
+- Documentation research
+- Parallel analysis of multiple files
+- Independent verification tasks (test execution, lint checks)
+- Any research that might add >1000 tokens to main context
+
+### Keep in main context:
+- Final implementation decisions
+- User communication
+- State that needs to persist across steps
+- Sequential dependent operations (spec update → code implementation ordering)
+
+### Rules:
+- One task per subagent for focused execution
+- Clear, specific instructions with expected output format
+- Set scope boundaries — subagents must not modify files without explicit instruction

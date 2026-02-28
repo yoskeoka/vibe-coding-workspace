@@ -1,10 +1,34 @@
 ---
+name: plan-execution
 description: When planning a new task, creating an execution plan, starting a new feature, planning a bug fix, breaking down work into sub-tasks, creating a plan file in exec-plan/todo, or organizing what code and spec changes are needed before implementation.
+metadata:
+  author: yoskeoka
+  version: '1.0.0'
 ---
 
 # Plan Execution (Workflow Step 2)
 
 **Position in workflow**: This is **Step 2** of the AI-Centered Development cycle. The project plan (Step 1) must exist before creating execution plans. After planning, proceed to Step 3 (Execution) to implement.
+
+## Do I Need an Execution Plan?
+
+```
+Task received
+    │
+    ├─ Will docs/specs/ be created or updated? → YES, create exec plan
+    │
+    ├─ 3+ steps or architectural decision? → YES, create exec plan
+    │
+    ├─ Multiple files will be modified? → YES, create exec plan
+    │
+    ├─ Uncertain about approach? → YES, create exec plan
+    │
+    ├─ Single-line fix / typo / trivial change? → NO, execute directly
+    │
+    └─ Otherwise → Proceed directly
+```
+
+**When in doubt, create a plan.** The cost of an unnecessary plan is low; the cost of a botched unplanned change is high.
 
 ## What to Do
 
@@ -26,6 +50,28 @@ Each plan file in `docs/exec-plan/todo/` must detail:
 - **Spec changes**: How `docs/specs/` will be updated to reflect the changes.
 - **Sub-tasks**: Break large tasks into smaller steps if needed.
 - **Design decisions**: If architectural choices are being made, note them for `docs/design-decisions/adr.md`.
+- **Parallelism**: Identify which sub-tasks are independent (see below).
+
+### Parallel Execution Planning
+
+Design plans for maximum parallel execution:
+
+1. **Identify independent tasks**: Mark sub-tasks that have no dependencies on each other with `[parallel]`.
+2. **Explicit dependency notation**: Use `depends on: <task>` for tasks that must wait for others.
+3. **Split plans when appropriate**: If a large plan contains 2+ fully independent streams of work, create separate plan files (e.g., `004a-api-endpoints.md`, `004b-ui-components.md`).
+
+Example:
+
+```markdown
+## Sub-tasks
+
+- [ ] [parallel] Create API schema types
+- [ ] [parallel] Set up database migration
+- [ ] [depends on: API schema, DB migration] Implement API handlers
+- [ ] [depends on: API handlers] Write integration tests
+```
+
+**Why**: Independent tasks can be delegated to subagents for parallel execution, reducing total time and keeping the main context clean.
 
 ### For a New Feature
 

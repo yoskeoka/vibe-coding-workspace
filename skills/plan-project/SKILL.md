@@ -1,5 +1,9 @@
 ---
+name: plan-project
 description: When starting a new project, defining project goals, writing or updating project requirements, setting the project vision, updating the project plan, defining what to build and why, or reviewing project scope and significance.
+metadata:
+  author: yoskeoka
+  version: '1.0.0'
 ---
 
 # Plan Project (Workflow Step 1)
