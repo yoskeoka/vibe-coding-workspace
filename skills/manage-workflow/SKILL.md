@@ -56,18 +56,30 @@ docs/
 1. Run `setup-skills.sh` to set up submodule, symlinks, and docs/ templates (mechanical setup).
 2. Then follow the steps below to configure CLAUDE.md for this project.
 
-## Configuring CLAUDE.md and AGENTS.md
+## Configuring AGENTS.md and CLAUDE.md
 
-When initializing the workflow for a project, ensure both `CLAUDE.md` and `AGENTS.md` contain the necessary workflow instructions. **Do not overwrite existing content** — merge these into the existing files, preserving project-specific instructions.
+`AGENTS.md` is the single source of truth for AI agent instructions. `CLAUDE.md` is a symlink pointing to `AGENTS.md`, so both Claude Code and other AI tools (Cursor, GitHub Copilot, Gemini CLI, etc.) read the same content.
 
-- **CLAUDE.md**: Read by Claude Code. Add all sections below.
-- **AGENTS.md**: Read by other AI tools (Cursor, GitHub Copilot, Gemini CLI, etc.). Add the Workflow Adherence section. The Subagent Strategy section is optional (tool-specific).
+### Symlink strategy
 
-### Required content for CLAUDE.md and AGENTS.md
+- **`AGENTS.md`**: The canonical file. All workflow instructions go here.
+- **`CLAUDE.md`**: A symlink to `AGENTS.md`. Do NOT create as a separate file.
 
-The following blocks must be present. If the file doesn't exist, create it. If it already exists, add only the missing sections.
+When initializing the workflow:
 
-#### 1. Workflow Adherence (required — both CLAUDE.md and AGENTS.md)
+1. If `AGENTS.md` does not exist, create it with the required content below.
+2. If `AGENTS.md` already exists, merge the missing sections — **do not overwrite** existing project-specific instructions.
+3. If `CLAUDE.md` does not exist, create it as a symlink: `ln -s AGENTS.md CLAUDE.md`
+4. If `CLAUDE.md` exists as a regular file (not a symlink), replace it with a symlink:
+   - Merge any unique content from `CLAUDE.md` into `AGENTS.md`
+   - Remove the regular `CLAUDE.md` file
+   - Create the symlink: `ln -s AGENTS.md CLAUDE.md`
+
+### Required content for AGENTS.md
+
+The following blocks must be present. Add only the missing sections.
+
+#### 1. Workflow Adherence (required)
 
 ```markdown
 ## AI-Centered Development Workflow
@@ -93,7 +105,7 @@ This project follows the AI-Centered Development workflow.
    - **Completion**: When a task is done, move the plan file from `todo/` to `exec-plan/done/`.
 ```
 
-#### 2. Subagent Strategy (recommended — CLAUDE.md only)
+#### 2. Subagent Strategy (recommended)
 
 ```markdown
 ## Subagent Strategy
@@ -124,10 +136,9 @@ Keep the main context window clean by delegating to subagents.
 
 ### Verification steps after configuration
 
-1. Confirm `CLAUDE.md` contains the "Workflow Adherence" section with all 3 core responsibilities.
-2. Confirm `AGENTS.md` contains the "Workflow Adherence" section with all 3 core responsibilities.
-3. Confirm no existing project-specific instructions were removed from either file.
-4. Verify `CLAUDE.md` and `AGENTS.md` don't have conflicting instructions.
+1. Confirm `AGENTS.md` exists as a regular file and contains all required sections.
+2. Confirm `CLAUDE.md` is a symlink pointing to `AGENTS.md` (verify with `ls -la CLAUDE.md`).
+3. Confirm no existing project-specific instructions were removed from `AGENTS.md`.
 
 ## Templates
 

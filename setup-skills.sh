@@ -108,19 +108,35 @@ fi
 echo "---"
 
 # ----------------------------------------
-# Step 5: Guidance for CLAUDE.md / AGENTS.md
+# Step 5: Ensure CLAUDE.md symlinks to AGENTS.md
 # ----------------------------------------
-echo "Note: CLAUDE.md and AGENTS.md are NOT automatically copied."
-echo "  The 'manage-workflow' skill will guide the AI agent to add"
-echo "  the necessary workflow instructions to your existing CLAUDE.md."
-echo "  Ask the AI agent: 'Initialize the AI workflow for this project'"
+if [ -L "CLAUDE.md" ]; then
+    echo "CLAUDE.md is already a symlink. OK."
+elif [ -f "CLAUDE.md" ] && [ -f "AGENTS.md" ]; then
+    echo "Warning: Both CLAUDE.md and AGENTS.md exist as regular files."
+    echo "  Please merge CLAUDE.md content into AGENTS.md, then replace CLAUDE.md with a symlink."
+    echo "  Ask the AI agent: 'Sync CLAUDE.md and AGENTS.md with a symlink'"
+elif [ -f "CLAUDE.md" ] && [ ! -f "AGENTS.md" ]; then
+    echo "Migrating: CLAUDE.md → AGENTS.md (with symlink back)"
+    mv CLAUDE.md AGENTS.md
+    ln -s AGENTS.md CLAUDE.md
+    echo "  AGENTS.md is now the canonical file. CLAUDE.md → AGENTS.md"
+elif [ ! -f "CLAUDE.md" ] && [ -f "AGENTS.md" ]; then
+    echo "Creating symlink: CLAUDE.md → AGENTS.md"
+    ln -s AGENTS.md CLAUDE.md
+elif [ ! -f "CLAUDE.md" ] && [ ! -f "AGENTS.md" ]; then
+    echo "Note: Neither CLAUDE.md nor AGENTS.md exist yet."
+    echo "  The 'manage-workflow' skill will create AGENTS.md and symlink CLAUDE.md."
+    echo "  Ask the AI agent: 'Initialize the AI workflow for this project'"
+fi
 
 echo "---"
 echo "Done! AI workflow skills are ready."
 echo ""
 echo "Next steps:"
 echo "  1. Ask the AI agent to initialize the workflow (triggers manage-workflow skill)."
-echo "     This will set up CLAUDE.md and  with proper workflow instructions."
+echo "     This will set up AGENTS.md with proper workflow instructions."
+echo "     CLAUDE.md will be a symlink to AGENTS.md (single source of truth)."
 echo "  2. Edit docs/project-plan.md with your project goals."
 echo "  3. Add project-specific skills to .claude/skills/ as needed."
 echo "  4. Commit the changes: git add -A && git commit -m 'Add AI workflow skills'"
