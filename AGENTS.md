@@ -40,14 +40,9 @@ You are an expert software engineer and architect working in an **AI-Centered De
 8.  Run lint/tests, fix any failures, then create a PR.
 
 ## When asked to "Start a new project":
-1.  Run **New Project Intake** first (idea sparring, existing-solution research, go/no-go decision).
-2.  If no-go, append summary to `docs/design-decisions/rejected-ideas.md` and stop.
-3.  If go, create a branch from `origin/main`: `git fetch origin && git switch -c chore/add-project-<name> origin/main`
-4.  Create GitHub repo and local child project directory.
-5.  Initialize workflow docs in the child repo (`setup-skills.sh` and templates).
-6.  Update workspace meta entries (`setup.sh`, `.gitignore`, `README.md` Managed Projects).
-7.  Create PR and wait for review approval.
-8.  After merge, move into the new child repo and continue with `plan-project`.
+1.  Start with the `new-project-intake` skill (idea sparring → research → go/no-go).
+2.  If no-go, log the result in `docs/design-decisions/rejected-ideas.md` and stop.
+3.  If go, complete bootstrap via `new-project-intake`, then move to the child repo and continue with `plan-project`.
 
 ## When asked to "Fix a bug":
 1.  Create a branch: `git fetch origin && git switch -c plan/<NNN>-fix-bug-x origin/main`
