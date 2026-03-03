@@ -3,6 +3,8 @@
 # List of repositories to manage (use HTTPS URLs)
 REPOS=(
     "https://github.com/yoskeoka/reversi-adventure"
+    "https://github.com/yoskeoka/ai-arena"
+    "https://github.com/yoskeoka/vim-learning-game"
 )
 
 # Convert an HTTPS GitHub URL to SSH format
