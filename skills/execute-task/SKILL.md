@@ -8,7 +8,18 @@ metadata:
 
 # Execute Task (Workflow Step 3)
 
-**Position in workflow**: This is **Step 3** of the AI-Centered Development cycle. An execution plan (Step 2) must exist in `docs/exec-plan/todo/` before starting. After execution, proceed to Step 4 (Review) to create a PR.
+**Position in workflow**: This is **Step 3** of the AI-Centered Development cycle. An execution plan (Step 2) must be merged into `main` before starting. This step requires its own branch, and all lint/tests must pass before creating a PR.
+
+## Branch Setup
+
+Before making any changes, create a fresh branch from the latest `main`:
+
+```sh
+git fetch origin
+git switch -c feat/<NNN>-<description> origin/main
+```
+
+Use a descriptive branch name (e.g., `feat/001-initial-setup`, `fix/003-bug-x`).
 
 ## What to Do
 
@@ -66,8 +77,39 @@ When all tasks in the plan are done:
 
 1. Verify spec-code parity: `docs/specs/` matches the implementation.
 2. Move the plan file: `docs/exec-plan/todo/<NNN>-name.md` → `docs/exec-plan/done/<NNN>-name.md`.
-3. Proceed to Review (Step 4).
+3. Proceed to Verify & PR.
+
+## Verify (Pre-PR Gate)
+
+Run **all** project lint and test commands using non-AI tooling (e.g., `make lint`, `npm run lint`, `go vet`, `pytest`, `npm test`, or whatever the project defines).
+
+- If any check fails:
+    1. Fix the issue in the same branch.
+    2. Re-run the checks until **all pass**.
+- Do **NOT** proceed to PR creation until lint and tests are green.
+
+## PR Workflow
+
+After all checks pass:
+
+1. Push the branch and create a PR via `gh pr create`.
+2. The PR must include:
+    - Code changes.
+    - Spec updates (`docs/specs/`).
+    - The plan file moved to `docs/exec-plan/done/`.
+    - Verification artifacts (test results, screenshots, logs) for human review.
+3. Wait for GitHub PR review approval before merging into `main`.
+
+### Verification Standards by Task Type
+
+| Task Type   | Minimum Verification             |
+| ----------- | -------------------------------- |
+| Bug fix     | Reproduce → Fix → Verify fixed   |
+| Feature     | Tests pass + manual demo         |
+| Refactor    | Behavior unchanged + tests pass  |
+| Performance | Before/after metrics             |
+| Security    | Specific vulnerability addressed |
 
 ## Next Step
 
-After execution is complete and the plan is moved to `done/`, proceed to **Review** (Step 4): create a PR with all artifacts.
+After the PR is merged, repeat from **Step 1** (if the project plan needs updating) or **Step 2** (Execution Plan) for the next task. Repeat until the Project Plan is complete.

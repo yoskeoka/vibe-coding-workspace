@@ -12,12 +12,13 @@ This skill initializes and manages the AI-Centered Development workflow structur
 
 ## Overview
 
-The AI-Centered Development workflow consists of 4 repeating phases:
+The AI-Centered Development workflow consists of 3 repeating steps, each requiring its own branch and GitHub PR review:
 
-1. **Project Plan** — Define goals, significance, and requirements in `docs/project-plan.md`
-2. **Execution Plan** — Create task plans in `docs/exec-plan/todo/`
-3. **Execution** — Spec First → Implement → Log issues → Move plan to done
-4. **Review** — Create PR with code, spec updates, moved plan, and verification artifacts
+1. **Project Plan** — Define goals, significance, and requirements in `docs/project-plan.md` (branch + PR)
+2. **Execution Plan** — Create task plans in `docs/exec-plan/todo/` (branch + PR)
+3. **Execution** — Spec First → Implement → Verify (lint/test) → PR with code, spec updates, moved plan, and verification artifacts
+
+Every change goes through: **Branch from latest `main`** → **Work** → **Verify** → **PR** → **Review** → **Merge**.
 
 ## Core Principles
 
@@ -91,14 +92,22 @@ This project follows the AI-Centered Development workflow.
 1. **Workflow Adherence**:
    - NEVER skip the "Execution Plan" phase for non-trivial changes.
    - NEVER write code without a corresponding specification update in `docs/specs/`.
+   - ALWAYS create a new branch from the latest `main` before starting any work.
+   - ALWAYS go through GitHub PR review for every change — including doc-only changes.
 
-2. **Context Management**:
+2. **Branch & PR Rules**:
+   - Create a fresh branch from `origin/main` for every task: `git fetch origin && git switch -c <branch-name> origin/main`
+   - Never reuse an existing feature branch.
+   - Run all lint and test checks (non-AI tooling) before creating a PR.
+   - Create PRs via `gh pr create` and wait for review approval before merging.
+
+3. **Context Management**:
    - Your "memory" is the `docs/` directory.
    - `docs/project-plan.md` is your North Star.
    - `docs/exec-plan/todo/` is your current task list.
    - `docs/design-decisions/` is your architectural conscience.
 
-3. **Execution Rules**:
+4. **Execution Rules**:
    - **Plan First**: Before writing code, ensure a plan exists in `docs/exec-plan/todo/`. If not, create one.
    - **Spec First**: Update `docs/specs/` to reflect changes BEFORE modifying code.
    - **Focus**: If you find unrelated issues, log them in `docs/issues/<name>.md` and ignore them for the current task (unless they are blockers).

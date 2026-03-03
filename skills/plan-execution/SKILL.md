@@ -8,7 +8,7 @@ metadata:
 
 # Plan Execution (Workflow Step 2)
 
-**Position in workflow**: This is **Step 2** of the AI-Centered Development cycle. The project plan (Step 1) must exist before creating execution plans. After planning, proceed to Step 3 (Execution) to implement.
+**Position in workflow**: This is **Step 2** of the AI-Centered Development cycle. The project plan (Step 1) must exist and be merged before creating execution plans. This step requires its own branch and PR. After the plan is merged, proceed to Step 3 (Execution).
 
 ## Do I Need an Execution Plan?
 
@@ -29,6 +29,17 @@ Task received
 ```
 
 **When in doubt, create a plan.** The cost of an unnecessary plan is low; the cost of a botched unplanned change is high.
+
+## Branch Setup
+
+Before making any changes, create a fresh branch from the latest `main`:
+
+```sh
+git fetch origin
+git switch -c plan/<NNN>-<description> origin/main
+```
+
+Use a descriptive branch name (e.g., `plan/001-initial-setup`, `plan/002-feature-name`).
 
 ## What to Do
 
@@ -93,6 +104,14 @@ If the plan involves architectural choices, review and update `docs/design-decis
 - `adr.md`: Append the decision with context and rationale.
 - `core-beliefs.md`: Verify the decision aligns with guiding principles.
 
+## PR Workflow
+
+After the plan file is created:
+
+1. Commit the plan file and any related `docs/design-decisions/` updates on the branch.
+2. Push the branch and create a PR via `gh pr create`.
+3. Wait for GitHub PR review approval before merging into `main`.
+
 ## Next Step
 
-After the plan is created and confirmed, proceed to **Execution** (Step 3): update specs first, then implement code.
+After the execution plan PR is merged into `main`, proceed to **Execution** (Step 3): create a new branch, update specs first, then implement code.

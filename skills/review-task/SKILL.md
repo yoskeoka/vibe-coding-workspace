@@ -3,25 +3,55 @@ name: review-task
 description: When creating a pull request, preparing a PR for review, generating verification artifacts, collecting test results or screenshots for review, submitting changes for human review, or checking that all PR requirements (code, specs, plan, verification) are met.
 metadata:
   author: yoskeoka
-  version: '1.0.0'
+  version: '2.0.0'
 ---
 
-# Review Task (Workflow Step 4)
+# Review Task (PR Workflow Reference)
 
-**Position in workflow**: This is **Step 4** (final step) of the AI-Centered Development cycle. Execution (Step 3) must be complete and the plan must be in `docs/exec-plan/done/` before creating a PR. After review, repeat from Step 2 for the next task.
+**Position in workflow**: PR review is **not a standalone step** — it is embedded into every step of the AI-Centered Development cycle. Steps 1 (Project Plan), 2 (Execution Plan), and 3 (Execution) each require their own branch and PR. This skill describes the shared PR requirements and verification standards.
 
-## What to Do
+## Branch Rule
 
-Create a Pull Request that includes all required artifacts for human review.
+Every PR must come from a fresh branch created from the latest `main`:
 
-### PR Must Include
+```sh
+git fetch origin
+git switch -c <branch-name> origin/main
+```
 
-1. **Code changes**: The implementation from Step 3.
+Branch naming conventions:
+- Project plan changes: `plan/project-plan-<description>`
+- Execution plan changes: `plan/<NNN>-<description>`
+- Code execution: `feat/<NNN>-<description>` or `fix/<NNN>-<description>`
+
+## Pre-PR Gate (Verify)
+
+Before creating any PR, run **all** applicable checks:
+
+1. **Lint & Test**: Run project lint and test commands using non-AI tooling (e.g., `make lint`, `npm run lint`, `go vet`, `pytest`, `npm test`).
+2. **Fix failures**: If any check fails, fix in the same branch and re-run until all pass.
+3. **Doc-only PRs**: Skip lint/test when no tooling covers documentation, but still verify Markdown formatting.
+
+Do **NOT** create a PR until all checks are green.
+
+## PR Must Include
+
+The PR contents depend on which workflow step produced it:
+
+### For Step 1 (Project Plan) PRs
+- Updated `docs/project-plan.md`.
+
+### For Step 2 (Execution Plan) PRs
+- New plan file in `docs/exec-plan/todo/`.
+- Any `docs/design-decisions/` updates if architectural choices were made.
+
+### For Step 3 (Execution) PRs
+1. **Code changes**: The implementation.
 2. **Spec updates**: The updated `docs/specs/` files that match the code.
 3. **Plan file moved to `done/`**: The execution plan in `docs/exec-plan/done/` proving the task was completed through the proper workflow.
 4. **Verification artifacts**: Test results, screenshots, logs, or other evidence for human reviewers. Human review happens _after_ mechanical tests and verification data are ready.
 
-### Verification Standards by Task Type
+## Verification Standards by Task Type
 
 | Task Type   | Minimum Verification             |
 | ----------- | -------------------------------- |
@@ -31,20 +61,35 @@ Create a Pull Request that includes all required artifacts for human review.
 | Performance | Before/after metrics             |
 | Security    | Specific vulnerability addressed |
 
-### Pre-PR Checklist
+## Pre-PR Checklist
 
 Before creating the PR, verify:
 
-- [ ] `docs/specs/` matches the implementation (Spec-Code Parity).
-- [ ] Plan file has been moved from `docs/exec-plan/todo/` to `docs/exec-plan/done/`.
-- [ ] Tests pass and test results are available.
+- [ ] Branch was created from the latest `origin/main`.
+- [ ] `docs/specs/` matches the implementation (Spec-Code Parity) — for Step 3 PRs.
+- [ ] Plan file has been moved from `docs/exec-plan/todo/` to `docs/exec-plan/done/` — for Step 3 PRs.
+- [ ] All lint and test checks pass (non-AI tooling).
 - [ ] Any visual or behavioral changes have screenshots/logs attached.
 - [ ] No unresolved blockers remain (non-blockers should be in `docs/issues/`).
 
-### Verification First Principle
+## Creating the PR
+
+```sh
+git push origin <branch-name>
+gh pr create --title "<descriptive title>" --body "<summary of changes>"
+```
+
+Wait for GitHub PR review approval before merging into `main`.
+
+## Verification First Principle
 
 Human review happens **after** mechanical tests and "visual" verification data are ready. The PR should contain enough evidence that a reviewer can confirm correctness without running the code themselves.
 
-## Next Step
+## After Merge
 
-After the PR is reviewed and merged, return to **Execution Plan** (Step 2) to pick up the next task. Repeat Steps 2–4 until the Project Plan is complete.
+After the PR is merged, return to the appropriate workflow step:
+- If the project plan needs updating → Step 1 (Project Plan)
+- If the next task needs planning → Step 2 (Execution Plan)
+- If a plan is ready for implementation → Step 3 (Execution)
+
+Repeat steps 1–3 until the Project Plan is complete.
