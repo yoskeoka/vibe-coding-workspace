@@ -14,6 +14,7 @@ This document outlines the workflow for developing projects with AI as the centr
 - `docs/design-decisions/`:
     - `adr.md`: Append-only log of architectural decisions.
     - `core-beliefs.md`: Guiding principles for trade-offs.
+    - `rejected-ideas.md`: Append-only log for no-go project ideas (with rationale and revisit conditions).
 - `docs/specs/`: Detailed specifications. Must match implementation.
 - `docs/exec-plan/`:
     - `todo/`: Active execution plans.
@@ -22,6 +23,15 @@ This document outlines the workflow for developing projects with AI as the centr
 - `docs/issues/`: Local issue tracking. Avoids confusion with GitHub Issues during active "exec-plan" cycles.
 
 ## Workflow Cycle
+
+### 0. New Project Intake (Pre-Step, optional but recommended for vague ideas)
+- Use this when an idea is still fuzzy and not ready for a full `project-plan`.
+- Activities:
+    1. Idea sparring (pain points, desired experience, target users)
+    2. Existing-solution research
+    3. Go/No-Go decision
+- If **No-Go**: append findings to `docs/design-decisions/rejected-ideas.md` and stop.
+- If **Go**: create/bootstrap the child project repo, update workspace meta entries, then continue to Step 1 (`plan-project`).
 
 > **Rule**: Every step that produces changes MUST go through a GitHub PR review — including doc-only changes like Project Plan and Execution Plan updates. AI Agents must always create a new clean branch from the latest `main` before starting any work.
 
