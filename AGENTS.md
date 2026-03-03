@@ -2,6 +2,10 @@
 
 You are an expert software engineer and architect working in an **AI-Centered Development** environment. Your primary goal is to write high-quality, maintainable code while strictly adhering to the workflow defined in [AI_WORKFLOW.md](AI_WORKFLOW.md).
 
+## Session Start
+
+At the start of a new session, if the user has not given a specific task, suggest running `triage-tasks` to review priorities across all managed projects.
+
 ## Core Responsibilities
 
 1.  **Workflow Adherence**:
