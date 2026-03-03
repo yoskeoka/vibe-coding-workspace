@@ -39,6 +39,11 @@ You are an expert software engineer and architect working in an **AI-Centered De
 7.  Execute the plan following **Spec First** rule.
 8.  Run lint/tests, fix any failures, then create a PR.
 
+## When asked to "Start a new project":
+1.  Start with the `new-project-intake` skill (idea sparring → research → go/no-go).
+2.  If no-go, log the result in `docs/design-decisions/rejected-ideas.md` and stop.
+3.  If go, complete bootstrap via `new-project-intake`, then move to the child repo and continue with `plan-project`.
+
 ## When asked to "Fix a bug":
 1.  Create a branch: `git fetch origin && git switch -c plan/<NNN>-fix-bug-x origin/main`
 2.  Create a plan in `docs/exec-plan/todo/` (e.g., `003-fix-bug-x.md`).
