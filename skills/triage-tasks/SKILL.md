@@ -22,6 +22,7 @@ metadata:
 
 Read `setup.sh` in the workspace root to get the `REPOS` array.
 The workspace itself is also a target. Build the full list:
+
 - `vibe-coding-workspace` (this workspace)
 - Each child project from `REPOS`
 
@@ -43,6 +44,7 @@ Launch one **read-only** subagent per repo. Each subagent:
 ```
 
 **Subagent rules**:
+
 - Do NOT modify any files.
 - Do NOT inspect other repos.
 - If a source file/directory does not exist, skip it silently.
@@ -51,11 +53,11 @@ Launch one **read-only** subagent per repo. Each subagent:
 
 Merge all subagent results and tag each item:
 
-| Category | Criteria |
-|----------|----------|
-| **Must** | Blocking work, stale PRs (>3 days), security alerts, broken CI |
-| **Should** | High-impact project-plan gaps, significant exec-plan items |
-| **Quick Win** | <30 min effort, low risk, independent of other tasks |
+| Category      | Criteria                                                       |
+| ------------- | -------------------------------------------------------------- |
+| **Must**      | Blocking work, stale PRs (>3 days), security alerts, broken CI |
+| **Should**    | High-impact project-plan gaps, significant exec-plan items     |
+| **Quick Win** | <30 min effort, low risk, independent of other tasks           |
 
 ### Step 4: Prioritize
 
@@ -83,13 +85,15 @@ Write the confirmed Top 5 to `.local/priority.md` with TTL (default: 72h).
 Drop any entries whose TTL has expired from a previous run.
 
 Format:
+
 ```markdown
 # Current Priorities
+
 Updated: YYYY-MM-DD HH:MM
 
-| # | Task | Repo | Category | P | TTL | Status |
-|---|------|------|----------|---|-----|--------|
-| 1 | ...  | ...  | Must     | 25| 72h | not-started |
+| #   | Task | Repo | Category | P   | TTL | Status      |
+| --- | ---- | ---- | -------- | --- | --- | ----------- |
+| 1   | ...  | ...  | Must     | 25  | 72h | not-started |
 ```
 
 ### Step 7: Execution handoff
