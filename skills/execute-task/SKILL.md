@@ -59,13 +59,13 @@ When an issue in `docs/issues/` is resolved:
 
 After ANY correction from the user:
 
-1. Create or update `docs/issues/lessons.md` with the pattern.
+1. Create or update `docs/lessons.md` with the pattern.
 2. Use this format:
    - **Mistake**: What went wrong (be specific)
    - **Pattern**: The underlying cause or anti-pattern
    - **Rule**: Concrete, actionable rule to prevent recurrence
    - **Applied**: Where this rule applies (specific files, patterns, situations)
-3. Review `docs/issues/lessons.md` at session start for relevant learnings.
+3. Review `docs/lessons.md` at session start for relevant learnings.
 
 > "Be more careful" is not a rule. Rules must be specific and testable.
 

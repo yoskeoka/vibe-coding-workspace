@@ -20,6 +20,7 @@ This document outlines the workflow for developing projects with AI as the centr
     - `todo/`: Active execution plans.
     - `done/`: Completed execution plans.
 - `docs/references/`: Context for external tools/protocols (e.g., `fastapi-llms.txt`).
+- `docs/lessons.md`: Accumulated lessons learned. Reviewed at session start.
 - `docs/issues/`: Local issue tracking. Avoids confusion with GitHub Issues during active "exec-plan" cycles.
     - `done/`: Resolved issues (moved here after fix is merged).
 
