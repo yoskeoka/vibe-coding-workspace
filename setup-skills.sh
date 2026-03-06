@@ -70,25 +70,46 @@ echo "Submodule ready at $VENDOR_DIR"
 echo "---"
 
 # ----------------------------------------
-# Step 2: Create .claude/skills/ directory
+# Step 2: Create skill directories
 # ----------------------------------------
-mkdir -p .claude/skills
+# Skills are symlinked into three directories so that Claude Code, Gemini,
+# and other agents that read .agents/skills/ all discover them.
+SKILL_DIRS=(
+    ".claude/skills"
+    ".agents/skills"
+    ".gemini/skills"
+)
+
+for dir in "${SKILL_DIRS[@]}"; do
+    mkdir -p "$dir"
+done
 
 # ----------------------------------------
 # Step 3: Create symlinks for each skill
 # ----------------------------------------
 for skill in "${SKILLS[@]}"; do
-    link=".claude/skills/$skill"
-    target="../vendor/workflow/skills/$skill"
+    for dir in "${SKILL_DIRS[@]}"; do
+        link="$dir/$skill"
 
-    if [ -L "$link" ]; then
-        echo "Symlink already exists: $skill"
-    elif [ -e "$link" ]; then
-        echo "Warning: $link exists but is not a symlink. Skipping."
-    else
-        ln -s "$target" "$link"
-        echo "Linked: $skill → $target"
-    fi
+        # Compute relative path from the skill dir back to the vendor skills.
+        # .claude/skills/ → ../vendor/workflow/skills/<skill>
+        # .agents/skills/ → ../../.claude/vendor/workflow/skills/<skill>
+        # .gemini/skills/ → ../../.claude/vendor/workflow/skills/<skill>
+        if [ "$dir" = ".claude/skills" ]; then
+            target="../vendor/workflow/skills/$skill"
+        else
+            target="../../.claude/vendor/workflow/skills/$skill"
+        fi
+
+        if [ -L "$link" ]; then
+            echo "Symlink already exists: $dir/$skill"
+        elif [ -e "$link" ]; then
+            echo "Warning: $link exists but is not a symlink. Skipping."
+        else
+            ln -s "$target" "$link"
+            echo "Linked: $dir/$skill → $target"
+        fi
+    done
 done
 
 echo "---"
