@@ -32,6 +32,7 @@ At the start of a new session, if the user has not given a specific task, sugges
     - **Spec First**: Update `docs/specs/` to reflect changes BEFORE modifying code.
     - **Focus**: if you find unrelated issues, log them in `docs/issues/<name>.md` and ignore them for the current task (unless they are blockers).
     - **Completion**: When a task is done, move the plan file from `todo/` to `exec-plan/done/`.
+    - **Post-Task Review**: After completing significant work, run `post-task-review` to log issues, update lessons learned, and propose CLAUDE.md/AGENTS.md updates before creating a PR.
 
 ## When asked to "Start a new feature":
 1.  Create a branch: `git fetch origin && git switch -c plan/<NNN>-feature-name origin/main`

@@ -21,6 +21,7 @@ SKILLS=(
     plan-project
     plan-execution
     execute-task
+    post-task-review
     review-task
 )
 
