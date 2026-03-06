@@ -21,6 +21,7 @@ This document outlines the workflow for developing projects with AI as the centr
     - `done/`: Completed execution plans.
 - `docs/references/`: Context for external tools/protocols (e.g., `fastapi-llms.txt`).
 - `docs/issues/`: Local issue tracking. Avoids confusion with GitHub Issues during active "exec-plan" cycles.
+    - `done/`: Resolved issues (moved here after fix is merged).
 
 ## Workflow Cycle
 
@@ -72,6 +73,7 @@ This document outlines the workflow for developing projects with AI as the centr
 - **Spec First**: Update `docs/specs/` *before* modifying code.
 - **Implement**: Write the code to match the spec.
 - **Issues**: If unrelated problems are found, log them in `docs/issues/<name>.md`. Do not fix them within the current plan unless blocking.
+- **Issue Resolution**: When an issue is resolved, move its file from `docs/issues/` to `docs/issues/done/`.
 - **Completion**: Move the plan file from `docs/exec-plan/todo/` to `docs/exec-plan/done/`.
 - Follow the **PR Workflow** above (Verify → Create PR → Review).
 - The PR must include:

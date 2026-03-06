@@ -47,6 +47,14 @@ When encountering unrelated issues during execution:
 3. Continue with the current plan — do not get sidetracked.
 4. These issues can become future execution plans.
 
+### Issue Resolution
+
+When an issue in `docs/issues/` is resolved:
+
+1. Move the file from `docs/issues/<name>.md` to `docs/issues/done/<name>.md`.
+2. Include the move in the same PR that fixes the issue.
+3. Trivial issues (single-line fixes, typos, doc-only) may be fixed directly without a formal execution plan — just branch, fix, and PR.
+
 ### Self-Improvement Loop
 
 After ANY correction from the user:
@@ -84,8 +92,8 @@ When all tasks in the plan are done:
 Run **all** project lint and test commands using non-AI tooling (e.g., `make lint`, `npm run lint`, `go vet`, `pytest`, `npm test`, or whatever the project defines).
 
 - If any check fails:
-    1. Fix the issue in the same branch.
-    2. Re-run the checks until **all pass**.
+  1. Fix the issue in the same branch.
+  2. Re-run the checks until **all pass**.
 - Do **NOT** proceed to PR creation until lint and tests are green.
 
 ## PR Workflow
@@ -94,10 +102,10 @@ After all checks pass:
 
 1. Push the branch and create a PR via `gh pr create`.
 2. The PR must include:
-    - Code changes.
-    - Spec updates (`docs/specs/`).
-    - The plan file moved to `docs/exec-plan/done/`.
-    - Verification artifacts (test results, screenshots, logs) for human review.
+   - Code changes.
+   - Spec updates (`docs/specs/`).
+   - The plan file moved to `docs/exec-plan/done/`.
+   - Verification artifacts (test results, screenshots, logs) for human review.
 3. Wait for GitHub PR review approval before merging into `main`.
 
 ### Verification Standards by Task Type
