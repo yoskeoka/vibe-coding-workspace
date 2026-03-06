@@ -15,6 +15,8 @@ AI agents repeatedly violated workflow rules during development (e.g., misusing 
 - **Spec-sync**: Whether code changes require spec updates is context-dependent (bug fixes, refactors may not need spec changes). This is fundamentally undecidable by a shell script. Left to human review.
 - **Trivial detection**: Whether a change is "trivial" is a human declaration (via PR title/body `[trivial]`), not mechanically detectable.
 - **Project-specific lint**: `cargo clippy`, `eslint`, etc. are separate concerns managed per-project. Not in scope.
+- **Branch naming convention**: Current workflow docs use examples (`plan/002-feature-x`, `feat/002-feature-x`) but do not declare a mandatory naming rule. Linter enforcement requires a declared rule first. Out of scope until the rule is formalized.
+- **Exec plan existence / completion**: Checking whether a branch has a corresponding exec-plan file requires a branch-name-to-plan-file mapping convention (e.g., `feat/002-*` → `002-*.md`). This convention is implicit, not declared. Out of scope until the naming rule is formalized.
 
 ### Pre-commit hooks
 
@@ -27,22 +29,29 @@ AI agents repeatedly violated workflow rules during development (e.g., misusing 
 
 ## Checks
 
+Only rules that are **explicitly declared** in `AI_WORKFLOW.md` and **mechanically verifiable** are included.
+
 ### Pre-push checks (low false-positive, warning-only)
 
-| # | Check | Description | Severity |
-|---|-------|-------------|----------|
-| 1 | Branch naming | Branch must match `(plan\|feat\|fix\|chore\|docs)/<NNN>-*` or `(plan\|feat\|fix\|chore\|docs)/*` pattern | warning |
-| 2 | Exec plan exists | If branch name contains `<NNN>`, a matching file must exist in `docs/exec-plan/todo/` or `docs/exec-plan/done/` | warning |
-| 3 | Issue lifecycle | Files removed from `docs/issues/` must appear in `docs/issues/done/` (moved, not deleted) | warning |
+| # | Check | Description | Rule source | Severity |
+|---|-------|-------------|-------------|----------|
+| 1 | Issue lifecycle | Files removed from `docs/issues/` must appear in `docs/issues/done/` (moved, not deleted) | AI_WORKFLOW.md Step 3: "Issue Resolution" | warning |
 
 ### CI-only checks (may have false positives, uses PR metadata)
 
-| # | Check | Description | Severity |
-|---|-------|-------------|----------|
-| 4 | Docs-change hint | If code files changed but no `docs/` files changed, and PR title/body does not contain `[trivial]`, emit warning | warning |
-| 5 | Exec plan completion | If branch is `feat/` or `fix/`, check that the corresponding plan file is moved to `done/` (only if the plan file existed in `todo/`) | warning |
+| # | Check | Description | Rule source | Severity |
+|---|-------|-------------|-------------|----------|
+| 2 | Docs-change hint | If code files changed but no `docs/` files changed, and PR title/body does not contain `[trivial]`, emit warning | AI_WORKFLOW.md: "Spec-Code Parity" principle | warning |
 
 All checks are **warnings** (non-blocking). The goal is visibility, not gatekeeping.
+
+### Future checks (blocked on rule formalization)
+
+These checks are desirable but require workflow rule updates before implementation:
+
+- **Branch naming convention**: Needs a declared rule in `AI_WORKFLOW.md` (e.g., "Branch names MUST match `<type>/<NNN>-<description>` where type is plan|feat|fix|chore|docs").
+- **Exec plan existence**: Needs the branch naming rule above to establish the branch→plan mapping.
+- **Exec plan completion (todo→done)**: Same dependency on branch→plan mapping.
 
 ## File Structure
 
@@ -62,7 +71,6 @@ Distribution to child repos: via `setup-skills.sh` (rename to `setup-workspace.s
 - Bash script, `set -euo pipefail`
 - Accepts mode flag: `--mode=pre-push` or `--mode=ci`
 - CI mode accepts additional flags: `--pr-title=...` `--pr-body=...`
-- Reads branch name from `git branch --show-current`
 - Reads diff from `git diff --name-only --diff-filter=ADMR origin/main...HEAD`
 - Exit code 0 always (warnings only)
 - Output: colored warnings to stderr
