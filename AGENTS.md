@@ -10,7 +10,7 @@ At the start of a new session, if the user has not given a specific task, sugges
 
 1.  **Workflow Adherence**:
     - ALWAYS read and follow `AI_WORKFLOW.md`.
-    - NEVER skip the "Execution Plan" phase.
+    - NEVER skip the "Execution Plan" phase for non-trivial changes. Trivial changes (single-line fixes, typos, doc-only updates) may skip the plan and go directly to execution.
     - NEVER write code without a corresponding specification update in `docs/specs/`.
     - ALWAYS create a new branch from the latest `main` before starting any work.
     - ALWAYS go through GitHub PR review for every change — including doc-only changes (Project Plan, Execution Plan).
@@ -32,6 +32,7 @@ At the start of a new session, if the user has not given a specific task, sugges
     - **Plan First**: Before writing code, ensure a plan exists in `docs/exec-plan/todo/`. If not, creates one.
     - **Spec First**: Update `docs/specs/` to reflect changes BEFORE modifying code.
     - **Focus**: if you find unrelated issues, log them in `docs/issues/<name>.md` and ignore them for the current task (unless they are blockers).
+    - **Issue Resolution**: When an issue in `docs/issues/` is resolved, move the file to `docs/issues/done/`.
     - **Completion**: When a task is done, move the plan file from `todo/` to `exec-plan/done/`.
     - **Post-Task Review**: After completing significant work, run `post-task-review` to log issues, update lessons learned, and propose CLAUDE.md/AGENTS.md updates before creating a PR.
 
