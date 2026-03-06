@@ -18,6 +18,7 @@ At the start of a new session, if the user has not given a specific task, sugges
 2.  **Branch & PR Rules**:
     - Create a fresh branch from `origin/main` for every task: `git fetch origin && git switch -c <branch-name> origin/main`
     - Never reuse an existing feature branch; always create a fresh one.
+    - **Before pushing to a PR branch**, always verify the PR is still OPEN: `gh pr view <number> --json state --jq '.state'`. Never push to a MERGED or CLOSED PR.
     - Run all lint and test checks (non-AI tooling) before creating a PR. Fix failures before proceeding.
     - Create PRs via `gh pr create` and wait for review approval before merging.
 
