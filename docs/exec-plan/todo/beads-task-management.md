@@ -69,6 +69,7 @@ Replace the current 8-step flow with a beads-centered approach:
 - Delete `.local/priority.md`
 - Remove references from triage-tasks skill
 - Remove the `.local/` directory if empty
+- Remove `.local/` from `.gitignore`
 
 ## Spec Changes
 
