@@ -22,8 +22,8 @@ A personal vibe-coding workspace where AI agents do the heavy lifting to build g
 - [ ] AI_WORKFLOW.md defines the complete development lifecycle (project plan, exec-plan, execution, PR review)
 - [x] CLAUDE.md / AGENTS.md configures AI agent behavior to follow the workflow
 - [x] docs/ directory structure supports AI context retrieval (specs, plans, issues, decisions)
-- [ ] Branch naming convention is formally declared and enforceable
-- [ ] Exec-plan-to-branch mapping convention is formally declared
+- [x] Branch naming convention is formally declared and enforceable
+- [x] Exec-plan-to-branch mapping convention is formally declared
 
 ### Tooling
 - [ ] Workflow linter enforces declared rules mechanically (pre-push hook + CI)
@@ -47,7 +47,7 @@ A personal vibe-coding workspace where AI agents do the heavy lifting to build g
 ## Milestones
 
 - [x] Phase 1: Bootstrap workspace structure (docs/, AI_WORKFLOW.md, CLAUDE.md, setup.sh)
-- [ ] Phase 2: Formalize workflow rules (branch naming, exec-plan mapping conventions)
+- [x] Phase 2: Formalize workflow rules (branch naming, exec-plan mapping conventions)
 - [ ] Phase 3: Implement workflow linter (pre-push hook + CI checks)
 - [ ] Phase 4: Distribute shared tooling to child repos (hooks, linter, workspace setup)
 - [ ] Phase 5: Iterate on workflow based on child project feedback
