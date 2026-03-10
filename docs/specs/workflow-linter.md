@@ -62,6 +62,14 @@ Adds a hook installation step after skill symlink setup:
 - Calls `tools/install-hooks.sh` for the child repo
 - All existing functionality preserved
 
+### `.github/workflows/workflow-lint.yml`
+
+GitHub Actions workflow that runs the linter on PRs targeting `main`.
+
+- Triggers on `pull_request` to `main`
+- Checks out with full history (`fetch-depth: 0`) so `origin/main...HEAD` diff works
+- Passes PR title and body from GitHub event context to `--pr-title` / `--pr-body`
+
 ## Non-Goals
 
 - Spec-sync checking (context-dependent, left to human review)

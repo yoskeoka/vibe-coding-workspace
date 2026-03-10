@@ -64,10 +64,18 @@ fi
 
 info "Workflow linter running in ${MODE} mode"
 
-# Get changed files relative to origin/main
+# Determine base ref for diff
+# In GitHub Actions, GITHUB_BASE_REF is set to the PR target branch
+if [ -n "${GITHUB_BASE_REF:-}" ]; then
+    BASE_REF="origin/${GITHUB_BASE_REF}"
+else
+    BASE_REF="origin/main"
+fi
+
+# Get changed files relative to base
 # --diff-filter=D lists deleted files, ADMR lists added/deleted/modified/renamed
-CHANGED_FILES=$(git diff --name-only --diff-filter=ADMR origin/main...HEAD 2>/dev/null || true)
-DELETED_FILES=$(git diff --name-only --diff-filter=D origin/main...HEAD 2>/dev/null || true)
+CHANGED_FILES=$(git diff --name-only --diff-filter=ADMR "${BASE_REF}...HEAD" 2>/dev/null || true)
+DELETED_FILES=$(git diff --name-only --diff-filter=D "${BASE_REF}...HEAD" 2>/dev/null || true)
 
 if [ -z "$CHANGED_FILES" ] && [ -z "$DELETED_FILES" ]; then
     info "No changes detected relative to origin/main"
