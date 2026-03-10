@@ -1,5 +1,8 @@
 reversi-adventure/
 ai-arena/
 vim-learning-game/
-.local/
 
+
+# Dolt database files (added by bd init)
+.dolt/
+*.db
