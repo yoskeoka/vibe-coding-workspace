@@ -3,7 +3,7 @@ name: triage-tasks
 description: When starting a new session, reviewing priorities, running a daily briefing, triaging pending tasks across workspace and child projects, or deciding what to work on next.
 metadata:
   author: yoskeoka
-  version: '1.0.0'
+  version: '2.0.0'
 ---
 
 # Triage Tasks — Daily Briefing (Workspace-Only)
@@ -16,105 +16,81 @@ metadata:
 - When the user asks "what should I work on?" or "triage"
 - When returning after a break and context is stale
 
+## bd Quick Reference
+
+| Command | Action |
+|---------|--------|
+| `bd ready` | Show tasks with no open blockers (the "what next?" command) |
+| `bd list` | Show all tasks |
+| `bd create "Title" -p <0-4>` | Create task (0=critical, 4=low) |
+| `bd update <id> --claim` | Claim and start a task |
+| `bd close <id> --reason "Done"` | Close a completed task |
+| `bd dep add <child> <parent>` | Add dependency (child is blocked by parent) |
+| `bd show <id>` | View task details and audit trail |
+| `bd search <query>` | Search tasks |
+
 ## What to Do
 
-### Step 0: Check existing priorities
+### Step 1: Check current tasks
 
-Read `.local/priority.md`. If it exists and has non-expired entries (check TTL against current date):
+Run `bd ready` to show actionable tasks (no open blockers).
 
-1. Present the existing priority list to the user.
-2. Ask if they want to **use it as-is**, **update it**, or **re-triage from scratch**.
-3. If using as-is or updating, skip to **Step 5** (wall-hit and finalize).
-4. If re-triaging, continue to Step 1.
+- If tasks exist, present them to the user.
+- Ask the user to choose:
+  1. **Pick a task** — proceed to Step 4 (execution handoff).
+  2. **Update the list** — go to Step 2 to add/modify/close tasks.
+  3. **Full re-triage** — go to Step 3 to collect fresh data from all repos.
 
-If the file does not exist or all entries have expired, continue to Step 1.
+If no tasks exist (empty DB or all closed), go directly to Step 3.
 
-### Step 1: Identify managed repos
+### Step 2: Update tasks
 
-Read `setup.sh` in the workspace root to get the `REPOS` array.
-The workspace itself is also a target. Build the full list:
+Interactively update the task list based on user input:
 
-- `vibe-coding-workspace` (this workspace)
-- Each child project from `REPOS`
+- Create new tasks with `bd create`
+- Close completed tasks with `bd close`
+- Adjust priorities with `bd update <id> -p <0-4>`
+- Add/remove dependencies with `bd dep add` / `bd dep remove`
 
-### Step 2: Collect data (1 subagent per repo)
+After updates, run `bd ready` again and return to Step 1.
 
-Launch one **read-only** subagent per repo. Each subagent:
+### Step 3: Full re-triage
+
+Only run this when:
+- The beads DB is empty (first run or fresh start)
+- The user explicitly requests a full re-triage
+- Context is very stale (e.g., returning after a long break)
+
+**Collect data** (1 subagent per repo):
+
+Read `setup.sh` in the workspace root to get the `REPOS` array. Launch one **read-only** subagent per repo (plus the workspace itself). Each subagent:
 
 1. Reads `docs/project-plan.md` — find unchecked milestones and unmet requirements.
 2. Lists `docs/exec-plan/todo/` — summarize each pending plan file.
 3. Lists `docs/issues/` — summarize each logged issue.
 4. Runs `gh pr list --state open` — find open PRs, note review status.
-5. Runs `gh issue list --state open` — find open issues (including Dependabot / automated alerts).
-6. Returns a table in this exact format:
+5. Runs `gh issue list --state open` — find open issues.
+6. Returns a structured summary.
 
-```
-| Item | Source | Type | Effort | Risk | Suggested action |
-|------|--------|------|--------|------|------------------|
-| ...  | ...    | ...  | S/M/L  | L/M/H| ...              |
-```
+**Subagent rules**: Do NOT modify any files. Do NOT inspect other repos.
 
-**Subagent rules**:
+**Populate beads**: For each discovered item:
+- `bd create "Title" -p <priority>` with appropriate priority (0=critical, 4=low)
+- Use `bd dep add` to set dependencies where applicable
+- Tag items by repo/category in the title or description
 
-- Do NOT modify any files.
-- Do NOT inspect other repos.
-- If a source file/directory does not exist, skip it silently.
+After populating, run `bd ready` and return to Step 1.
 
-### Step 3: Classify
-
-Merge all subagent results and tag each item:
-
-| Category      | Criteria                                                       |
-| ------------- | -------------------------------------------------------------- |
-| **Must**      | Blocking work, stale PRs (>3 days), security alerts, broken CI |
-| **Should**    | High-impact project-plan gaps, significant exec-plan items     |
-| **Quick Win** | <30 min effort, low risk, independent of other tasks           |
-
-### Step 4: Prioritize
-
-Score each item:
-
-$$P = \frac{Impact \times Urgency \times Confidence}{Effort}$$
-
-Scale: 1–5 for each factor. Sort descending by P.
-
-Present the **Top 5** to the user in a compact table:
-
-```
-| # | Task | Repo | Category | P | Effort | Action |
-|---|------|------|----------|---|--------|--------|
-```
-
-### Step 5: Wall-hit and finalize
-
-- Allow 2–3 rounds of quick discussion to adjust the Top 5.
-- User confirms the final list.
-
-### Step 6: Save to `.local/priority.md`
-
-Write the confirmed Top 5 to `.local/priority.md` with TTL (default: 72h).
-Drop any entries whose TTL has expired from a previous run.
-
-Format:
-
-```markdown
-# Current Priorities
-
-Updated: YYYY-MM-DD HH:MM
-
-| #   | Task | Repo | Category | P   | TTL | Status      |
-| --- | ---- | ---- | -------- | --- | --- | ----------- |
-| 1   | ...  | ...  | Must     | 25  | 72h | not-started |
-```
-
-### Step 7: Execution handoff
+### Step 4: Execution handoff
 
 For each confirmed task, propose one of:
 
 1. **Do now (Quick Win)**: Execute immediately via subagent or directly.
-   - For trivial GitHub issue fixes (e.g., small dependency bumps), just do it.
+   - For trivial fixes (e.g., small dependency bumps), just do it.
 2. **Needs exec-plan**: Create `docs/exec-plan/todo/<name>.md` following `plan-execution` skill.
 3. **Separate session**: Generate copy-paste prompts for a fresh session.
+
+Claim the chosen task: `bd update <id> --claim`
 
 #### Separate-session prompt template
 
@@ -143,7 +119,7 @@ Generate **two versions** (Japanese + English) per task:
 ## Rules
 
 1. This skill is **workspace-only**. Do not distribute to child repos.
-2. Subagents are **read-only**. No file modifications during collection.
-3. The `.local/priority.md` file is **not Git-tracked**. It is a volatile convenience memo.
-4. Do not auto-execute tasks without user confirmation.
-5. Keep the briefing fast: aim for < 5 minutes to reach a confirmed Top 5.
+2. Subagents are **read-only** during data collection. No file modifications.
+3. Do not auto-execute tasks without user confirmation.
+4. Keep the briefing fast: aim for < 2 minutes to reach a task selection.
+5. Prefer `bd ready` over full re-triage. Full re-triage is expensive.
