@@ -43,8 +43,30 @@ This document outlines the workflow for developing projects with AI as the centr
     git fetch origin
     git switch -c <branch-name> origin/main
     ```
-- Use a descriptive branch name (e.g., `plan/project-plan-update`, `plan/002-feature-x`, `feat/002-feature-x`, `fix/003-bug-x`).
 - Never reuse an existing feature branch; always create a fresh one.
+
+#### Branch Naming Convention
+
+Branch names MUST match the pattern `<type>/<description>`:
+
+| Type   | Purpose                                     | Example                        |
+|--------|---------------------------------------------|--------------------------------|
+| `plan` | Execution plan creation/update              | `plan/feature-name`            |
+| `feat` | Feature implementation (from an exec-plan)  | `feat/feature-name`            |
+| `fix`  | Bug fix implementation (from an exec-plan)  | `fix/bug-name`                 |
+| `chore`| Non-functional changes (CI, tooling, deps)  | `chore/update-ci`              |
+| `docs` | Documentation-only changes                  | `docs/update-readme`           |
+
+The `<description>` is free-form kebab-case. No numeric prefixes — priority and ordering are determined by plan file content, not by naming.
+
+#### Exec-Plan Mapping
+
+The branch description and the exec-plan filename MUST share the same name:
+
+- `plan/<name>` branch creates `docs/exec-plan/todo/<name>.md`
+- `feat/<name>` or `fix/<name>` branch expects `docs/exec-plan/todo/<name>.md` to exist (or `done/<name>.md` if already completed)
+- After execution is complete, the plan file is moved from `todo/` to `done/`
+- Branches of type `chore` and `docs` are exempt (no exec-plan required)
 
 ### PR Workflow (applies to every step below)
 1. **Verify** — Run **all** project lint and test commands using non-AI tooling (e.g., `make lint`, `npm run lint`, `go vet`, `pytest`, `npm test`, or whatever the project defines). If any check fails, fix the issue in the same branch and re-run until **all pass**. Skip this for doc-only PRs when no lint/test tooling covers documentation.
@@ -60,8 +82,8 @@ This document outlines the workflow for developing projects with AI as the centr
 - Update this as the project evolves (each update = new branch + PR).
 
 ### 2. Execution Plan (`docs/exec-plan/todo/`) — **requires PR**
-- Create a new branch (e.g., `plan/001-initial-setup`).
-- Create a new plan file (e.g., `001-initial-setup.md`) in `todo/`.
+- Create a new branch (e.g., `plan/initial-setup`).
+- Create a new plan file (e.g., `initial-setup.md`) in `todo/`.
 - Detail:
     - Code changes.
     - Spec changes (How `docs/specs/` will change).
@@ -70,7 +92,7 @@ This document outlines the workflow for developing projects with AI as the centr
 - Follow the **PR Workflow** above to merge the plan into `main`.
 
 ### 3. Execution — **requires PR**
-- Create a new branch (e.g., `feat/001-initial-setup`).
+- Create a new branch (e.g., `feat/initial-setup`).
 - **Spec First**: Update `docs/specs/` *before* modifying code.
 - **Implement**: Write the code to match the spec.
 - **Issues**: If unrelated problems are found, log them in `docs/issues/<name>.md`. Do not fix them within the current plan unless blocking.

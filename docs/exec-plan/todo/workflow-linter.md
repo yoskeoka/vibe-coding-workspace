@@ -1,4 +1,4 @@
-# 001: Workflow Linter
+# Workflow Linter
 
 ## Objective
 
@@ -15,8 +15,8 @@ AI agents repeatedly violated workflow rules during development (e.g., misusing 
 - **Spec-sync**: Whether code changes require spec updates is context-dependent (bug fixes, refactors may not need spec changes). This is fundamentally undecidable by a shell script. Left to human review.
 - **Trivial detection**: Whether a change is "trivial" is a human declaration (via PR title/body `[trivial]`), not mechanically detectable.
 - **Project-specific lint**: `cargo clippy`, `eslint`, etc. are separate concerns managed per-project. Not in scope.
-- **Branch naming convention**: Current workflow docs use examples (`plan/002-feature-x`, `feat/002-feature-x`) but do not declare a mandatory naming rule. Linter enforcement requires a declared rule first. Out of scope until the rule is formalized.
-- **Exec plan existence / completion**: Checking whether a branch has a corresponding exec-plan file requires a branch-name-to-plan-file mapping convention (e.g., `feat/002-*` → `002-*.md`). This convention is implicit, not declared. Out of scope until the naming rule is formalized.
+- **Branch naming convention**: Now formalized in AI_WORKFLOW.md (see "Branch Naming Convention" section). Linter enforcement is unblocked — implement in a future plan.
+- **Exec plan existence / completion**: Now formalized in AI_WORKFLOW.md (see "Exec-Plan Mapping" section). Linter enforcement is unblocked — implement in a future plan.
 
 ### Pre-commit hooks
 
@@ -45,13 +45,13 @@ Only rules that are **explicitly declared** in `AI_WORKFLOW.md` and **mechanical
 
 All checks are **warnings** (non-blocking). The goal is visibility, not gatekeeping.
 
-### Future checks (blocked on rule formalization)
+### Future checks (now unblocked)
 
-These checks are desirable but require workflow rule updates before implementation:
+These checks are now implementable — the branch naming convention and exec-plan mapping rules have been formalized in AI_WORKFLOW.md:
 
-- **Branch naming convention**: Needs a declared rule in `AI_WORKFLOW.md` (e.g., "Branch names MUST match `<type>/<NNN>-<description>` where type is plan|feat|fix|chore|docs").
-- **Exec plan existence**: Needs the branch naming rule above to establish the branch→plan mapping.
-- **Exec plan completion (todo→done)**: Same dependency on branch→plan mapping.
+- **Branch naming convention**: Enforce `<type>/<description>` pattern where type is plan|feat|fix|chore|docs.
+- **Exec plan existence**: For `feat/*` and `fix/*` branches, verify `docs/exec-plan/todo/<name>.md` or `done/<name>.md` exists.
+- **Exec plan completion (todo→done)**: For merged `feat/*`/`fix/*` PRs, verify plan moved to `done/`.
 
 ## File Structure
 
