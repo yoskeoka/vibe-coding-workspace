@@ -17,7 +17,7 @@ A short entry in `AGENTS.md` MUST propose triage at the start of every new sessi
 - Keep to 1–2 lines. Details live in the skill.
 
 ### 2. Skill: `triage-tasks`
-A workspace-only skill (not distributed to child repos via `setup-skills.sh`).
+A workspace-only skill (not distributed to child repos via `setup-workspace.sh`).
 
 #### 2a. Data collection (subagent per repo)
 For each managed repo (workspace itself + child projects listed in `setup.sh` REPOS):

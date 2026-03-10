@@ -1,14 +1,14 @@
 #!/bin/bash
 set -euo pipefail
 
-# Setup AI workflow skills in a child repository.
+# Setup AI workflow skills and hooks in a child repository.
 #
 # Usage:
 #   Run this script from inside a child repository:
-#     /path/to/vibe-coding-workspace/setup-skills.sh
+#     /path/to/vibe-coding-workspace/setup-workspace.sh
 #
 #   Or specify the child repo path:
-#     /path/to/vibe-coding-workspace/setup-skills.sh /path/to/child-repo
+#     /path/to/vibe-coding-workspace/setup-workspace.sh /path/to/child-repo
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKFLOW_REPO_HTTPS="https://github.com/yoskeoka/vibe-coding-workspace.git"
@@ -40,7 +40,7 @@ fi
 
 # Don't run on the workflow repo itself
 if [ "$CHILD_REPO" = "$SCRIPT_DIR" ]; then
-    echo "Error: Cannot run setup-skills on the workflow repo itself."
+    echo "Error: Cannot run setup-workspace on the workflow repo itself."
     exit 1
 fi
 
@@ -152,8 +152,14 @@ elif [ ! -f "CLAUDE.md" ] && [ ! -f "AGENTS.md" ]; then
     echo "  Ask the AI agent: 'Initialize the AI workflow for this project'"
 fi
 
+# ----------------------------------------
+# Step 6: Install workflow hooks
+# ----------------------------------------
+echo "Installing workflow hooks..."
+"$SCRIPT_DIR/tools/install-hooks.sh" "$CHILD_REPO"
+
 echo "---"
-echo "Done! AI workflow skills are ready."
+echo "Done! AI workflow skills and hooks are ready."
 echo ""
 echo "Next steps:"
 echo "  1. Ask the AI agent to initialize the workflow (triggers manage-workflow skill)."

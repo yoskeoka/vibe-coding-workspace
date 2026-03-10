@@ -54,7 +54,7 @@ docs/
 
 ## Setup Instructions
 
-1. Run `setup-skills.sh` to set up submodule, symlinks, and docs/ templates (mechanical setup).
+1. Run `setup-workspace.sh` to set up submodule, symlinks, and docs/ templates (mechanical setup).
 2. Then follow the steps below to configure CLAUDE.md for this project.
 
 ## Configuring AGENTS.md and CLAUDE.md

@@ -40,16 +40,17 @@ To set up the AI workflow skills in a child repository:
 
 ```bash
 # From inside the child repo
-/path/to/vibe-coding-workspace/setup-skills.sh
+/path/to/vibe-coding-workspace/setup-workspace.sh
 
 # Or specify the child repo path
-/path/to/vibe-coding-workspace/setup-skills.sh /path/to/child-repo
+/path/to/vibe-coding-workspace/setup-workspace.sh /path/to/child-repo
 ```
 
 This will:
 1. Add this repo as a shallow Git submodule at `.claude/vendor/workflow/`
 2. Create symlinks in `.claude/skills/` for each workflow skill
 3. Copy `docs/` templates, `CLAUDE.md`, and `AGENTS.md` if they don't exist
+4. Install workflow hooks (pre-push linter)
 
 Child repos can add project-specific skills directly to `.claude/skills/`.
 

@@ -48,7 +48,7 @@ The file should be append-only and include:
 - references
 
 ### 3. Skill distribution boundary
-The new skill is **meta-repo only** and MUST NOT be distributed to child repos via `setup-skills.sh`.
+The new skill is **meta-repo only** and MUST NOT be distributed to child repos via `setup-workspace.sh`.
 
 Rationale:
 - This skill is for deciding whether to create a project and bootstrapping workspace-level assets.
