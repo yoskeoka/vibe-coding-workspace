@@ -18,6 +18,17 @@ metadata:
 
 ## What to Do
 
+### Step 0: Check existing priorities
+
+Read `.local/priority.md`. If it exists and has non-expired entries (check TTL against current date):
+
+1. Present the existing priority list to the user.
+2. Ask if they want to **use it as-is**, **update it**, or **re-triage from scratch**.
+3. If using as-is or updating, skip to **Step 5** (wall-hit and finalize).
+4. If re-triaging, continue to Step 1.
+
+If the file does not exist or all entries have expired, continue to Step 1.
+
 ### Step 1: Identify managed repos
 
 Read `setup.sh` in the workspace root to get the `REPOS` array.
@@ -102,7 +113,7 @@ For each confirmed task, propose one of:
 
 1. **Do now (Quick Win)**: Execute immediately via subagent or directly.
    - For trivial GitHub issue fixes (e.g., small dependency bumps), just do it.
-2. **Needs exec-plan**: Create `docs/exec-plan/todo/<NNN>-name.md` following `plan-execution` skill.
+2. **Needs exec-plan**: Create `docs/exec-plan/todo/<name>.md` following `plan-execution` skill.
 3. **Separate session**: Generate copy-paste prompts for a fresh session.
 
 #### Separate-session prompt template
@@ -112,7 +123,7 @@ Generate **two versions** (Japanese + English) per task:
 ```
 ## Task: <task name>
 **Target repo**: <owner/repo> at <local path>
-**Branch**: `git fetch origin && git switch -c <type>/<NNN>-<name> origin/main`
+**Branch**: `git fetch origin && git switch -c <type>/<name> origin/main`
 **Context to read first**:
 - docs/project-plan.md
 - docs/exec-plan/todo/<relevant plan if any>
