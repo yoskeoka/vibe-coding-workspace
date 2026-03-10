@@ -47,7 +47,7 @@ Run a structured intake flow:
 5. **GO path: project bootstrap**
    - Create GitHub repo if missing.
    - Ensure local project directory exists under this workspace.
-   - Initialize docs/workflow scaffold (use `setup-skills.sh` or template structure).
+   - Initialize docs/workflow scaffold (use `setup-workspace.sh` or template structure).
    - Update meta-repo management entries:
      - `setup.sh` (`REPOS`)
      - `.gitignore`
