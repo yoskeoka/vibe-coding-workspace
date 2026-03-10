@@ -13,13 +13,18 @@ Addresses:
 
 ### `setup.sh`
 
-Add beads installation via Homebrew:
+Add beads installation via Homebrew. If brew is not available, print an error with the beads repo URL and alternative install methods, then exit:
 
 ```bash
-if command -v brew &>/dev/null; then
-    if ! command -v bd &>/dev/null; then
+if ! command -v bd &>/dev/null; then
+    if command -v brew &>/dev/null; then
         echo "Installing beads..."
         brew install beads
+    else
+        echo "Error: beads (bd) is not installed and Homebrew is not available."
+        echo "Please install Homebrew first (https://brew.sh) or install beads manually:"
+        echo "  https://github.com/steveyegge/beads"
+        exit 1
     fi
 fi
 ```
