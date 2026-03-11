@@ -28,6 +28,8 @@ tools/workflow-lint.sh --mode=ci [--pr-title=TITLE] [--pr-body=BODY]
 |---|-------|------|-------------|-------------|
 | 1 | Issue lifecycle | pre-push, ci | Files removed from `docs/issues/` must appear in `docs/issues/done/` (moved, not deleted) | AI_WORKFLOW.md Step 3: "Issue Resolution" |
 | 2 | Docs-change hint | ci only | If code files changed but no `docs/` files changed, and PR title/body does not contain `[trivial]`, emit warning | AI_WORKFLOW.md: "Spec-Code Parity" principle |
+| 3 | Branch naming | pre-push, ci | Branch name must match `<type>/<description>` where type is `plan\|feat\|fix\|chore\|docs` and description is non-empty kebab-case. `main` is exempt. | AI_WORKFLOW.md: "Branch Naming Convention" |
+| 4 | Exec-plan existence | pre-push, ci | For `feat/*` and `fix/*` branches, `docs/exec-plan/todo/<name>.md` or `docs/exec-plan/done/<name>.md` must exist. `plan/*`, `chore/*`, `docs/*` branches are exempt. | AI_WORKFLOW.md: "Exec-Plan Mapping" |
 
 **Exit codes:**
 - Always 0 (warnings only)
@@ -75,5 +77,5 @@ GitHub Actions workflow that runs the linter on PRs targeting `main`.
 - Spec-sync checking (context-dependent, left to human review)
 - Trivial change detection (human declaration via `[trivial]`)
 - Project-specific lint (managed per-project)
-- Branch naming enforcement (future plan)
-- Exec-plan existence/completion enforcement (future plan)
+- ~~Branch naming enforcement~~ (implemented in Check 3)
+- ~~Exec-plan existence/completion enforcement~~ (implemented in Check 4)
