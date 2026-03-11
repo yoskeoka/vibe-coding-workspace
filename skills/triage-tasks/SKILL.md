@@ -31,6 +31,18 @@ metadata:
 
 ## What to Do
 
+### Step 0: Sync backup from git
+
+Before checking tasks, pull the latest backup and merge into the local Dolt DB:
+
+```bash
+git pull
+bd backup restore
+```
+
+`bd backup restore` is idempotent — safe to run on both fresh clones (empty DB) and
+existing databases. It merges JSONL data from `.beads/backup/` without creating duplicates.
+
 ### Step 1: Check current tasks
 
 Run `bd ready` to show actionable tasks (no open blockers).

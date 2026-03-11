@@ -34,8 +34,9 @@ dolt-server.port
 dolt-server.activity
 dolt-monitor.pid
 
-# Backup data (auto-exported JSONL, local-only)
-backup/
+# Backup data (auto-exported JSONL, tracked in git for cross-device sync)
+# Runtime state file is ignored; JSONL data files are tracked
+backup/backup_state.json
 
 # Legacy files (from pre-Dolt versions)
 *.db
