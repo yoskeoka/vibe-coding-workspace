@@ -176,7 +176,7 @@ check_branch_naming() {
     fi
 
     local valid_types="plan|feat|fix|chore|docs"
-    if ! echo "$branch" | grep -qE "^(${valid_types})/[a-z0-9][a-z0-9-]*[a-z0-9]$"; then
+    if ! echo "$branch" | grep -qE "^(${valid_types})/[a-z0-9]([a-z0-9-]*[a-z0-9])?$"; then
         warn "Invalid branch name: '${branch}'"
         warn "  WHY: Consistent naming enables automation and exec-plan mapping (AI_WORKFLOW.md Branch Naming Convention)"
         warn "  FIX: git switch -c <type>/<description> where:"
