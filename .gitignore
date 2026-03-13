@@ -7,3 +7,6 @@ ww/
 # Dolt database files (added by bd init)
 .dolt/
 *.db
+
+# beads runtime files
+.beads/dolt-monitor.pid.lock
