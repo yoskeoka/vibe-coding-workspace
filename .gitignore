@@ -9,4 +9,4 @@ ww/
 *.db
 
 # beads runtime files
-.beads/dolt-monitor.pid.lock
+.beads/dolt*
