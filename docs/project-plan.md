@@ -26,7 +26,7 @@ A personal vibe-coding workspace where AI agents do the heavy lifting to build g
 - [x] Exec-plan-to-branch mapping convention is formally declared
 
 ### Tooling
-- [ ] Workflow linter enforces declared rules mechanically (pre-push hook + CI)
+- [x] Workflow linter enforces declared rules mechanically (pre-push hook + CI)
 - [x] setup.sh clones and updates child project repos
 - [ ] Shared tooling (hooks, linter) is distributable to child repos
 - [ ] Triage skill aggregates status across all managed projects
@@ -48,6 +48,6 @@ A personal vibe-coding workspace where AI agents do the heavy lifting to build g
 
 - [x] Phase 1: Bootstrap workspace structure (docs/, AI_WORKFLOW.md, CLAUDE.md, setup.sh)
 - [x] Phase 2: Formalize workflow rules (branch naming, exec-plan mapping conventions)
-- [ ] Phase 3: Implement workflow linter (pre-push hook + CI checks)
+- [x] Phase 3: Implement workflow linter (pre-push hook + CI checks)
 - [ ] Phase 4: Distribute shared tooling to child repos (hooks, linter, workspace setup)
 - [ ] Phase 5: Iterate on workflow based on child project feedback
