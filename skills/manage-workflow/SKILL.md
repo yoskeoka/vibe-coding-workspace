@@ -57,6 +57,53 @@ docs/
 1. Run `setup-workspace.sh` to set up submodule, symlinks, and docs/ templates (mechanical setup).
 2. Then follow the steps below to configure CLAUDE.md for this project.
 
+## Updating the Workflow Submodule
+
+Child repos that use `.claude/vendor/workflow` as a submodule will frequently see diffs like:
+
+```
+diff --git a/.claude/vendor/workflow b/.claude/vendor/workflow
+--- a/.claude/vendor/workflow
++++ b/.claude/vendor/workflow
+@@ -1 +1 @@
+-Subproject commit abc1234...
++Subproject commit def5678...
+```
+
+### Quick update (recommended)
+
+From inside the child repository, run:
+
+```bash
+/path/to/vibe-coding-workspace/setup-workspace.sh --update
+```
+
+This will:
+1. Fetch the latest workflow commit from remote
+2. Update the submodule pointer
+3. Auto-commit the change with message `chore: update workflow submodule to <sha>`
+
+Then push with `git push`.
+
+### Update all child repos at once
+
+If you manage multiple child repos, create a simple loop:
+
+```bash
+WORKSPACE="/path/to/vibe-coding-workspace"
+for repo in /path/to/child-repo-1 /path/to/child-repo-2; do
+  echo "=== Updating $repo ==="
+  "$WORKSPACE/setup-workspace.sh" --update "$repo"
+  (cd "$repo" && git push)
+done
+```
+
+### When to update
+
+- **Before starting a new task**: ensures skills and hooks are current.
+- **When you see a dirty submodule diff**: run `--update` to apply and commit it cleanly.
+- **After pushing changes to the workflow repo**: update child repos to pick up the new version.
+
 ## Configuring AGENTS.md and CLAUDE.md
 
 `AGENTS.md` is the single source of truth for AI agent instructions. `CLAUDE.md` is a symlink pointing to `AGENTS.md`, so both Claude Code and other AI tools (Cursor, GitHub Copilot, Gemini CLI, etc.) read the same content.

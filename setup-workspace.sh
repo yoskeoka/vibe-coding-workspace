@@ -4,11 +4,14 @@ set -euo pipefail
 # Setup AI workflow skills and hooks in a child repository.
 #
 # Usage:
-#   Run this script from inside a child repository:
+#   Initial setup (from inside a child repository):
 #     /path/to/vibe-coding-workspace/setup-workspace.sh
 #
-#   Or specify the child repo path:
+#   Initial setup (specify child repo path):
 #     /path/to/vibe-coding-workspace/setup-workspace.sh /path/to/child-repo
+#
+#   Update submodule to latest and auto-commit:
+#     /path/to/vibe-coding-workspace/setup-workspace.sh --update [/path/to/child-repo]
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKFLOW_REPO_HTTPS="https://github.com/yoskeoka/vibe-coding-workspace.git"
@@ -25,9 +28,38 @@ SKILLS=(
     review-task
 )
 
+# ----------------------------------------
+# Parse arguments
+# ----------------------------------------
+UPDATE_MODE=false
+CHILD_REPO=""
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --update)
+            UPDATE_MODE=true
+            shift
+            ;;
+        --help|-h)
+            echo "Usage: setup-workspace.sh [--update] [child-repo-path]"
+            echo ""
+            echo "Options:"
+            echo "  --update    Update the workflow submodule to the latest version and commit"
+            echo "  --help      Show this help message"
+            echo ""
+            echo "If no child-repo-path is given, the current directory is used."
+            exit 0
+            ;;
+        *)
+            CHILD_REPO="$1"
+            shift
+            ;;
+    esac
+done
+
 # Determine child repo directory
-if [ -n "${1:-}" ]; then
-    CHILD_REPO="$(cd "$1" && pwd)"
+if [ -n "$CHILD_REPO" ]; then
+    CHILD_REPO="$(cd "$CHILD_REPO" && pwd)"
 else
     CHILD_REPO="$(pwd)"
 fi
@@ -45,6 +77,91 @@ if [ "$CHILD_REPO" = "$SCRIPT_DIR" ]; then
 fi
 
 cd "$CHILD_REPO"
+
+# ----------------------------------------
+# Update mode: just update the submodule and commit
+# ----------------------------------------
+if [ "$UPDATE_MODE" = true ]; then
+    echo "Updating workflow submodule in: $CHILD_REPO"
+
+    if [ ! -f ".gitmodules" ] || ! grep -q "$VENDOR_DIR" .gitmodules 2>/dev/null; then
+        echo "Error: Submodule $VENDOR_DIR not found. Run setup-workspace.sh first (without --update)."
+        exit 1
+    fi
+
+    # Abort if there are uncommitted changes (other than the submodule itself)
+    DIRTY_FILES="$(git status --porcelain --ignore-submodules=dirty | grep -v "^.. ${VENDOR_DIR}$" || true)"
+    if [ -n "$DIRTY_FILES" ]; then
+        echo ""
+        echo "========================================="
+        echo "  ERROR: Working tree has uncommitted changes"
+        echo "========================================="
+        echo ""
+        echo "$DIRTY_FILES"
+        echo ""
+        echo "Fix: commit or stash your changes first, then re-run:"
+        echo "  git stash && setup-workspace.sh --update && git stash pop"
+        echo ""
+        exit 1
+    fi
+
+    # Fetch and update the submodule to the latest remote commit
+    git submodule update --init --remote --depth 1 "$VENDOR_DIR"
+
+    # Check if the submodule actually changed
+    if git diff --quiet "$VENDOR_DIR" && git diff --cached --quiet "$VENDOR_DIR"; then
+        echo "Submodule already up to date. No new commit needed."
+    else
+        # Stage and commit the submodule pointer update
+        git add "$VENDOR_DIR"
+        NEW_SHA="$(cd "$VENDOR_DIR" && git rev-parse --short HEAD)"
+        git commit -m "chore: update workflow submodule to ${NEW_SHA}"
+        echo "Committed submodule update (${NEW_SHA})."
+    fi
+
+    # Push to remote (also handles previously committed but unpushed updates)
+    CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+    UPSTREAM="origin/${CURRENT_BRANCH}"
+
+    # Check if there's anything to push
+    if git rev-parse --verify "$UPSTREAM" &>/dev/null; then
+        UNPUSHED="$(git rev-list "${UPSTREAM}..HEAD" --count 2>/dev/null || echo 0)"
+        if [ "$UNPUSHED" = "0" ]; then
+            echo "Nothing to push. Local and remote are in sync."
+            exit 0
+        fi
+        echo "${UNPUSHED} commit(s) to push."
+    fi
+
+    echo "Pushing ${CURRENT_BRANCH} to origin..."
+    if git push origin "$CURRENT_BRANCH" 2>&1; then
+        echo "Pushed successfully."
+    else
+        PUSH_EXIT=$?
+        echo ""
+        echo "========================================="
+        echo "  ERROR: git push failed (exit ${PUSH_EXIT})"
+        echo "========================================="
+        echo ""
+        echo "Possible causes and fixes:"
+        echo ""
+        echo "  1. Remote has new commits (non-fast-forward):"
+        echo "     git pull --rebase origin ${CURRENT_BRANCH} && git push origin ${CURRENT_BRANCH}"
+        echo ""
+        echo "  2. No push permission:"
+        echo "     Check your SSH key or token: ssh -T git@github.com"
+        echo ""
+        echo "  3. Branch protection rules:"
+        echo "     Push to a feature branch and create a PR instead:"
+        echo "     git switch -c chore/update-workflow && git push -u origin chore/update-workflow"
+        echo ""
+        echo "  4. Network issue:"
+        echo "     Retry: git push origin ${CURRENT_BRANCH}"
+        echo ""
+        exit 1
+    fi
+    exit 0
+fi
 
 echo "Setting up AI workflow skills in: $CHILD_REPO"
 echo "---"
