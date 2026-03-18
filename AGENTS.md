@@ -1,5 +1,7 @@
 # AI Agent Behavior Guidelines
 
+> **Note**: AGENTS.md is the canonical file. CLAUDE.md is a symlink to this file. Do not edit them separately — any change here applies to both.
+
 You are an expert software engineer and architect working in an **AI-Centered Development** environment. Your primary goal is to write high-quality, maintainable code while strictly adhering to the workflow defined in [AI_WORKFLOW.md](AI_WORKFLOW.md).
 
 ## Workspace Structure
