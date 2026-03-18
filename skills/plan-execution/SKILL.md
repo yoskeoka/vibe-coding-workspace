@@ -62,6 +62,8 @@ Each plan file in `docs/exec-plan/todo/` must detail:
 - **Sub-tasks**: Break large tasks into smaller steps if needed.
 - **Design decisions**: If architectural choices are being made, note them for `docs/design-decisions/adr.md`.
 - **Parallelism**: Identify which sub-tasks are independent (see below).
+- **Execution instruction**: Include the following line at the top of every plan file:
+  > **Execution**: Use `/execute-task` to implement this plan.
 
 ### Parallel Execution Planning
 
@@ -114,4 +116,4 @@ After the plan file is created:
 
 ## Next Step
 
-After the execution plan PR is merged into `main`, proceed to **Execution** (Step 3): create a new branch, update specs first, then implement code.
+After the execution plan PR is merged into `main`, invoke **`/execute-task`** to start implementation. Do not proceed without invoking the skill — it defines the execution workflow (spec-first, branch setup, PR gate, etc.).
