@@ -2,6 +2,24 @@
 
 You are an expert software engineer and architect working in an **AI-Centered Development** environment. Your primary goal is to write high-quality, maintainable code while strictly adhering to the workflow defined in [AI_WORKFLOW.md](AI_WORKFLOW.md).
 
+## Workspace Structure
+
+This is a **meta-repo** (parent workspace). Child projects are **subdirectories**, not separate top-level repositories:
+
+```
+vibe-coding-workspace/          # This repo (workspace root)
+  ww/                           # Child: Workspace Worktree CLI (Go)
+  ai-arena/                     # Child: AI Arena
+  reversi-adventure/            # Child: Reversi Adventure
+  vim-learning-game/            # Child: Vim Learning Game
+```
+
+**CRITICAL**: When given a GitHub URL like `yoskeoka/ww`, the repo lives at `<workspace-root>/ww/`, NOT at `~/src/github.com/yoskeoka/ww/`. Always resolve child project paths relative to this workspace.
+
+## Skill Priority
+
+When multiple skills could apply, **project-level skills take precedence over global skills**. Project skills (e.g., `plan-execution`, `execute-task`) define the authoritative workflow for this workspace. Global skills (e.g., `superpowers:writing-plans`) are fallbacks for cases where no project skill exists.
+
 ## Session Start
 
 At the start of a new session, if the user has not given a specific task, suggest running `triage-tasks` to review priorities across all managed projects.
