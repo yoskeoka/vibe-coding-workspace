@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # ---- Prerequisites ----
 
 # Ensure beads (bd) is installed
@@ -89,6 +91,15 @@ for repo_url in "${REPOS[@]}"; do
     if [ -d "$dir_name" ] && ! grep -q "^$dir_name/$" .gitignore; then
         echo "Adding $dir_name/ to .gitignore..."
         echo "$dir_name/" >> .gitignore
+    fi
+
+    # Run setup-workspace.sh to sync AI workflow skills and submodule
+    if [ -d "$dir_name/.git" ]; then
+        echo "Running setup-workspace.sh for $dir_name..."
+        if ! "$SCRIPT_DIR/setup-workspace.sh" "$dir_name"; then
+            echo "Error: setup-workspace.sh failed for $dir_name" >&2
+            exit 1
+        fi
     fi
 
     echo "-----------------------------------"
