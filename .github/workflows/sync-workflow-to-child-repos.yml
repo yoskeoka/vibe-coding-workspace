@@ -8,6 +8,9 @@ jobs:
   sync:
     name: Sync to ${{ matrix.repo }}
     runs-on: ubuntu-latest
+    concurrency:
+      group: sync-workflow-to-child-repos-${{ matrix.repo }}
+      cancel-in-progress: true
     strategy:
       matrix:
         repo: [ai-arena, reversi-adventure, vim-learning-game, ww]
