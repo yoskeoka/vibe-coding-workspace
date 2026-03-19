@@ -88,11 +88,12 @@ jobs:
           git -C .claude/vendor/workflow checkout "${NEW_SHA}"
 
           git add .claude/vendor/workflow
-          git commit -m "chore: update workflow submodule to ${SHORT_SHA}
+          COMMIT_MSG="chore: update workflow submodule to ${SHORT_SHA}
 
 Automated sync from yoskeoka/vibe-coding-workspace@${NEW_SHA}
 
 Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+          git commit -m "${COMMIT_MSG}"
 
           git push origin "${BRANCH}"
 
