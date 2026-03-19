@@ -79,7 +79,7 @@ echo "---"
 # Step 1: Add submodule
 # ----------------------------------------
 if [ -f ".gitmodules" ] && grep -q "$VENDOR_DIR" .gitmodules 2>/dev/null; then
-    echo "Submodule already exists at $VENDOR_DIR. Skipping."
+    echo "Submodule already exists at $VENDOR_DIR. Ensuring it is initialized."
     git submodule update --init --depth 1 "$VENDOR_DIR"
 else
     echo "Adding workflow submodule (shallow clone)..."
