@@ -1,0 +1,118 @@
+name: Sync Workflow to Child Repos
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  sync:
+    name: Sync to ${{ matrix.repo }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: sync-workflow-to-child-repos-${{ matrix.repo }}
+      cancel-in-progress: true
+    strategy:
+      matrix:
+        repo: [ai-arena, reversi-adventure, vim-learning-game, ww]
+      fail-fast: false
+
+    steps:
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          # Rewrite SSH submodule URLs to HTTPS (reversi-adventure uses SSH)
+          git config --global url."https://x-access-token:${{ secrets.WORKFLOW_SYNC_GITHUB_TOKEN }}@github.com/".insteadOf "git@github.com:"
+
+      - name: Clone child repo
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_SYNC_GITHUB_TOKEN }}
+        run: |
+          git clone \
+            https://x-access-token:${GH_TOKEN}@github.com/yoskeoka/${{ matrix.repo }}.git \
+            child-repo
+
+      - name: Check if update is needed
+        id: check
+        run: |
+          cd child-repo
+          git submodule update --init .claude/vendor/workflow
+          CURRENT_SHA=$(git -C .claude/vendor/workflow rev-parse HEAD)
+          NEW_SHA="${{ github.sha }}"
+          echo "current_sha=${CURRENT_SHA}" >> $GITHUB_OUTPUT
+          if [ "$CURRENT_SHA" = "$NEW_SHA" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "Submodule already at $NEW_SHA, skipping."
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "Will update: $CURRENT_SHA → $NEW_SHA"
+          fi
+
+      - name: Close stale sync PRs
+        if: steps.check.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_SYNC_GITHUB_TOKEN }}
+          NEW_SHA: ${{ github.sha }}
+        run: |
+          SHORT_SHA="${NEW_SHA:0:7}"
+
+          # Collect all open workflow-sync PRs (numbers and their branch names)
+          gh pr list \
+            --repo yoskeoka/${{ matrix.repo }} \
+            --state open \
+            --label workflow-sync \
+            --json number,headRefName \
+            --jq '.[] | "\(.number) \(.headRefName)"' \
+          | while read -r PR_NUM PR_BRANCH; do
+              echo "Closing stale sync PR #${PR_NUM} (${PR_BRANCH}) — superseded by ${SHORT_SHA}"
+              gh pr close "${PR_NUM}" \
+                --repo yoskeoka/${{ matrix.repo }} \
+                --comment ":recycle: Closing this PR because it has been superseded by a newer workflow sync to [\`${SHORT_SHA}\`](https://github.com/yoskeoka/vibe-coding-workspace/commit/${NEW_SHA}). Please merge the latest PR instead." \
+                --delete-branch
+            done
+
+      - name: Create sync PR with latest submodule
+        if: steps.check.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_SYNC_GITHUB_TOKEN }}
+          NEW_SHA: ${{ github.sha }}
+        run: |
+          cd child-repo
+          SHORT_SHA="${NEW_SHA:0:7}"
+          BRANCH="workflow-sync/${SHORT_SHA}"
+
+          git checkout -b "${BRANCH}"
+
+          # Point submodule to the exact commit that triggered this workflow
+          git -C .claude/vendor/workflow fetch origin
+          git -C .claude/vendor/workflow checkout "${NEW_SHA}"
+
+          git add .claude/vendor/workflow
+          git commit -m "chore: update workflow submodule to ${SHORT_SHA}
+
+Automated sync from yoskeoka/vibe-coding-workspace@${NEW_SHA}
+
+Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+
+          git push origin "${BRANCH}"
+
+          gh pr create \
+            --repo yoskeoka/${{ matrix.repo }} \
+            --title "chore: update workflow submodule to ${SHORT_SHA}" \
+            --body "## Automated Workflow Sync
+
+Updates \`.claude/vendor/workflow\` submodule to the latest version.
+
+| | |
+|---|---|
+| **Source repo** | [yoskeoka/vibe-coding-workspace](https://github.com/yoskeoka/vibe-coding-workspace) |
+| **Commit** | [\`${SHORT_SHA}\`](https://github.com/yoskeoka/vibe-coding-workspace/commit/${NEW_SHA}) |
+| **Previous** | \`${{ steps.check.outputs.current_sha }}\` |
+
+> [!NOTE]
+> Any older \`workflow-sync\` PRs in this repository have been automatically closed. This is the only PR to merge.
+
+This PR was created automatically by the \`sync-workflow-to-child-repos\` GitHub Actions workflow." \
+            --base main \
+            --head "${BRANCH}" \
+            --label workflow-sync
