@@ -88,25 +88,35 @@ jobs:
           git -C .claude/vendor/workflow checkout "${NEW_SHA}"
 
           git add .claude/vendor/workflow
-          COMMIT_MSG=$(printf '%s\n\n%s\n\n%s' \
-            "chore: update workflow submodule to ${SHORT_SHA}" \
-            "Automated sync from yoskeoka/vibe-coding-workspace@${NEW_SHA}" \
-            "Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>")
+          COMMIT_MSG=$(cat << EOF
+          chore: update workflow submodule to ${SHORT_SHA}
+
+          Automated sync from yoskeoka/vibe-coding-workspace@${NEW_SHA}
+
+          Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+          EOF
+          )
           git commit -m "${COMMIT_MSG}"
 
           git push origin "${BRANCH}"
 
-          PR_BODY=$(printf '%s\n\n%s\n\n%s\n%s\n%s\n%s\n%s\n\n%s\n%s\n\n%s' \
-            "## Automated Workflow Sync" \
-            "Updates \`.claude/vendor/workflow\` submodule to the latest version." \
-            "| | |" \
-            "|---|---|" \
-            "| **Source repo** | [yoskeoka/vibe-coding-workspace](https://github.com/yoskeoka/vibe-coding-workspace) |" \
-            "| **Commit** | [\`${SHORT_SHA}\`](https://github.com/yoskeoka/vibe-coding-workspace/commit/${NEW_SHA}) |" \
-            "| **Previous** | \`${{ steps.check.outputs.current_sha }}\` |" \
-            "> [!NOTE]" \
-            "> Any older \`workflow-sync\` PRs in this repository have been automatically closed. This is the only PR to merge." \
-            "This PR was created automatically by the \`sync-workflow-to-child-repos\` GitHub Actions workflow.")
+          PR_BODY=$(cat << EOF
+          ## Automated Workflow Sync
+
+          Updates \`.claude/vendor/workflow\` submodule to the latest version.
+
+          | | |
+          |---|---|
+          | **Source repo** | [yoskeoka/vibe-coding-workspace](https://github.com/yoskeoka/vibe-coding-workspace) |
+          | **Commit** | [\`${SHORT_SHA}\`](https://github.com/yoskeoka/vibe-coding-workspace/commit/${NEW_SHA}) |
+          | **Previous** | \`${{ steps.check.outputs.current_sha }}\` |
+
+          > [!NOTE]
+          > Any older \`workflow-sync\` PRs in this repository have been automatically closed. This is the only PR to merge.
+
+          This PR was created automatically by the \`sync-workflow-to-child-repos\` GitHub Actions workflow.
+          EOF
+          )
 
           gh pr create \
             --repo yoskeoka/${{ matrix.repo }} \
