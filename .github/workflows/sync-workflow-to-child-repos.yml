@@ -1,0 +1,143 @@
+name: Sync Workflow to Child Repos
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  sync:
+    name: Sync to ${{ matrix.repo }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo: [ai-arena, reversi-adventure, vim-learning-game, ww]
+      fail-fast: false
+
+    steps:
+      - name: Checkout vibe-coding-workspace
+        uses: actions/checkout@v4
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          # Rewrite SSH submodule URLs to HTTPS (reversi-adventure uses SSH)
+          git config --global url."https://x-access-token:${{ secrets.WORKFLOW_SYNC_PAT }}@github.com/".insteadOf "git@github.com:"
+
+      - name: Clone child repo
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_SYNC_PAT }}
+        run: |
+          git clone \
+            https://x-access-token:${GH_TOKEN}@github.com/yoskeoka/${{ matrix.repo }}.git \
+            child-repo
+
+      - name: Check if update is needed
+        id: check
+        run: |
+          cd child-repo
+          git submodule update --init .claude/vendor/workflow
+          CURRENT_SHA=$(git -C .claude/vendor/workflow rev-parse HEAD)
+          NEW_SHA="${{ github.sha }}"
+          echo "current_sha=${CURRENT_SHA}" >> $GITHUB_OUTPUT
+          echo "new_sha=${NEW_SHA}" >> $GITHUB_OUTPUT
+          if [ "$CURRENT_SHA" = "$NEW_SHA" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "Submodule already at $NEW_SHA, skipping."
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "Will update: $CURRENT_SHA → $NEW_SHA"
+          fi
+
+      - name: Check for existing open PR
+        id: existing_pr
+        if: steps.check.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_SYNC_PAT }}
+        run: |
+          EXISTING=$(gh pr list \
+            --repo yoskeoka/${{ matrix.repo }} \
+            --state open \
+            --label workflow-sync \
+            --json number \
+            --jq '.[0].number // ""')
+          echo "pr_number=${EXISTING}" >> $GITHUB_OUTPUT
+          if [ -n "$EXISTING" ]; then
+            echo "Existing open sync PR #${EXISTING} found."
+          fi
+
+      - name: Create sync branch and update submodule
+        if: steps.check.outputs.skip == 'false' && steps.existing_pr.outputs.pr_number == ''
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_SYNC_PAT }}
+        run: |
+          cd child-repo
+          NEW_SHA="${{ github.sha }}"
+          SHORT_SHA="${NEW_SHA:0:7}"
+          BRANCH="workflow-sync/${SHORT_SHA}"
+
+          git checkout -b "${BRANCH}"
+
+          # Point submodule to the exact commit that triggered this workflow
+          git -C .claude/vendor/workflow fetch origin
+          git -C .claude/vendor/workflow checkout "${NEW_SHA}"
+
+          git add .claude/vendor/workflow
+          git commit -m "chore: update workflow submodule to ${SHORT_SHA}
+
+Automated sync from yoskeoka/vibe-coding-workspace@${NEW_SHA}
+
+Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+
+          git push origin "${BRANCH}"
+
+          gh pr create \
+            --repo yoskeoka/${{ matrix.repo }} \
+            --title "chore: update workflow submodule to ${SHORT_SHA}" \
+            --body "## Automated Workflow Sync
+
+Updates \`.claude/vendor/workflow\` submodule to the latest version.
+
+| | |
+|---|---|
+| **Source repo** | [yoskeoka/vibe-coding-workspace](https://github.com/yoskeoka/vibe-coding-workspace) |
+| **Commit** | [\`${SHORT_SHA}\`](https://github.com/yoskeoka/vibe-coding-workspace/commit/${NEW_SHA}) |
+| **Previous** | \`${{ steps.check.outputs.current_sha }}\` |
+
+This PR was created automatically by the \`sync-workflow-to-child-repos\` GitHub Actions workflow." \
+            --base main \
+            --head "${BRANCH}" \
+            --label workflow-sync
+
+      - name: Update existing PR branch
+        if: steps.check.outputs.skip == 'false' && steps.existing_pr.outputs.pr_number != ''
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_SYNC_PAT }}
+        run: |
+          cd child-repo
+          NEW_SHA="${{ github.sha }}"
+          SHORT_SHA="${NEW_SHA:0:7}"
+          PR_NUMBER="${{ steps.existing_pr.outputs.pr_number }}"
+
+          # Get the branch name of the existing PR
+          BRANCH=$(gh pr view "${PR_NUMBER}" \
+            --repo yoskeoka/${{ matrix.repo }} \
+            --json headRefName \
+            --jq '.headRefName')
+
+          git fetch origin "${BRANCH}"
+          git checkout "${BRANCH}"
+
+          git -C .claude/vendor/workflow fetch origin
+          git -C .claude/vendor/workflow checkout "${NEW_SHA}"
+
+          git add .claude/vendor/workflow
+          git commit -m "chore: update workflow submodule to ${SHORT_SHA}
+
+Automated sync from yoskeoka/vibe-coding-workspace@${NEW_SHA}"
+
+          git push origin "${BRANCH}"
+
+          gh pr comment "${PR_NUMBER}" \
+            --repo yoskeoka/${{ matrix.repo }} \
+            --body "Updated to [\`${SHORT_SHA}\`](https://github.com/yoskeoka/vibe-coding-workspace/commit/${NEW_SHA})"
