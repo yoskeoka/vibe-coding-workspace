@@ -14,9 +14,6 @@ jobs:
       fail-fast: false
 
     steps:
-      - name: Checkout vibe-coding-workspace
-        uses: actions/checkout@v4
-
       - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
