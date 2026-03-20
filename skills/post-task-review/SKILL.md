@@ -24,8 +24,8 @@ Do NOT use for trivial changes (typo fixes, single-line edits).
 ```
 Task completed
     │
-    ├─ 1. Find Missing User Intent
-    │     └─ Identify any user intent that was not fulfilled during the task
+    ├─ 1. Capture Unrecorded User Intent
+    │     └─ Capture user intent/rationale not yet persisted to project memory
     │
     ├─ 2. Review Findings
     │     └─ Present prioritized summary to user
@@ -40,12 +40,25 @@ Task completed
           └─ Apply with user approval
 ```
 
-### 1. Find Missing User Intent
+### 1. Capture Unrecorded User Intent
 
-Identify any user intent that was not fulfilled during the task. This could be:
+Review the session for user knowledge that was expressed or implied but NOT yet persisted to project memory (`CLAUDE.md`, `AGENTS.md`, `docs/design-decisions/`, `docs/specs/`).
 
-- System Requirements: Missing required constraints, performance targets, or compatibility needs
-- Reasons of Decision: Unstated rationale behind a choice that would be important for future work
+**What to look for:**
+
+- **Context injections**: The user provided background, motivation, or "why" that guided the work — is it captured in project docs?
+- **Unexplained choices**: The user selected an option (e.g., "skip this", "use approach A") without stating the reasoning. Ask: "You chose X over Y — what was your reasoning?" and persist the answer.
+- **Corrected assumptions**: The user corrected the agent's understanding of goals, scope, or priorities — is the corrected understanding now reflected in project memory?
+- **Implicit goals**: Objectives or constraints that the user "just knows" but that don't appear anywhere in `docs/` or `CLAUDE.md`. These surfaced naturally during conversation but would be lost at session end.
+
+**Process:**
+
+1. Scan the session for moments where the user injected context, made a choice, or corrected direction.
+2. For each, check: is this knowledge already in project memory?
+3. If not, ask the user to verbalize the intent/rationale (if they haven't already).
+4. Collect these items — they feed into Step 5 (propose where to persist them).
+
+> The goal is **knowledge capture**, not task-completion tracking. "Did we finish everything?" belongs in the exec-plan status, not here.
 
 ### 2. Review Findings
 
@@ -86,7 +99,7 @@ Check if corrections occurred during the task. If so, create or update `docs/iss
 Check if the work revealed knowledge that would reduce future investigation time:
 
 - **Project-specific insights**: Non-obvious information about the codebase, architecture, or design decisions
-  - Use "Step 1. Find Missing User Intent" result and refer to `docs/design-decisions/adr.md` and `core-beliefs.md` for existing design knowledge
+  - Use "Step 1. Capture Unrecorded User Intent" result and refer to `docs/design-decisions/adr.md` and `core-beliefs.md` for existing design knowledge
 - **Build/test commands**: New crates, test targets, or lint configurations
 - **Architecture notes**: How subsystems connect, data flow, key design decisions
 - **Duplication risks**: List of files that must be updated together
