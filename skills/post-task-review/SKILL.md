@@ -99,7 +99,7 @@ Check if corrections occurred during the task. If so, create or update `docs/iss
 Check if the work revealed knowledge that would reduce future investigation time:
 
 - **Project-specific insights**: Non-obvious information about the codebase, architecture, or design decisions
-  - Use "Step 1. Capture Unrecorded User Intent" result and refer to `docs/design-decisions/adr.md` and `core-beliefs.md` for existing design knowledge
+  - Use "Step 1. Capture Unrecorded User Intent" result and refer to `docs/design-decisions/adr.md` and `docs/design-decisions/core-beliefs.md` for existing design knowledge
 - **Build/test commands**: New crates, test targets, or lint configurations
 - **Architecture notes**: How subsystems connect, data flow, key design decisions
 - **Duplication risks**: List of files that must be updated together
