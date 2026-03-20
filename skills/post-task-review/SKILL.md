@@ -24,24 +24,34 @@ Do NOT use for trivial changes (typo fixes, single-line edits).
 ```
 Task completed
     │
-    ├─ 1. Review findings
+    ├─ 1. Find Missing User Intent
+    │     └─ Identify any user intent that was not fulfilled during the task
+    │
+    ├─ 2. Review Findings
     │     └─ Present prioritized summary to user
     │
-    ├─ 2. Log issues in docs/issues/
+    ├─ 3. Log issues in docs/issues/
     │     └─ Optionally mirror to GitHub Issues (with user approval)
     │
-    ├─ 3. Update docs/issues/lessons.md
+    ├─ 4. Update docs/issues/lessons.md
     │     └─ Document patterns from corrections encountered during task
     │
-    └─ 4. Propose CLAUDE.md / AGENTS.md updates
+    └─ 5. Propose CLAUDE.md / AGENTS.md updates
           └─ Apply with user approval
 ```
 
-### 1. Review Findings
+### 1. Find Missing User Intent
+
+Identify any user intent that was not fulfilled during the task. This could be:
+
+- System Requirements: Missing required constraints, performance targets, or compatibility needs
+- Reasons of Decision: Unstated rationale behind a choice that would be important for future work
+
+### 2. Review Findings
 
 Identify issues discovered during work. Categories to check:
 
-- **Spec-code parity gaps**: Public APIs not documented in `docs/specs/`
+- **Spec-code parity gaps**: Public APIs listed, Input/Output mismatches and behavior inconsistencies between `docs/specs/` and code
 - **Duplicated logic**: Same business logic in multiple files
 - **Inconsistent patterns**: Different approaches to the same problem across files
 - **Missing tests**: Untested critical paths found during investigation
@@ -50,7 +60,7 @@ Identify issues discovered during work. Categories to check:
 
 Present a prioritized summary to the user. Ask which items to log.
 
-### 2. Log Issues in docs/issues/
+### 3. Log Issues in docs/issues/
 
 Create `docs/issues/<descriptive-name>.md` for each approved finding. Each file must include:
 
@@ -60,7 +70,7 @@ Create `docs/issues/<descriptive-name>.md` for each approved finding. Each file 
 
 **Important**: `docs/issues/` is the AI's primary memory for issue tracking. Always create files here first. Optionally ask the user if they also want GitHub Issues created via `gh issue create`.
 
-### 3. Update Lessons Learned
+### 4. Update Lessons Learned
 
 Check if corrections occurred during the task. If so, create or update `docs/issues/lessons.md` using this format:
 
@@ -71,16 +81,25 @@ Check if corrections occurred during the task. If so, create or update `docs/iss
 
 > "Be more careful" is not a rule. Rules must be specific and testable.
 
-### 4. Propose CLAUDE.md / AGENTS.md Updates
+### 5. Propose CLAUDE.md / AGENTS.md, Skills, Design Decisions Updates
 
 Check if the work revealed knowledge that would reduce future investigation time:
 
+- **Project-specific insights**: Non-obvious information about the codebase, architecture, or design decisions
+  - Use "Step 1. Find Missing User Intent" result and refer to `docs/design-decisions/adr.md` and `core-beliefs.md` for existing design knowledge
 - **Build/test commands**: New crates, test targets, or lint configurations
 - **Architecture notes**: How subsystems connect, data flow, key design decisions
 - **Duplication risks**: List of files that must be updated together
 - **Tech stack changes**: New dependencies, version requirements
 
-Propose specific additions to the user before editing. Update both `CLAUDE.md` and `AGENTS.md` to keep them in sync.
+Think where is the best place to document these knowledge items and propose specific additions to the user before editing.
+
+- Propose creating skills for recurring patterns or named workflows that require multiple steps to execute
+  - To find patterns, look session logs and `docs/issues/lessons.md` for repeated sequences of actions that could be abstracted into a skill
+- Update `CLAUDE.md` for project specific knowledge and best practices that AI agents should follow on every task
+  - Update both `CLAUDE.md` and `AGENTS.md` to keep them in sync.
+- Propose to update User's Global `CLAUDE.md` and `AGENTS.md` if the insight is user's core belief or fundamental principle that's not related to the specific project but can guide design decisions in general.
+- Otherwise add to AI agents'Memory or just dismiss based on user's choice.
 
 ## What NOT to Do
 
