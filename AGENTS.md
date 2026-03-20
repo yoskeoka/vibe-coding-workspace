@@ -47,6 +47,7 @@ At the start of a new session, if the user has not given a specific task, sugges
     - `docs/project-plan.md` is your North Star.
     - `docs/exec-plan/todo/` is your current task list.
     - `docs/design-decisions/` is your architectural conscience.
+    - **Before making a design decision**, read `docs/design-decisions/core-beliefs.md` and relevant entries in `docs/design-decisions/adr.md`. Present what you found (e.g., "Past decision: X was chosen because Y. Apply the same reasoning here?") before proposing a new direction.
 
 4.  **Execution Rules**:
     - **Plan First**: Before writing code, ensure a plan exists in `docs/exec-plan/todo/`. If not, creates one.
