@@ -33,7 +33,7 @@ Task completed
     ├─ 3. Log issues in docs/issues/
     │     └─ Optionally mirror to GitHub Issues (with user approval)
     │
-    ├─ 4. Update docs/issues/lessons.md
+    ├─ 4. Update docs/lessons.md
     │     └─ Document patterns from corrections encountered during task
     │
     └─ 5. Propose CLAUDE.md / AGENTS.md updates
@@ -85,7 +85,7 @@ Create `docs/issues/<descriptive-name>.md` for each approved finding. Each file 
 
 ### 4. Update Lessons Learned
 
-Check if corrections occurred during the task. If so, create or update `docs/issues/lessons.md` using this format:
+Check if corrections occurred during the task. If so, create or update `docs/lessons.md` using this format:
 
 - **Mistake**: What went wrong (be specific)
 - **Pattern**: The underlying cause or anti-pattern
@@ -108,7 +108,7 @@ Check if the work revealed knowledge that would reduce future investigation time
 Think where is the best place to document these knowledge items and propose specific additions to the user before editing.
 
 - Propose creating skills for recurring patterns or named workflows that require multiple steps to execute
-  - To find patterns, look session logs and `docs/issues/lessons.md` for repeated sequences of actions that could be abstracted into a skill
+  - To find patterns, look session logs and `docs/lessons.md` for repeated sequences of actions that could be abstracted into a skill
 - Update `CLAUDE.md` for project specific knowledge and best practices that AI agents should follow on every task
   - Update both `CLAUDE.md` and `AGENTS.md` to keep them in sync.
 - Propose to update User's Global `CLAUDE.md` and `AGENTS.md` if the insight is user's core belief or fundamental principle that's not related to the specific project but can guide design decisions in general.
