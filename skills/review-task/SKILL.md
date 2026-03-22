@@ -20,6 +20,7 @@ git switch -c <branch-name> origin/main
 ```
 
 Branch naming conventions:
+
 - Project plan changes: `plan/project-plan-<description>`
 - Execution plan changes: `plan/<NNN>-<description>`
 - Code execution: `feat/<NNN>-<description>` or `fix/<NNN>-<description>`
@@ -39,13 +40,16 @@ Do **NOT** create a PR until all checks are green.
 The PR contents depend on which workflow step produced it:
 
 ### For Step 1 (Project Plan) PRs
+
 - Updated `docs/project-plan.md`.
 
 ### For Step 2 (Execution Plan) PRs
+
 - New plan file in `docs/exec-plan/todo/`.
 - Any `docs/design-decisions/` updates if architectural choices were made.
 
 ### For Step 3 (Execution) PRs
+
 1. **Code changes**: The implementation.
 2. **Spec updates**: The updated `docs/specs/` files that match the code.
 3. **Plan file moved to `done/`**: The execution plan in `docs/exec-plan/done/` proving the task was completed through the proper workflow.
@@ -74,10 +78,37 @@ Before creating the PR, verify:
 
 ## Creating the PR
 
+Use the **PR template** when creating pull requests. Template priority:
+
+- If the child project has `.github/PULL_REQUEST_TEMPLATE.md`, use it.
+- Otherwise, use the workspace-level `.github/PULL_REQUEST_TEMPLATE.md`.
+
+Determine which template to use (project-level if present, otherwise workspace-level), then run:
+
 ```sh
 git push origin <branch-name>
-gh pr create --title "<descriptive title>" --body "<summary of changes>"
+gh pr create --title "<descriptive title>" --body-file <template-path>
 ```
+
+For example, if using the workspace-level template:
+
+```sh
+gh pr create --title "<descriptive title>" --body-file .github/PULL_REQUEST_TEMPLATE.md
+```
+
+> **Note**: `--fill` populates the title/body from commits, not from the PR template. Use `--body-file` to pre-populate with the correct template content.
+
+After creation, edit the PR body to complete all template sections:
+
+1. **Plan / Issues** — Link the exec-plan, issue, or project-plan that triggered this PR.
+2. **Type of Change** — Check the applicable box.
+3. **Instructions** — Fill in the execution command. Under "Additional Context from Instructing Human", record any human instructions, decisions, or intent NOT already captured in the plan/specs/code. Include the AI's question when the human's answer was brief (e.g., "Yes" or "A") so the context is self-contained.
+4. **Verification** — Check off and fill in the commands used.
+5. **Checklist** — Confirm all items.
+6. **Dependencies** — List PRs/issues that block or are blocked by this PR. N/A if none.
+7. **Reviewer Notes** — Highlight areas for review focus, known trade-offs, or intentional oddities. N/A if none.
+8. **Links** — External references (library docs, design references, discussions). N/A if none.
+9. **Breaking Changes / Screenshots** — Fill or delete as applicable.
 
 Wait for GitHub PR review approval before merging into `main`.
 
@@ -88,6 +119,7 @@ Human review happens **after** mechanical tests and "visual" verification data a
 ## After Merge
 
 After the PR is merged, return to the appropriate workflow step:
+
 - If the project plan needs updating → Step 1 (Project Plan)
 - If the next task needs planning → Step 2 (Execution Plan)
 - If a plan is ready for implementation → Step 3 (Execution)

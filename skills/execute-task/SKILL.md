@@ -100,13 +100,17 @@ Run **all** project lint and test commands using non-AI tooling (e.g., `make lin
 
 After all checks pass:
 
-1. Push the branch and create a PR via `gh pr create`.
-2. The PR must include:
+1. Push the branch and create a PR via `gh pr create`, using the **PR template**.
+   - Template priority: **project-level** `.github/PULL_REQUEST_TEMPLATE.md` > **workspace-level** template.
+2. Fill in all template sections. Pay special attention to:
+   - **Plan / Issues**: Link the exec-plan and any issues that triggered this work.
+   - **Instructions → Additional Context from Instructing Human**: Record any human decisions, preferences, or directives that are NOT captured in the plan, specs, or code diff. When the human's answer was brief ("Yes", "A"), include the AI's question/proposal for context.
+3. The PR must include:
    - Code changes.
    - Spec updates (`docs/specs/`).
    - The plan file moved to `docs/exec-plan/done/`.
    - Verification artifacts (test results, screenshots, logs) for human review.
-3. Wait for GitHub PR review approval before merging into `main`.
+4. Wait for GitHub PR review approval before merging into `main`.
 
 ### Verification Standards by Task Type
 

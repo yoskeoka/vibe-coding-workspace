@@ -124,7 +124,7 @@ Generate **two versions** (Japanese + English) per task:
 
 **Constraints**:
 - Follow Spec First rule
-- Create PR via `gh pr create` when done
+- Create PR via `gh pr create` using the **PR template** when done
 - Do not modify other repos
 ```
 
