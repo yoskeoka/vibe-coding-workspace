@@ -17,9 +17,17 @@
 
 ## Instructions
 
-<!-- Standard execution line — fill in the plan name: -->
-Execution: `/execute-task docs/exec-plan/todo/<plan-name>.md`
+<!--
+Specify the command or workflow the AI should run for this PR.
+Examples:
+- Execution: `/execute-task docs/exec-plan/todo/<plan-name>.md`
+- Execution: `/plan-project docs/project-plan/todo/<project-name>.md`
+- Execution: `/plan-execution docs/exec-plan/todo/<plan-name>.md`
 
+For chores/docs-only or other non-execution PRs, use:
+- Execution: `N/A`
+-->
+Execution: `________________`
 ### Additional Context from Instructing Human
 
 <!--
