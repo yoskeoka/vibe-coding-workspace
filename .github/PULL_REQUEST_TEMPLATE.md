@@ -67,6 +67,24 @@ N/A
 - [ ] New issues logged in `docs/issues/` — _if discovered during work_
 - [ ] No unresolved blockers remain
 
+## Dependencies
+
+<!-- PRs or issues that must be merged before this one, or that are blocked by this one. -->
+
+N/A
+
+## Reviewer Notes
+
+<!-- Specific areas to focus on during review, known trade-offs, or things that look wrong but are intentional. -->
+
+N/A
+
+## Links
+
+<!-- External references: library docs, design references, related discussions, etc. -->
+
+N/A
+
 ## Breaking Changes
 
 <!-- Describe breaking changes. Delete this section if none. -->
