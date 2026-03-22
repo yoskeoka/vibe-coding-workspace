@@ -22,6 +22,14 @@ vibe-coding-workspace/          # This repo (workspace root)
 
 When multiple skills could apply, **project-level skills take precedence over global skills**. Project skills (e.g., `plan-execution`, `execute-task`) define the authoritative workflow for this workspace. Global skills (e.g., `superpowers:writing-plans`) are fallbacks for cases where no project skill exists.
 
+## PR Template Priority
+
+When creating a PR, use the **PR template** (`.github/PULL_REQUEST_TEMPLATE.md`). Priority order:
+1. **Project-level template** — If the child project has its own `.github/PULL_REQUEST_TEMPLATE.md`, use it.
+2. **Workspace-level template** — Otherwise, fall back to the workspace's `.github/PULL_REQUEST_TEMPLATE.md`.
+
+Always fill in all template sections. The "Additional Context from Instructing Human" section is critical — it captures human intent, decisions, and directives that would otherwise be lost when the conversation ends.
+
 ## Session Start
 
 At the start of a new session, if the user has not given a specific task, suggest running `triage-tasks` to review priorities across all managed projects.

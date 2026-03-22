@@ -74,10 +74,23 @@ Before creating the PR, verify:
 
 ## Creating the PR
 
+Use the **PR template** when creating pull requests. Template priority:
+- If the child project has `.github/PULL_REQUEST_TEMPLATE.md`, use it.
+- Otherwise, use the workspace-level `.github/PULL_REQUEST_TEMPLATE.md`.
+
 ```sh
 git push origin <branch-name>
-gh pr create --title "<descriptive title>" --body "<summary of changes>"
+gh pr create --title "<descriptive title>" --fill
 ```
+
+The `--fill` flag auto-populates from the template. After creation, edit the PR body to complete all template sections:
+
+1. **Plan / Issues** — Link the exec-plan, issue, or project-plan that triggered this PR.
+2. **Type of Change** — Check the applicable box.
+3. **Instructions** — Fill in the execution command. Under "Additional Context from Instructing Human", record any human instructions, decisions, or intent NOT already captured in the plan/specs/code. Include the AI's question when the human's answer was brief (e.g., "Yes" or "A") so the context is self-contained.
+4. **Verification** — Check off and fill in the commands used.
+5. **Checklist** — Confirm all items.
+6. **Breaking Changes / Screenshots** — Fill or delete as applicable.
 
 Wait for GitHub PR review approval before merging into `main`.
 
