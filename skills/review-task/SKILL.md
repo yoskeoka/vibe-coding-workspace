@@ -78,12 +78,22 @@ Use the **PR template** when creating pull requests. Template priority:
 - If the child project has `.github/PULL_REQUEST_TEMPLATE.md`, use it.
 - Otherwise, use the workspace-level `.github/PULL_REQUEST_TEMPLATE.md`.
 
+Determine which template to use (project-level if present, otherwise workspace-level), then run:
+
 ```sh
 git push origin <branch-name>
-gh pr create --title "<descriptive title>" --fill
+gh pr create --title "<descriptive title>" --body-file <template-path>
 ```
 
-The `--fill` flag auto-populates from the template. After creation, edit the PR body to complete all template sections:
+For example, if using the workspace-level template:
+
+```sh
+gh pr create --title "<descriptive title>" --body-file .github/PULL_REQUEST_TEMPLATE.md
+```
+
+> **Note**: `--fill` populates the title/body from commits, not from the PR template. Use `--body-file` to pre-populate with the correct template content.
+
+After creation, edit the PR body to complete all template sections:
 
 1. **Plan / Issues** — Link the exec-plan, issue, or project-plan that triggered this PR.
 2. **Type of Change** — Check the applicable box.
