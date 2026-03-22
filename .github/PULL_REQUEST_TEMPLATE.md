@@ -2,7 +2,7 @@
 
 <!-- Link the exec-plan, issue, or project-plan that triggered this PR. If none, write N/A. -->
 
-- **Plan**: <!-- e.g., docs/exec-plan/todo/feature-name.md -->
+- **Plan**: <!-- e.g., docs/exec-plan/todo/001-feature-name.md -->
 - **Issues**: <!-- e.g., docs/issues/bug-name.md, or GitHub issue link -->
 
 ## Type of Change

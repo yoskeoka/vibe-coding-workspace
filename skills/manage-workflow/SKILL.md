@@ -146,7 +146,7 @@ This project follows the AI-Centered Development workflow.
    - Create a fresh branch from `origin/main` for every task: `git fetch origin && git switch -c <branch-name> origin/main`
    - Never reuse an existing feature branch.
    - Run all lint and test checks (non-AI tooling) before creating a PR.
-   - Create PRs via `gh pr create` and wait for review approval before merging.
+   - Create PRs via `gh pr create` using the **PR template** (project-level `.github/PULL_REQUEST_TEMPLATE.md` if present, otherwise workspace-level) and wait for review approval before merging.
 
 3. **Context Management**:
    - Your "memory" is the `docs/` directory.
