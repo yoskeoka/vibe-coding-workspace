@@ -1,6 +1,6 @@
 ---
 name: post-task-review
-description: After task completion, review findings, log issues in docs/issues/, update lessons learned, and propose CLAUDE.md updates. Trigger this after merged PRs, finished investigations, and other significant work with discussion, review feedback, mistakes, or workarounds — not just when explicitly invoked.
+description: After task completion, review findings, log issues in docs/issues/, update lessons learned, and propose CLAUDE.md updates. Trigger this after PRs are merged, finished investigations, and other significant work with discussion, review feedback, mistakes, or workarounds — not just when explicitly invoked.
 metadata:
   author: yoskeoka
   version: '1.0.0'
