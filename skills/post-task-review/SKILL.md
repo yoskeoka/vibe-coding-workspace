@@ -1,6 +1,6 @@
 ---
 name: post-task-review
-description: After completing significant work (bug fix, feature, investigation), review findings, log issues in docs/issues/, update lessons learned, and propose CLAUDE.md updates. Should be performed as part of task completion, not only when explicitly invoked.
+description: After task completion, review findings, log issues in docs/issues/, update lessons learned, and propose CLAUDE.md updates. Trigger this after PRs are merged, finished investigations, and other significant work with discussion, review feedback, mistakes, or workarounds — not just when explicitly invoked.
 metadata:
   author: yoskeoka
   version: '1.0.0'
@@ -8,14 +8,17 @@ metadata:
 
 # Post-Task Review (Workflow Step 3.5)
 
-**Position in workflow**: This step runs between **Execution** (Step 3) and **Review/PR** (Step 4). After moving a plan from `todo/` to `done/` and before creating a PR, perform this self-retrospective.
+**Position in workflow**: This step normally runs between **Execution** (Step 3) and **Review/PR** (Step 4). If it was skipped there, run it at the next clear task-completion point — especially after a PR merge or after closing out an investigation.
 
 ## When to Use
 
 - After completing a bug fix, feature, or investigation
+- After a PR is merged, because merge is task completion even if the review was done earlier
+- After finishing an investigation, even if no code was merged
 - When the user says work is done, asks to wrap up, or asks for a review
 - After touching multiple files and gaining codebase insight
 - **Automatically** after moving an exec-plan from `todo/` to `done/`
+- **Automatically** when significant work is completed, where "significant" means more than mechanically creating or implementing a straightforward plan. Trigger it when the task involved notable discussion, PR-review feedback, corrected assumptions, mistakes, workarounds, or other non-trivial learning worth capturing.
 
 Do NOT use for trivial changes (typo fixes, single-line edits).
 
