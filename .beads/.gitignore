@@ -1,5 +1,8 @@
 # Dolt database (managed by Dolt, not git)
-dolt/
+dolt/*
+!dolt/.dolt
+dolt/.dolt/*
+!dolt/.dolt/config.json
 dolt-access.lock
 
 # Runtime files

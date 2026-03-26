@@ -10,3 +10,8 @@ ww/
 
 # beads runtime files
 .beads/dolt*
+!.beads/dolt/
+.beads/dolt/*
+!.beads/dolt/.dolt
+.beads/dolt/.dolt/*
+!.beads/dolt/.dolt/config.json
