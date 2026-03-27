@@ -3,10 +3,10 @@
   "last_event_id": 0,
   "timestamp": "2026-03-27T14:39:55.330155Z",
   "counts": {
-    "issues": 22,
+    "issues": 29,
     "events": 1208,
     "comments": 0,
-    "dependencies": 3,
+    "dependencies": 0,
     "labels": 0,
     "config": 11
   }
