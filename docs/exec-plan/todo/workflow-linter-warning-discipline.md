@@ -24,6 +24,11 @@ We want a smaller intervention than upgrading warnings to errors:
 - Define warning classes:
   - `fixable`: the repo state can usually be corrected before push/PR by renaming, moving files, or other straightforward changes
   - `advisory`: useful signal, but not something that should automatically trigger repo mutation
+- Add an explicit classification table for the existing checks so implementation and verification are unambiguous:
+  - Issue lifecycle = `fixable`
+  - Docs-change hint = `advisory`
+  - Branch naming = `fixable`
+  - Exec-plan existence = `fixable`
 - Update the linter behavior section to require normalized output that includes:
   - warning class
   - rationale (`WHY`)
@@ -53,7 +58,14 @@ We want a smaller intervention than upgrading warnings to errors:
 ### `tools/workflow-lint.sh`
 
 - Introduce warning classes in the shell implementation without changing the exit code contract
-- Refactor warning emission so each check can emit a structured class (`fixable` or `advisory`) together with message, `WHY`, and optional `FIX`
+- Refactor warning emission so each check can emit a structured warning block with:
+  - one warning class (`fixable` or `advisory`)
+  - one primary finding message
+  - associated `WHY`
+  - optional `FIX`
+- Count warnings by finding, not by output line:
+  - summary counts must increment once per warning block
+  - separate `WHY` / `FIX` lines must not inflate totals
 - Add a summary block at the end showing counts by warning class
 - Add a final reminder when fixable warnings remain, instructing the user/agent to resolve them before push/PR unless overridden by human instruction or false-positive judgment
 - Preserve compatibility with the existing pre-push and CI entry points
@@ -62,11 +74,12 @@ We want a smaller intervention than upgrading warnings to errors:
 
 - Do not add helper commands or auto-fixers in this plan
 - Do not convert warnings into errors in this plan
-- Do not add new workflow-linter checks in this plan unless needed to support the warning classification system
+- Do not add new workflow-linter checks in this plan; classify only the checks that already exist today
 
 ## Sub-tasks
 
 - [ ] Update `docs/specs/workflow-linter.md` to define warning classes, normalized output, and skip rules
+- [ ] As part of the spec update, define the per-check mapping from existing workflow-linter checks to `fixable` vs `advisory`
 - [ ] [parallel] Update `AGENTS.md` with the stronger workflow-linter handling rule
 - [ ] [parallel] Update `.github/PULL_REQUEST_TEMPLATE.md` with a checklist item for fixable-warning resolution/justification
 - [ ] [depends on: spec update] Refactor `tools/workflow-lint.sh` to emit warning classes, `WHY`/`FIX`, and summary counts
@@ -76,10 +89,11 @@ We want a smaller intervention than upgrading warnings to errors:
 
 - Run `tools/workflow-lint.sh --mode=pre-push` in a repo state that produces at least one fixable warning and confirm:
   - warning class is shown
+  - one finding produces one warning count, even when `WHY` and `FIX` lines are present
   - `WHY` is shown
   - `FIX` is shown
   - summary reports at least one fixable warning
-- Run `tools/workflow-lint.sh --mode=ci --pr-title="..." --pr-body="..."` in a repo state that produces an advisory warning and confirm:
+- Run `tools/workflow-lint.sh --mode=ci --pr-title="..." --pr-body="..."` in a repo state that produces the existing Docs-change hint advisory warning and confirm:
   - advisory class is shown
   - summary count reflects advisory warnings
 - Confirm exit code remains `0`
