@@ -1,0 +1,8 @@
+web_search = "cached" # default; serves results from the web search cache
+
+[features]
+shell_snapshot = true # Speed up repeated commands
+# codex_hooks    = true # Enable Codex hooks for enhanced functionality
+
+[windows]
+sandbox = "elevated" # Recommended
