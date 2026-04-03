@@ -43,6 +43,8 @@ A personal vibe-coding workspace where AI agents do the heavy lifting to build g
 | [reversi-adventure](https://github.com/yoskeoka/reversi-adventure) | Reversi game with AI opponent and move explanation | Phase 1 complete, Phase 2 next |
 | [ai-arena](https://github.com/yoskeoka/ai-arena) | AI competition platform with multiple game types | Phase 1 in planning |
 | [vim-learning-game](https://github.com/yoskeoka/vim-learning-game) | Gamified Vim learning experience | Greenfield, plan defined |
+| [ww](https://github.com/yoskeoka/ww) | Workspace worktree manager for multi-repo parallel development | Active workspace tool |
+| [homebrew-ww](https://github.com/yoskeoka/homebrew-ww) | Homebrew integration for `ww` | Registered; clone on next setup.sh run |
 
 ## Milestones
 

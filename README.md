@@ -15,6 +15,7 @@ This repository acts as a meta-repository to manage other AI projects.
 - [ai-arena](https://github.com/yoskeoka/ai-arena) (AI-vs-AI online game platform)
 - [vim-learning-game](https://github.com/yoskeoka/vim-learning-game) (Learn Vim through gameplay)
 - [ww](https://github.com/yoskeoka/ww) (Workspace worktree manager for multi-repo parallel development)
+- [homebrew-ww](https://github.com/yoskeoka/homebrew-ww) (Homebrew integration for `ww`)
 
 ## AI-Centered Development Workflow
 

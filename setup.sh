@@ -25,6 +25,7 @@ REPOS=(
     "https://github.com/yoskeoka/ai-arena"
     "https://github.com/yoskeoka/vim-learning-game"
     "https://github.com/yoskeoka/ww"
+    "https://github.com/yoskeoka/homebrew-ww"
 )
 
 # Convert an HTTPS GitHub URL to SSH format
