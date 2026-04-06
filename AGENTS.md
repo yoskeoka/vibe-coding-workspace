@@ -14,6 +14,7 @@ vibe-coding-workspace/          # This repo (workspace root)
   ai-arena/                     # Child: AI Arena
   reversi-adventure/            # Child: Reversi Adventure
   vim-learning-game/            # Child: Vim Learning Game
+  envdiff/                      # Child: envdiff (Go)
 ```
 
 **CRITICAL**: When given a GitHub URL like `yoskeoka/ww`, the repo lives at `<workspace-root>/ww/`, NOT at `~/src/github.com/yoskeoka/ww/`. Always resolve child project paths relative to this workspace.
