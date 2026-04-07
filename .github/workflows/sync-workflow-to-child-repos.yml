@@ -79,6 +79,7 @@ jobs:
         if: steps.check.outputs.skip == 'false'
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_SYNC_GITHUB_TOKEN }}
+          CURRENT_SHA: ${{ steps.check.outputs.current_sha }}
           NEW_SHA: ${{ github.sha }}
         run: |
           cd child-repo
