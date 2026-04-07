@@ -32,20 +32,24 @@ jobs:
             https://x-access-token:${GH_TOKEN}@github.com/yoskeoka/${{ matrix.repo }}.git \
             child-repo
 
-      - name: Check if update is needed
+      - name: Check if skills update is needed
         id: check
         run: |
           cd child-repo
           git submodule update --init .claude/vendor/workflow
+          git -C .claude/vendor/workflow fetch origin main
           CURRENT_SHA=$(git -C .claude/vendor/workflow rev-parse HEAD)
           NEW_SHA="${{ github.sha }}"
           echo "current_sha=${CURRENT_SHA}" >> $GITHUB_OUTPUT
           if [ "$CURRENT_SHA" = "$NEW_SHA" ]; then
             echo "skip=true" >> $GITHUB_OUTPUT
             echo "Submodule already at $NEW_SHA, skipping."
+          elif git -C .claude/vendor/workflow diff --quiet "$CURRENT_SHA" "$NEW_SHA" -- skills/; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "No changes under skills/ between $CURRENT_SHA and $NEW_SHA, skipping."
           else
             echo "skip=false" >> $GITHUB_OUTPUT
-            echo "Will update: $CURRENT_SHA → $NEW_SHA"
+            echo "Will update skills/: $CURRENT_SHA → $NEW_SHA"
           fi
 
       - name: Close stale sync PRs
@@ -71,7 +75,7 @@ jobs:
                 --delete-branch
             done
 
-      - name: Create sync PR with latest submodule
+      - name: Create sync PR for skills update
         if: steps.check.outputs.skip == 'false'
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_SYNC_GITHUB_TOKEN }}
@@ -89,7 +93,7 @@ jobs:
 
           git add .claude/vendor/workflow
           COMMIT_MSG=$(cat << EOF
-          chore: update workflow submodule to ${SHORT_SHA}
+          chore: update workflow skills to ${SHORT_SHA}
 
           Automated sync from yoskeoka/vibe-coding-workspace@${NEW_SHA}
 
@@ -103,7 +107,7 @@ jobs:
           PR_BODY=$(cat << EOF
           ## Automated Workflow Sync
 
-          Updates \`.claude/vendor/workflow\` submodule to the latest version.
+          Updates the workflow submodule for changes under \`skills/\`.
 
           | | |
           |---|---|
@@ -120,7 +124,7 @@ jobs:
 
           gh pr create \
             --repo yoskeoka/${{ matrix.repo }} \
-            --title "chore: update workflow submodule to ${SHORT_SHA}" \
+            --title "chore: update workflow skills to ${SHORT_SHA}" \
             --body "${PR_BODY}" \
             --base main \
             --head "${BRANCH}" \
