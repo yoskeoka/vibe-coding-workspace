@@ -1,4 +1,4 @@
-# Workflow Sync to Child Repos
+# Spec: Workflow Sync to Child Repos
 
 ## Purpose
 
