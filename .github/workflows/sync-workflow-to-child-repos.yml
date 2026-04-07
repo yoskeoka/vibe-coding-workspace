@@ -75,6 +75,17 @@ jobs:
                 --delete-branch
             done
 
+      - name: Ensure workflow-sync label exists
+        if: steps.check.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_SYNC_GITHUB_TOKEN }}
+        run: |
+          gh label create workflow-sync \
+            --repo yoskeoka/${{ matrix.repo }} \
+            --color 0E8A16 \
+            --description "Automated workflow sync PRs" \
+            --force
+
       - name: Create sync PR for skills update
         if: steps.check.outputs.skip == 'false'
         env:
@@ -105,7 +116,14 @@ jobs:
           )
           git commit -m "${COMMIT_MSG}"
 
-          git push origin "${BRANCH}"
+          REMOTE_REF="refs/heads/${BRANCH}"
+          REMOTE_SHA=$(git ls-remote --heads origin "${BRANCH}" | awk '{print $1}')
+          if [ -n "${REMOTE_SHA}" ]; then
+            echo "Updating existing remote branch ${BRANCH} with force-with-lease (${REMOTE_SHA})"
+            git push --force-with-lease="${REMOTE_REF}:${REMOTE_SHA}" origin "${BRANCH}"
+          else
+            git push origin "${BRANCH}"
+          fi
 
           PR_BODY=$(cat << EOF
           ## Automated Workflow Sync
