@@ -72,6 +72,7 @@ Design plans for maximum parallel execution:
 1. **Identify independent tasks**: Mark sub-tasks that have no dependencies on each other with `[parallel]`.
 2. **Explicit dependency notation**: Use `depends on: <task>` for tasks that must wait for others.
 3. **Split plans when appropriate**: If a large plan contains 2+ fully independent streams of work, create separate plan files (e.g., `004a-api-endpoints.md`, `004b-ui-components.md`).
+4. **When child plans reference a parent plan, use a path that survives completion**: parent plans move from `docs/exec-plan/todo/` to `docs/exec-plan/done/` after execution, so do not hardcode a `todo/`-only path in child-plan metadata. Prefer a stable reference such as `docs/exec-plan/{todo,done}/<name>.md` or wording that references the filename without assuming the current directory.
 
 Example:
 
