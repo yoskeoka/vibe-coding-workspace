@@ -105,6 +105,7 @@ jobs:
 
           git add .claude/vendor/workflow
           COMMIT_SUBJECT=$(git -C .claude/vendor/workflow log -1 --format=%s "${NEW_SHA}")
+          COMMIT_LIST=$(git -C .claude/vendor/workflow log --format='- %h %s' "${CURRENT_SHA}..${NEW_SHA}" -- skills/)
           DIFF_STAT=$(git -C .claude/vendor/workflow diff --stat "${CURRENT_SHA}" "${NEW_SHA}" -- skills/)
           COMMIT_MSG=$(cat << EOF
           chore: update workflow skills to ${SHORT_SHA}
@@ -136,6 +137,10 @@ jobs:
           | **Commit** | [\`${SHORT_SHA}\`](https://github.com/yoskeoka/vibe-coding-workspace/commit/${NEW_SHA}) |
           | **Commit subject** | \`${COMMIT_SUBJECT}\` |
           | **Previous** | \`${{ steps.check.outputs.current_sha }}\` |
+
+          ### Relevant commits
+
+          ${COMMIT_LIST}
 
           ### Diff stat
 
