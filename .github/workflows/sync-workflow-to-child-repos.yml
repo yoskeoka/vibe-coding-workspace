@@ -92,6 +92,8 @@ jobs:
           git -C .claude/vendor/workflow checkout "${NEW_SHA}"
 
           git add .claude/vendor/workflow
+          COMMIT_SUBJECT=$(git -C .claude/vendor/workflow log -1 --format=%s "${NEW_SHA}")
+          DIFF_STAT=$(git -C .claude/vendor/workflow diff --stat "${CURRENT_SHA}" "${NEW_SHA}" -- skills/)
           COMMIT_MSG=$(cat << EOF
           chore: update workflow skills to ${SHORT_SHA}
 
@@ -113,7 +115,14 @@ jobs:
           |---|---|
           | **Source repo** | [yoskeoka/vibe-coding-workspace](https://github.com/yoskeoka/vibe-coding-workspace) |
           | **Commit** | [\`${SHORT_SHA}\`](https://github.com/yoskeoka/vibe-coding-workspace/commit/${NEW_SHA}) |
+          | **Commit subject** | \`${COMMIT_SUBJECT}\` |
           | **Previous** | \`${{ steps.check.outputs.current_sha }}\` |
+
+          ### Diff stat
+
+          \`\`\`
+          ${DIFF_STAT}
+          \`\`\`
 
           > [!NOTE]
           > Any older \`workflow-sync\` PRs in this repository have been automatically closed. This is the only PR to merge.

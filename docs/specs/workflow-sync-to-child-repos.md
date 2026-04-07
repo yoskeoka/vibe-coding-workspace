@@ -21,4 +21,6 @@ For each child repository:
 
 - PRs are created only for workflow commits that change `skills/`.
 - PR titles and bodies should describe the update as a `skills` sync, not a generic full-submodule refresh.
+- PR bodies should include the source commit subject as the human-readable summary of the change.
+- PR bodies should include a `diff stat` section so reviewers can confirm the touched files at a glance.
 - Skipped repos should produce a clear log message explaining that no `skills/` changes were found.
