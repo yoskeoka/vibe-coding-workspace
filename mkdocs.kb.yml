@@ -1,0 +1,52 @@
+site_name: vibe-coding-workspace KB
+site_description: Workspace knowledge base for AI-centered personal development
+site_url: https://yoskeoka.github.io/vibe-coding-workspace/
+repo_url: https://github.com/yoskeoka/vibe-coding-workspace
+docs_dir: docs/kb
+site_dir: .site/kb
+use_directory_urls: true
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.expand
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: README.md
+  - Schema: schema.md
+  - Ingest: ingest.md
+  - Wiki:
+      - Index: wiki/index.md
+      - Log: wiki/log.md
+      - Topics:
+          - LLM Knowledge Bases: wiki/topics/llm-knowledge-bases.md
+          - AI-Assisted Game Development: wiki/topics/ai-game-dev.md
+          - Deployment Options: wiki/topics/deployment-options.md
+          - Pixel Art UI: wiki/topics/pixel-art-ui.md
+      - Tools:
+          - Phaser: wiki/tools/phaser.md
+      - Patterns:
+          - Source Ingestion: wiki/patterns/source-ingestion.md
+          - Cheap Hosting: wiki/patterns/cheap-hosting.md
+      - Projects:
+          - ww: wiki/projects/ww.md
+          - reversi-adventure: wiki/projects/reversi-adventure.md
+          - vim-learning-game: wiki/projects/vim-learning-game.md
+  - Sources:
+      - Karpathy llm-wiki gist: sources/2026/2026-04-11-karpathy-llm-wiki-gist.md
+      - DevelopersIO article: sources/2026/2026-04-11-classmethod-llm-knowledge-base.md
+      - Qiita deploy article: sources/2026/2026-04-11-qiita-free-personal-deploy-options.md
+      - Phaser PixUI article: sources/2026/2026-04-11-phaser-pixui.md
+      - OpenAI Phaser tactical RPG: sources/2026/2026-04-11-openai-gpt-5-4-phaser-tactical-rpg.md

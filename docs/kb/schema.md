@@ -1,0 +1,83 @@
+# Knowledge Base Schema
+
+## Purpose
+
+This file tells an AI agent how to maintain the workspace knowledge base.
+
+The knowledge base is not a dumping ground for raw article text. It is a compiled Markdown wiki built from curated source notes.
+
+## Directory rules
+
+- `sources/YYYY/*.md`: one file per ingested source
+- `wiki/index.md`: top-level navigation page
+- `wiki/log.md`: ingest and maintenance log
+- `wiki/projects/*.md`: project-specific compiled pages
+- `wiki/topics/*.md`: broad conceptual pages
+- `wiki/tools/*.md`: tool and framework pages
+- `wiki/patterns/*.md`: reusable methods and heuristics
+
+## Maintenance rules
+
+- Prefer updating an existing wiki page over creating a near-duplicate.
+- Preserve source provenance. Every wiki page should point to at least one source note when a concrete claim depends on it.
+- Summaries should be concise and biased toward workspace usefulness.
+- Human-facing pages should explain "why this matters here", not just "what the article said".
+- Avoid copying long passages from third-party sources. Summarize instead.
+- If a source looks time-sensitive, record the relevant date in the source note.
+- Treat `wiki/log.md` as an audit trail, not a narrative article.
+
+## Naming
+
+- Source notes: `YYYY-MM-DD-short-slug.md`
+- Wiki pages: kebab-case by concept or project
+
+## Frontmatter conventions
+
+Source note frontmatter:
+
+```yaml
+---
+title:
+source_url:
+source_type: article|post|docs|video|repo|demo
+ingested_on:
+status: active|watch|superseded
+tags: []
+related_pages: []
+---
+```
+
+Wiki page frontmatter:
+
+```yaml
+---
+title:
+last_reviewed:
+status: active|watch|seed
+sources: []
+---
+```
+
+## During ingest
+
+For each new source:
+1. Create the source note.
+2. Decide which existing wiki pages should be updated.
+3. Create new wiki pages only when the concept does not already have a natural home.
+4. Update `wiki/index.md` if a new section or notable page was added.
+5. Append a dated item to `wiki/log.md`.
+
+## During query filing-back
+
+- Only file back durable outputs.
+- Prefer short synthesis pages over dumping chat transcripts.
+- Link the new page from an existing topic or project page.
+
+## During lint
+
+Look for:
+- pages with no inbound links
+- stale notes that need reconfirmation
+- duplicated topic pages
+- sources not connected to any wiki page
+- project pages missing obvious relevant sources

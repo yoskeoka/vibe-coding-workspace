@@ -1,0 +1,46 @@
+name: kb-pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/kb/**'
+      - 'mkdocs.kb.yml'
+      - 'requirements-kb.txt'
+      - '.github/workflows/kb-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: kb-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Build site
+        run: uv run --with-requirements requirements-kb.txt mkdocs build --strict -f mkdocs.kb.yml
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .site/kb
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
