@@ -100,6 +100,12 @@ Ingest SHOULD:
 - prefer updating an existing wiki page over creating duplicates
 - identify which workspace projects, tools, topics, and patterns are affected
 
+### 1a. Skill discovery
+
+The `knowledge-base` skill is workspace-only and MUST NOT be distributed to child repos via `setup-workspace.sh`.
+
+The workspace repo itself MUST expose the skill through `.claude/skills/knowledge-base` so local agents can invoke it. Agent directories that mirror `.claude/skills/` (for example `.agents/skills/`) MUST therefore resolve the same skill as well.
+
 ### 2. Query
 
 Questions answered from the knowledge base SHOULD cite the relevant source notes or wiki pages. Durable outputs from those questions MAY be filed back into `docs/kb/wiki/`.
