@@ -15,6 +15,7 @@ For hobby projects, default to hosting combinations that preserve an easy path t
 ## Heuristics
 
 - prefer managed services with durable free tiers for first public launches
+- preserve concrete candidate names such as Cloudflare Pages, Render, Cloud Run, TiDB Cloud Starter, Supabase, Neon, and Upstash so future re-checks start from known options
 - record price assumptions with dates
 - separate "best DX" from "best default for a hobby budget"
 

@@ -32,6 +32,7 @@ This is a workspace-only skill for maintaining `docs/kb/`.
 6. If the source suggests a concrete experiment, record it in the relevant page.
 
 Prefer updating existing wiki pages over creating new ones. Preserve provenance. Avoid copying long source text.
+Keep concrete retrieval anchors such as service names, library names, product names, and document names when they are part of the source's value. Do not collapse `Render vs Cloud Run` into `easy backend vs fast backend` if the original concrete options are useful later.
 
 ## Query filing-back workflow
 
