@@ -21,6 +21,7 @@ The knowledge base is not a dumping ground for raw article text. It is a compile
 - Prefer updating an existing wiki page over creating a near-duplicate.
 - Preserve source provenance. Every wiki page should point to at least one source note when a concrete claim depends on it.
 - Summaries should be concise and biased toward workspace usefulness.
+- Do not summarize away concrete retrieval anchors. If a source introduces specific services, tools, libraries, frameworks, APIs, or documents that would help future search or comparison, keep those names in the source note and in the relevant wiki page.
 - Human-facing pages should explain "why this matters here", not just "what the article said".
 - Avoid copying long passages from third-party sources. Summarize instead.
 - If a source looks time-sensitive, record the relevant date in the source note.
@@ -66,6 +67,11 @@ For each new source:
 3. Create new wiki pages only when the concept does not already have a natural home.
 4. Update `wiki/index.md` if a new section or notable page was added.
 5. Append a dated item to `wiki/log.md`.
+
+When compressing a source, prefer this order of preservation:
+1. concrete product or document names
+2. selection criteria or trade-offs
+3. workspace-specific recommendation
 
 ## During query filing-back
 

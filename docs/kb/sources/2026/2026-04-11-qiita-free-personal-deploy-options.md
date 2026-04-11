@@ -23,13 +23,15 @@ The workspace goal explicitly includes keeping hobby-project cost low, so deploy
 
 - Recommends choosing infrastructure with low cost risk, low setup friction, and a clear upgrade path.
 - Suggests Cloudflare Pages as the default frontend host for many personal projects.
-- Contrasts Render with Cloud Run for backend hosting, trading setup simplicity against latency and regional fit.
-- Recommends TiDB Cloud Starter, Supabase, or Neon for database needs depending on SQL preference.
-- Uses a concrete low-cost stack example rather than purely abstract advice.
+- Contrasts Render with Cloud Run for backend hosting: Render is the easier default and is described as having an enduring free tier, while Cloud Run is presented as the faster option when lower response time matters more.
+- Recommends TiDB Cloud Starter, Supabase, and Neon as concrete free-tier database options rather than speaking only in generic DB categories.
+- Notes that Upstash provides a concrete free Redis option when Redis is needed.
+- Uses a concrete low-cost stack example rather than purely abstract advice, which makes the article useful as a future search starting point even if pricing changes later.
 
 ## Workspace takeaways
 
 - `ai-arena` or future web apps may benefit from a low-cost default hosting decision page.
+- Keep concrete service names in the summary so future re-checks can start from known candidates instead of generic category searches.
 - Hosting guidance should record date-sensitive pricing assumptions.
 - A pattern page is better than repeating the same hosting comparison in each project.
 
