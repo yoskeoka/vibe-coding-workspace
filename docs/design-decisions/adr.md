@@ -13,3 +13,24 @@ The sync workflow will compare the child repo's recorded workflow submodule comm
 - The workflow becomes slightly more selective, so future changes that should sync to child repos must live under `skills/` or update the sync rule explicitly.
 
 ---
+
+## 2026-04-11 Store the workspace knowledge base in-repo under `docs/kb/`
+
+### Context
+The workspace needs a durable place to collect useful references for AI-centered personal development: articles, demo links, tool notes, and cross-project patterns. GitHub Wiki was considered, but the workspace already treats git-tracked Markdown under `docs/` as the canonical AI context. The knowledge base also needs a human-readable publishing path.
+
+### Decision
+The knowledge base will live in this repository under `docs/kb/` as Markdown files. It will follow a three-layer structure inspired by Karpathy's "LLM Knowledge Base" pattern:
+
+- `docs/kb/sources/` for immutable source notes
+- `docs/kb/wiki/` for compiled wiki pages
+- `docs/kb/schema.md` and `docs/kb/ingest.md` for maintenance rules
+
+AI ingestion will use a dedicated `knowledge-base` skill instead of the execution workflow skills. Human-readable rendering will use MkDocs Material and publish to GitHub Pages from the same Markdown sources.
+
+### Consequences
+- The same files remain easy for agents to edit, grep, diff, review, and publish.
+- Knowledge-base ingest stays conceptually separate from `execute-task` and `exec-plan`.
+- The repository gains a second documentation surface (raw Markdown plus rendered Pages), so the structure and schema must remain disciplined.
+
+---

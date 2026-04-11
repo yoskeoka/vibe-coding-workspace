@@ -1,0 +1,83 @@
+#!/bin/bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CONFIG_FILE="${ROOT_DIR}/mkdocs.kb.yml"
+UV_CACHE_DIR="${UV_CACHE_DIR:-${ROOT_DIR}/.uv-cache}"
+
+usage() {
+    cat <<'EOF'
+Usage: tools/kb <command>
+
+Commands:
+  check        Validate required knowledge-base files and directories
+  build        Build the MkDocs site in strict mode
+  serve        Serve the MkDocs site locally
+  compile      Alias for build
+EOF
+}
+
+require_file() {
+    local path="$1"
+    if [ ! -f "$path" ]; then
+        echo "missing file: $path" >&2
+        exit 1
+    fi
+}
+
+require_dir() {
+    local path="$1"
+    if [ ! -d "$path" ]; then
+        echo "missing directory: $path" >&2
+        exit 1
+    fi
+}
+
+run_mkdocs() {
+    if command -v uv >/dev/null 2>&1; then
+        mkdir -p "$UV_CACHE_DIR"
+        UV_CACHE_DIR="$UV_CACHE_DIR" uv run --with-requirements "${ROOT_DIR}/requirements-kb.txt" mkdocs "$@" -f "$CONFIG_FILE"
+        return
+    fi
+
+    python3 -m mkdocs "$@" -f "$CONFIG_FILE"
+}
+
+check_structure() {
+    require_file "${ROOT_DIR}/docs/kb/README.md"
+    require_file "${ROOT_DIR}/docs/kb/schema.md"
+    require_file "${ROOT_DIR}/docs/kb/ingest.md"
+    require_file "${ROOT_DIR}/docs/kb/wiki/index.md"
+    require_file "${ROOT_DIR}/docs/kb/wiki/log.md"
+    require_dir "${ROOT_DIR}/docs/kb/sources"
+    require_dir "${ROOT_DIR}/docs/kb/wiki/projects"
+    require_dir "${ROOT_DIR}/docs/kb/wiki/topics"
+    require_dir "${ROOT_DIR}/docs/kb/wiki/tools"
+    require_dir "${ROOT_DIR}/docs/kb/wiki/patterns"
+    require_file "$CONFIG_FILE"
+    echo "knowledge base structure: OK"
+}
+
+command="${1:-}"
+
+case "$command" in
+    check)
+        check_structure
+        ;;
+    build|compile)
+        check_structure
+        run_mkdocs build --strict
+        ;;
+    serve)
+        check_structure
+        run_mkdocs serve
+        ;;
+    ""|-h|--help|help)
+        usage
+        ;;
+    *)
+        echo "unknown command: $command" >&2
+        usage
+        exit 1
+        ;;
+esac

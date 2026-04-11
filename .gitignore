@@ -3,6 +3,8 @@ ai-arena/
 vim-learning-game/
 ww/
 envdiff/
+.site/
+.uv-cache/
 
 
 # Dolt database files (added by bd init)

@@ -30,6 +30,7 @@ A personal vibe-coding workspace where AI agents do the heavy lifting to build g
 - [x] setup.sh clones and updates child project repos
 - [ ] Shared tooling (hooks, linter) is distributable to child repos
 - [ ] Triage skill aggregates status across all managed projects
+- [ ] Repo-native knowledge base captures external references and publishes a browsable wiki
 
 ### Child project management
 - [x] Child projects are listed in setup.sh and gitignored
@@ -51,3 +52,4 @@ A personal vibe-coding workspace where AI agents do the heavy lifting to build g
 - [x] Phase 3: Implement workflow linter (pre-push hook + CI checks)
 - [ ] Phase 4: Distribute shared tooling to child repos (hooks, linter, workspace setup)
 - [ ] Phase 5: Iterate on workflow based on child project feedback
+- [ ] Phase 6: Add workspace knowledge base with AI ingest and GitHub Pages publishing
