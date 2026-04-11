@@ -36,6 +36,7 @@ This is the compiled wiki for `vibe-coding-workspace`.
 ## Recent ingests
 
 - 2026-04-11: seeded the knowledge base with LLM Knowledge Base references, deployment guidance, and Phaser/game-development references
+- 2026-04-11: re-ingested the Karpathy X post, gist, and Classmethod article with stronger concrete-anchor preservation for KB workflow notes
 
 ## Logs
 
