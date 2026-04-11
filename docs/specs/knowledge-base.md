@@ -128,6 +128,7 @@ The helper SHOULD prefer `uv` when available and fall back to `python3 -m mkdocs
 ## Rendering and Publishing
 
 - The rendered site MUST be generated from the same Markdown files stored in git.
+- Pull requests that change the knowledge base publishing inputs MUST run a strict MkDocs build in CI before merge.
 - GitHub Pages MUST publish the rendered site from GitHub Actions.
 - Local build output MUST be ignored by git.
 
