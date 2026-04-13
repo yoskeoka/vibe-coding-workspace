@@ -48,6 +48,7 @@ Apply the same reasoning here: keep KB ingest conceptually separate, preserve AI
 - Add video-backed ingest as an explicit supported source shape.
 - Define `skim` and `ingest` as separate operating modes.
 - Define where temporary job artifacts live and which outputs are durable.
+- Define where durable representative screenshots live when they are worth keeping for human-skimmable KB pages.
 - Define the AI checkpoints:
   - segment summarization
   - representative frame selection
@@ -63,6 +64,7 @@ Apply the same reasoning here: keep KB ingest conceptually separate, preserve AI
   - named entities
   - time anchors
   - selected screenshots when they materially improve comprehension
+- Define the durable asset path for selected screenshots, distinct from temporary extracted/candidate frames.
 - Clarify that raw transcripts and bulk OCR output are not stored in `docs/kb/`.
 
 ### `docs/kb/ingest.md`
@@ -97,6 +99,22 @@ Planned modules:
 - fetch/transcript/frame/OCR/dedupe/segment/compile helpers
 - prompt templates for AI checkpoints
 
+### Dependency management and setup validation
+
+- Add an explicit setup section to the skill docs covering required external dependencies and expected versions.
+- Document binary install options for common environments:
+  - macOS/Homebrew notes for `yt-dlp` and `ffmpeg`
+  - Debian/Ubuntu notes for `ffmpeg` and a documented install path for a pinned `yt-dlp` release when distro packages are too old
+- Add a skill-local Python requirements file for the video pipeline runtime, with pinned or minimum-supported versions for:
+  - `paddleocr`
+  - the supported `paddlepaddle` CPU runtime variant
+  - image-processing helpers required by the frame/OCR pipeline
+- Require `kb_video_ingest.py` to perform startup dependency checks for:
+  - `yt-dlp`
+  - `ffmpeg`
+  - required Python OCR imports
+- Require fail-fast CLI errors with actionable setup guidance and a lightweight dependency-validation mode such as `--check-deps`.
+
 ### `skills/knowledge-base/prompts/`
 
 - Add structured prompt contracts for:
@@ -125,6 +143,7 @@ Temporary job artifacts should be written outside `docs/kb/`, with a schema that
 Durable KB outputs remain limited to:
 
 - source notes in `docs/kb/sources/<year>/`
+- selected representative screenshots under `docs/kb/assets/source-images/<year>/<source-slug>/` when they materially improve human skimmability
 - wiki updates in `docs/kb/wiki/`
 - log updates in `docs/kb/wiki/log.md`
 
@@ -133,7 +152,7 @@ Durable KB outputs remain limited to:
 - Keep the pipeline implementation inside `skills/knowledge-base/` rather than exposing a repo-global helper command for now.
 - Prefer subtitles over transcription when available to reduce cost and latency.
 - Use OCR plus AI, not AI-only vision, for first-pass frame filtering and dedupe.
-- Treat representative screenshots as optional, but allow up to two per segment when they materially improve human skimmability.
+- Treat representative screenshots as optional: keep extracted/candidate frames temporary outside `docs/kb/`, but allow up to two final selected screenshots per segment to be stored under `docs/kb/assets/source-images/<year>/<source-slug>/` when they materially improve human skimmability.
 - Preserve `skim` as a first-class mode so users can inspect a video before deciding whether it belongs in the KB.
 
 If implementation reveals stable cross-skill utility, extraction into a repo-level helper can be evaluated in a later plan.
@@ -145,6 +164,7 @@ If implementation reveals stable cross-skill utility, extraction into a repo-lev
 - [ ] [parallel] Scaffold the skill-local script layout and CLI entrypoint
 - [ ] [parallel] Implement fetch and transcript normalization with subtitles-first fallback behavior
 - [ ] [parallel] Implement frame extraction, OCR, and candidate dedupe
+- [ ] [parallel] Define dependency installation, version expectations, and startup dependency checks for the skill-local pipeline
 - [ ] [depends on: job schema, fetch/transcript, frame/OCR] Implement segment building and AI segment summarization
 - [ ] [depends on: segment summaries, frame/OCR] Implement AI representative-frame selection
 - [ ] [depends on: segment summaries, frame selection] Implement `skim` output generation
