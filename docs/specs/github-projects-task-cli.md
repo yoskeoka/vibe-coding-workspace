@@ -26,6 +26,7 @@ This layout is preferred over `scripts/cmd/pj` because the spike is a compiled G
 ## Cache
 - Cache root: `.local/pj/`
 - Primary file: `.local/pj/cache.json`
+- The default cache path MUST resolve to the workspace-root `.local/pj/cache.json` even when the CLI is invoked from `tools/pj/`.
 - The cache stores:
   - project identity and project ID
   - custom field IDs and single-select option IDs
@@ -40,6 +41,7 @@ This layout is preferred over `scripts/cmd/pj` because the spike is a compiled G
 - Loads project items and normalized field values
 - Writes `.local/pj/cache.json`
 - Fails clearly if the target ProjectV2 does not exist yet
+- MAY reuse cached project identity when `owner`, `owner_type`, or `project_number` flags are omitted
 
 ### `pj list`
 - Reads `.local/pj/cache.json`
@@ -67,8 +69,10 @@ Each cached item MUST expose enough normalized data for AI and human use:
 ## Error handling
 - If `gh auth token` fails, commands that contact GitHub must fail with a clear authentication message.
 - If the token lacks GitHub Projects scopes, the CLI must surface the GraphQL scope error clearly.
+- If GitHub returns a non-success HTTP response, the CLI must include the HTTP status in the returned error even when the response body is not valid JSON.
 - If the cache is missing, `pj list` must tell the operator to run `pj sync`.
 - If a field is missing from the project, mutations must fail with a clear field-name error instead of silently skipping.
+- If a query result exceeds the current single-page limits, the CLI must fail clearly instead of silently truncating the cache.
 
 ## Non-Goals
 - Full parity with `gh project`

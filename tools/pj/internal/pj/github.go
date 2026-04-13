@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os/exec"
 	"strings"
@@ -62,6 +63,21 @@ func (c *githubClient) graphQL(query string, variables map[string]any, respData 
 	}
 	defer res.Body.Close()
 
+	bodyBytes, err := io.ReadAll(res.Body)
+	if err != nil {
+		return fmt.Errorf("read graphql response: %w", err)
+	}
+	if res.StatusCode >= 400 {
+		snippet := strings.TrimSpace(string(bodyBytes))
+		if len(snippet) > 400 {
+			snippet = snippet[:400]
+		}
+		if snippet == "" {
+			return fmt.Errorf("graphql http status %s", res.Status)
+		}
+		return fmt.Errorf("graphql http status %s: %s", res.Status, snippet)
+	}
+
 	var gqlResp struct {
 		Data   json.RawMessage `json:"data"`
 		Errors []struct {
@@ -69,11 +85,8 @@ func (c *githubClient) graphQL(query string, variables map[string]any, respData 
 		} `json:"errors"`
 	}
 
-	if err := json.NewDecoder(res.Body).Decode(&gqlResp); err != nil {
-		return fmt.Errorf("decode graphql response: %w", err)
-	}
-	if res.StatusCode >= 400 {
-		return fmt.Errorf("graphql http status %s", res.Status)
+	if err := json.Unmarshal(bodyBytes, &gqlResp); err != nil {
+		return fmt.Errorf("decode graphql response from status %s: %w", res.Status, err)
 	}
 	if len(gqlResp.Errors) > 0 {
 		msgs := make([]string, 0, len(gqlResp.Errors))
@@ -118,6 +131,12 @@ func (c *githubClient) syncProject(ref ProjectRef) (*Cache, error) {
 	}
 	if root.ProjectV2 == nil {
 		return nil, fmt.Errorf("project not found for %s %q number %d", ref.OwnerType, ref.Owner, ref.ProjectNumber)
+	}
+	if root.ProjectV2.Fields.PageInfo.HasNextPage {
+		return nil, fmt.Errorf("project field list exceeds the current spike limit; pagination is not implemented yet")
+	}
+	if root.ProjectV2.Items.PageInfo.HasNextPage {
+		return nil, fmt.Errorf("project item list exceeds the current spike limit; pagination is not implemented yet")
 	}
 
 	fields := make(map[string]FieldCache)
@@ -267,6 +286,9 @@ type projectNode struct {
 	ID     string `json:"id"`
 	Title  string `json:"title"`
 	Fields struct {
+		PageInfo struct {
+			HasNextPage bool `json:"hasNextPage"`
+		} `json:"pageInfo"`
 		Nodes []struct {
 			Typename string `json:"__typename"`
 			ID       string `json:"id"`
@@ -278,6 +300,9 @@ type projectNode struct {
 		} `json:"nodes"`
 	} `json:"fields"`
 	Items struct {
+		PageInfo struct {
+			HasNextPage bool `json:"hasNextPage"`
+		} `json:"pageInfo"`
 		Nodes []struct {
 			ID      string `json:"id"`
 			Content struct {
@@ -309,6 +334,9 @@ projectV2(number: $number) {
   id
   title
   fields(first: 50) {
+    pageInfo {
+      hasNextPage
+    }
     nodes {
       __typename
       ... on ProjectV2FieldCommon {
@@ -324,6 +352,9 @@ projectV2(number: $number) {
     }
   }
   items(first: 100) {
+    pageInfo {
+      hasNextPage
+    }
     nodes {
       id
       content {

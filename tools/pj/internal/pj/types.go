@@ -1,14 +1,20 @@
 package pj
 
-import "time"
+import (
+	"os"
+	"path/filepath"
+	"time"
+)
 
 const (
-	defaultCachePath = ".local/pj/cache.json"
-	fieldStatus      = "Status"
-	fieldRepo        = "Repo"
-	fieldKind        = "Kind"
-	fieldPriority    = "Priority"
+	defaultCacheRelPath = ".local/pj/cache.json"
+	fieldStatus         = "Status"
+	fieldRepo           = "Repo"
+	fieldKind           = "Kind"
+	fieldPriority       = "Priority"
 )
+
+var defaultCachePath = resolveDefaultCachePath()
 
 type ProjectRef struct {
 	Owner         string `json:"owner"`
@@ -42,4 +48,32 @@ type Cache struct {
 	Project  ProjectRef            `json:"project"`
 	Fields   map[string]FieldCache `json:"fields"`
 	Items    []Item                `json:"items"`
+}
+
+func resolveDefaultCachePath() string {
+	wd, err := os.Getwd()
+	if err != nil {
+		return defaultCacheRelPath
+	}
+
+	root, ok := findGitRoot(wd)
+	if !ok {
+		return defaultCacheRelPath
+	}
+	return filepath.Join(root, defaultCacheRelPath)
+}
+
+func findGitRoot(start string) (string, bool) {
+	dir := start
+	for {
+		if _, err := os.Stat(filepath.Join(dir, ".git")); err == nil {
+			return dir, true
+		}
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return "", false
+		}
+		dir = parent
+	}
 }

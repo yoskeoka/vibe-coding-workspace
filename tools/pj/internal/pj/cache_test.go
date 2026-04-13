@@ -1,6 +1,7 @@
 package pj
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -46,5 +47,47 @@ func TestWriteAndLoadCache(t *testing.T) {
 	}
 	if got.Fields[fieldStatus].Options["Todo"] != "opt-1" {
 		t.Fatalf("status option id = %q, want %q", got.Fields[fieldStatus].Options["Todo"], "opt-1")
+	}
+}
+
+func TestFindGitRoot(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	if err := os.Mkdir(filepath.Join(root, ".git"), 0o755); err != nil {
+		t.Fatalf("mkdir .git: %v", err)
+	}
+
+	nested := filepath.Join(root, "tools", "pj")
+	if err := os.MkdirAll(nested, 0o755); err != nil {
+		t.Fatalf("mkdir nested: %v", err)
+	}
+
+	got, ok := findGitRoot(nested)
+	if !ok {
+		t.Fatal("findGitRoot() = not found, want found")
+	}
+	if got != root {
+		t.Fatalf("findGitRoot() = %q, want %q", got, root)
+	}
+}
+
+func TestMergeProjectRef(t *testing.T) {
+	t.Parallel()
+
+	got := mergeProjectRef(ProjectRef{Owner: "yoskeoka"}, ProjectRef{
+		Owner:         "ignored",
+		OwnerType:     "user",
+		ProjectNumber: 7,
+	})
+
+	if got.Owner != "yoskeoka" {
+		t.Fatalf("owner = %q, want yoskeoka", got.Owner)
+	}
+	if got.OwnerType != "user" {
+		t.Fatalf("owner type = %q, want user", got.OwnerType)
+	}
+	if got.ProjectNumber != 7 {
+		t.Fatalf("project number = %d, want 7", got.ProjectNumber)
 	}
 }

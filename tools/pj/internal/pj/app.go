@@ -49,8 +49,11 @@ func runSync(args []string, stdout io.Writer) error {
 		OwnerType:     *ownerType,
 		ProjectNumber: *projectNumber,
 	}
+	if cached, err := loadCache(*cachePath); err == nil {
+		ref = mergeProjectRef(ref, cached.Project)
+	}
 	if ref.Owner == "" || ref.OwnerType == "" || ref.ProjectNumber == 0 {
-		return fmt.Errorf("sync requires --owner, --owner-type, and --project")
+		return fmt.Errorf("sync requires --owner, --owner-type, and --project, or a cache with project metadata")
 	}
 
 	client, err := newGitHubClient()
@@ -214,4 +217,17 @@ func valueOrDash(v string) string {
 		return "-"
 	}
 	return v
+}
+
+func mergeProjectRef(ref, cached ProjectRef) ProjectRef {
+	if ref.Owner == "" {
+		ref.Owner = cached.Owner
+	}
+	if ref.OwnerType == "" {
+		ref.OwnerType = cached.OwnerType
+	}
+	if ref.ProjectNumber == 0 {
+		ref.ProjectNumber = cached.ProjectNumber
+	}
+	return ref
 }
