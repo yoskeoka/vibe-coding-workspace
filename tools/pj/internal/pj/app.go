@@ -15,6 +15,8 @@ func Run(args []string, stdout, stderr io.Writer) error {
 	}
 
 	switch args[0] {
+	case "init":
+		return runInit(args[1:], stdout)
 	case "sync":
 		return runSync(args[1:], stdout)
 	case "list":
@@ -30,6 +32,63 @@ func Run(args []string, stdout, stderr io.Writer) error {
 		printUsage(stderr)
 		return fmt.Errorf("unknown command %q", args[0])
 	}
+}
+
+func runInit(args []string, stdout io.Writer) error {
+	fs := flag.NewFlagSet("init", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+
+	cachePath := fs.String("cache", defaultCachePath, "cache file path")
+	owner := fs.String("owner", "", "GitHub login or organization")
+	ownerType := fs.String("owner-type", "", "owner type: user or org")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	ref := ProjectRef{
+		Owner:     *owner,
+		OwnerType: *ownerType,
+	}
+	if cached, err := loadCache(*cachePath); err == nil {
+		ref = mergeProjectRef(ref, cached.Project)
+	}
+	if ref.Owner == "" || ref.OwnerType == "" {
+		return fmt.Errorf("init requires --owner and --owner-type, or a cache with owner metadata")
+	}
+
+	client, err := newGitHubClient()
+	if err != nil {
+		return err
+	}
+
+	projectRef, created, err := client.ensureProject(ref.Owner, ref.OwnerType, canonicalProjectTitle)
+	if err != nil {
+		return err
+	}
+
+	cache, err := client.syncProject(projectRef)
+	if err != nil {
+		return err
+	}
+	if err := writeCache(*cachePath, cache); err != nil {
+		return err
+	}
+	if err := validateRequiredFields(cache); err != nil {
+		action := "resolved"
+		if created {
+			action = "created"
+		}
+		return fmt.Errorf("%s canonical project %q (#%d) and wrote cache to %s, but %w",
+			action, cache.Project.Title, cache.Project.ProjectNumber, *cachePath, err)
+	}
+
+	action := "resolved"
+	if created {
+		action = "created"
+	}
+	fmt.Fprintf(stdout, "%s canonical project %q (#%d) for %s %q and wrote cache to %s\n",
+		action, cache.Project.Title, cache.Project.ProjectNumber, cache.Project.OwnerType, cache.Project.Owner, *cachePath)
+	return nil
 }
 
 func runSync(args []string, stdout io.Writer) error {
@@ -204,6 +263,7 @@ func printUsage(w io.Writer) {
 	fmt.Fprintf(w, `pj manages a workspace GitHub Project cache.
 
 Usage:
+  go -C tools/pj run ./cmd/pj init --owner <owner> --owner-type user|org
   go -C tools/pj run ./cmd/pj sync --owner <owner> --owner-type user|org --project <number>
   go -C tools/pj run ./cmd/pj list [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]
   go -C tools/pj run ./cmd/pj add --title <title> [--body <text>] [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]
@@ -230,4 +290,18 @@ func mergeProjectRef(ref, cached ProjectRef) ProjectRef {
 		ref.ProjectNumber = cached.ProjectNumber
 	}
 	return ref
+}
+
+func validateRequiredFields(cache *Cache) error {
+	missing := make([]string, 0, len(requiredFieldNames))
+	for _, fieldName := range requiredFieldNames {
+		field, ok := cache.Fields[fieldName]
+		if !ok || field.ID == "" {
+			missing = append(missing, fieldName)
+		}
+	}
+	if len(missing) > 0 {
+		return fmt.Errorf("project is missing required fields: %s", commaList(missing))
+	}
+	return nil
 }

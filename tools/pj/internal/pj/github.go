@@ -11,10 +11,11 @@ import (
 	"time"
 )
 
-const githubGraphQLEndpoint = "https://api.github.com/graphql"
+const defaultGitHubGraphQLEndpoint = "https://api.github.com/graphql"
 
 type githubClient struct {
 	httpClient *http.Client
+	endpoint   string
 	token      string
 }
 
@@ -35,6 +36,7 @@ func newGitHubClient() (*githubClient, error) {
 
 	return &githubClient{
 		httpClient: &http.Client{Timeout: 30 * time.Second},
+		endpoint:   defaultGitHubGraphQLEndpoint,
 		token:      token,
 	}, nil
 }
@@ -50,7 +52,7 @@ func (c *githubClient) graphQL(query string, variables map[string]any, respData 
 		return fmt.Errorf("encode graphql request: %w", err)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, githubGraphQLEndpoint, bytes.NewReader(body))
+	req, err := http.NewRequest(http.MethodPost, c.endpoint, bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("build graphql request: %w", err)
 	}
@@ -202,6 +204,118 @@ func (c *githubClient) syncProject(ref ProjectRef) (*Cache, error) {
 	}
 
 	return cache, nil
+}
+
+func (c *githubClient) ensureProject(owner, ownerType, title string) (ProjectRef, bool, error) {
+	query, rootKey, err := ownerProjectsQuery(ownerType)
+	if err != nil {
+		return ProjectRef{}, false, err
+	}
+
+	var resp map[string]json.RawMessage
+	if err := c.graphQL(query, map[string]any{
+		"login": owner,
+	}, &resp); err != nil {
+		return ProjectRef{}, false, err
+	}
+
+	rawRoot, ok := resp[rootKey]
+	if !ok {
+		return ProjectRef{}, false, fmt.Errorf("graphql response missing %q root", rootKey)
+	}
+
+	var root struct {
+		ID         string `json:"id"`
+		ProjectsV2 struct {
+			PageInfo struct {
+				HasNextPage bool `json:"hasNextPage"`
+			} `json:"pageInfo"`
+			Nodes []struct {
+				ID     string `json:"id"`
+				Title  string `json:"title"`
+				Number int    `json:"number"`
+			} `json:"nodes"`
+		} `json:"projectsV2"`
+	}
+	if err := json.Unmarshal(rawRoot, &root); err != nil {
+		return ProjectRef{}, false, fmt.Errorf("decode owner root: %w", err)
+	}
+	if root.ID == "" {
+		return ProjectRef{}, false, fmt.Errorf("%s %q not found", ownerType, owner)
+	}
+
+	matches := make([]ProjectRef, 0, 1)
+	for _, project := range root.ProjectsV2.Nodes {
+		if project.Title != title {
+			continue
+		}
+		matches = append(matches, ProjectRef{
+			Owner:         owner,
+			OwnerType:     ownerType,
+			ProjectNumber: project.Number,
+			ProjectID:     project.ID,
+			Title:         project.Title,
+		})
+	}
+
+	if len(matches) > 1 {
+		return ProjectRef{}, false, fmt.Errorf("found %d projects named %q for %s %q; clean up duplicate boards before running `pj init`", len(matches), title, ownerType, owner)
+	}
+	if len(matches) == 1 {
+		return matches[0], false, nil
+	}
+	if root.ProjectsV2.PageInfo.HasNextPage {
+		return ProjectRef{}, false, fmt.Errorf("project list for %s %q exceeds the current spike limit; pagination is not implemented yet", ownerType, owner)
+	}
+
+	ref, err := c.createProject(owner, ownerType, root.ID, title)
+	if err != nil {
+		return ProjectRef{}, false, err
+	}
+	return ref, true, nil
+}
+
+func (c *githubClient) createProject(owner, ownerType, ownerID, title string) (ProjectRef, error) {
+	var resp struct {
+		CreateProjectV2 struct {
+			ProjectV2 struct {
+				ID     string `json:"id"`
+				Title  string `json:"title"`
+				Number int    `json:"number"`
+			} `json:"projectV2"`
+		} `json:"createProjectV2"`
+	}
+
+	err := c.graphQL(`
+mutation($ownerId: ID!, $title: String!) {
+  createProjectV2(input: {ownerId: $ownerId, title: $title}) {
+    projectV2 {
+      id
+      title
+      number
+    }
+  }
+}
+`, map[string]any{
+		"ownerId": ownerID,
+		"title":   title,
+	}, &resp)
+	if err != nil {
+		return ProjectRef{}, err
+	}
+
+	project := resp.CreateProjectV2.ProjectV2
+	if project.ID == "" || project.Number == 0 {
+		return ProjectRef{}, fmt.Errorf("createProjectV2 returned incomplete project metadata")
+	}
+
+	return ProjectRef{
+		Owner:         owner,
+		OwnerType:     ownerType,
+		ProjectNumber: project.Number,
+		ProjectID:     project.ID,
+		Title:         project.Title,
+	}, nil
 }
 
 func (c *githubClient) addDraftItem(cache *Cache, title, body string, fieldValues map[string]string) error {
@@ -423,6 +537,40 @@ query($login: String!, $number: Int!) {
 	}
 }
 
+func ownerProjectsQuery(ownerType string) (query string, rootKey string, err error) {
+	const projectListBody = `
+id
+projectsV2(first: 100) {
+  pageInfo {
+    hasNextPage
+  }
+  nodes {
+    id
+    title
+    number
+  }
+}`
+
+	switch ownerType {
+	case "user":
+		return fmt.Sprintf(`
+query($login: String!) {
+  user(login: $login) {
+    %s
+  }
+}`, projectListBody), "user", nil
+	case "org":
+		return fmt.Sprintf(`
+query($login: String!) {
+  organization(login: $login) {
+    %s
+  }
+}`, projectListBody), "organization", nil
+	default:
+		return "", "", fmt.Errorf("unsupported owner type %q: use user or org", ownerType)
+	}
+}
+
 func firstNonEmpty(values ...string) string {
 	for _, value := range values {
 		if strings.TrimSpace(value) != "" {
@@ -430,4 +578,8 @@ func firstNonEmpty(values ...string) string {
 		}
 	}
 	return ""
+}
+
+func commaList(values []string) string {
+	return strings.Join(values, ", ")
 }

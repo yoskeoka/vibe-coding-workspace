@@ -7,11 +7,12 @@ import (
 )
 
 const (
-	defaultCacheRelPath = ".local/pj/cache.json"
-	fieldStatus         = "Status"
-	fieldRepo           = "Repo"
-	fieldKind           = "Kind"
-	fieldPriority       = "Priority"
+	defaultCacheRelPath   = ".local/pj/cache.json"
+	canonicalProjectTitle = "Workspace Task Triage"
+	fieldStatus           = "Status"
+	fieldRepo             = "Repo"
+	fieldKind             = "Kind"
+	fieldPriority         = "Priority"
 )
 
 var defaultCachePath = resolveDefaultCachePath()
@@ -48,6 +49,13 @@ type Cache struct {
 	Project  ProjectRef            `json:"project"`
 	Fields   map[string]FieldCache `json:"fields"`
 	Items    []Item                `json:"items"`
+}
+
+var requiredFieldNames = []string{
+	fieldStatus,
+	fieldRepo,
+	fieldKind,
+	fieldPriority,
 }
 
 func resolveDefaultCachePath() string {

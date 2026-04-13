@@ -35,6 +35,38 @@ This workspace is managed using a strict **AI-first workflow**. The core idea is
 
 For a new project, run `./skills/manage-workflow/run.sh <project-dir>` to apply this structure.
 
+## Workspace Task Triage CLI
+
+The workspace task triage spike lives under `tools/pj/` and uses `gh auth token` for GitHub Projects API access.
+
+Before running `pj init`, make sure `gh` is authenticated with the required scopes:
+
+```bash
+gh auth login -h github.com -s project,read:project,repo,read:org,gist
+```
+
+If you are already logged in and only need to add the missing GitHub Projects write scope:
+
+```bash
+gh auth refresh -h github.com -s project
+```
+
+Verify the current auth state with:
+
+```bash
+gh auth status
+```
+
+Then bootstrap the canonical workspace board:
+
+```bash
+go -C tools/pj run ./cmd/pj init --owner <owner> --owner-type user|org
+```
+
+Notes:
+- `read:project` is enough for read-only sync, but `pj init`, `pj add`, and `pj move` require the `project` scope.
+- `pj init` can create the `Workspace Task Triage` board, but the current spike still expects the custom `Repo`, `Kind`, and `Priority` fields to be provisioned separately.
+
 ## Using Skills in Child Projects
 
 To set up the AI workflow skills in a child repository:

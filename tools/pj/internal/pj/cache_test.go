@@ -91,3 +91,23 @@ func TestMergeProjectRef(t *testing.T) {
 		t.Fatalf("project number = %d, want 7", got.ProjectNumber)
 	}
 }
+
+func TestValidateRequiredFields(t *testing.T) {
+	t.Parallel()
+
+	cache := &Cache{
+		Fields: map[string]FieldCache{
+			fieldStatus: {ID: "status"},
+			fieldRepo:   {ID: "repo"},
+		},
+	}
+
+	err := validateRequiredFields(cache)
+	if err == nil {
+		t.Fatal("validateRequiredFields() error = nil, want missing-field error")
+	}
+	got := err.Error()
+	if got != "project is missing required fields: Kind, Priority" {
+		t.Fatalf("validateRequiredFields() error = %q", got)
+	}
+}

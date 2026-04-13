@@ -27,7 +27,7 @@ func loadCacheRequired(path string) (*Cache, error) {
 		return cache, nil
 	}
 	if os.IsNotExist(err) {
-		return nil, fmt.Errorf("cache not found at %s; run `pj sync` first", path)
+		return nil, fmt.Errorf("cache not found at %s; run `pj init` or `pj sync` first", path)
 	}
 	return nil, err
 }
