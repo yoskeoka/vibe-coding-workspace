@@ -34,8 +34,11 @@ That means the current `yoskeoka`-owned `Workspace Task Triage` board is structu
 ### `docs/specs/github-projects-task-cli.md`
 
 - Clarify that `pj init` creates or resolves an owner-scoped ProjectV2
-- State explicitly that repository linking is a separate concern from Project creation
-- Decide whether `tools/pj` should remain out of scope for repo-link automation in this spike or should add a reminder/inspection command in a follow-up task
+- Specify that `tools/pj` supports both:
+  - checking whether the canonical Project is linked to a target repository
+  - linking the canonical Project to a target repository
+- Clarify whether repository linking is folded into `pj init`, exposed as a dedicated command, or both
+- Capture any remaining safety gap around `pj init` creating a board under the wrong owner scope when the operator intended a different owner (`user` vs `org`)
 
 ### `AGENTS.md`
 
@@ -53,38 +56,47 @@ That means the current `yoskeoka`-owned `Workspace Task Triage` board is structu
 
 ### `tools/pj/`
 
-- Evaluate whether code changes are needed at all for this plan
-- If documentation-only clarification is sufficient, keep `tools/pj` unchanged
-- If execution shows repeated operator confusion remains likely, consider a narrowly scoped UX improvement such as:
-  - clearer command output explaining that the created Project is owner-scoped
-  - a follow-up issue/plan for repo-link visibility checks rather than forcing unsupported automation into this spike
+- Add a way to inspect whether the canonical Project is already linked to a repository
+- Add a way to link the canonical Project to a repository using GitHub's ProjectV2 GraphQL API
+- Decide whether the inspection/linking UX is:
+  - a dedicated command pair such as `pj project-link-status` / `pj link-repo`
+  - a single command that reports and optionally applies the link
+  - an extension of `pj init`
+- Evaluate whether `pj init` should remain unchanged for owner targeting in this plan or whether the owner-selection safety gap should become a follow-up issue or a separate execution plan
 
 ## Design Decisions
 
 - The canonical `Workspace Task Triage` board remains owner-scoped because ProjectV2 is not repository-owned
 - The `vibe-coding-workspace` repository should expose the canonical board through its Projects tab by linking the owner-scoped board
-- Prefer documenting and operationalizing GitHub's native repository-linking flow over adding brittle automation unless GitHub exposes a stable supported API path for it
+- GitHub's public ProjectV2 GraphQL API should be used for repository link inspection/link creation rather than relying on a manual-only UI workflow
 - If setting a default repository changes issue-creation behavior in ways that matter to the workspace, capture that explicitly in the specs during execution
+- If `pj init` owner-targeting safety is not fixed in this plan, log it explicitly as a follow-up issue or separate plan rather than leaving it implicit
 
 ## Sub-tasks
 
 - [ ] Update `docs/specs/triage-tasks.md` to distinguish project ownership from repository visibility/linking
-- [ ] Update `docs/specs/github-projects-task-cli.md`, `AGENTS.md`, and `README.md` so they consistently describe the owner-scoped board model
-- [ ] [parallel] Verify whether GitHub exposes a supported API path for repository-linking of ProjectV2 or whether this remains a manual UI step in the current workflow
+- [ ] Update `docs/specs/github-projects-task-cli.md`, `AGENTS.md`, and `README.md` so they consistently describe the owner-scoped board model and the new repo-link capabilities
+- [ ] [parallel] Verify the exact GraphQL path for ProjectV2 repository-link inspection and link creation
 - [ ] [parallel] Verify how setting `vibe-coding-workspace` as the default repository affects project behavior and whether the workflow should require it
-- [ ] [depends on: repository-linking verification, default repository verification] Decide whether this plan is documentation-only or needs a small `tools/pj` UX improvement
-- [ ] [depends on: docs/spec updates] Link `Workspace Task Triage` into the `vibe-coding-workspace` repository Projects tab and apply any chosen default-repository setting
+- [ ] [depends on: repository-link GraphQL verification] Implement `tools/pj` support for checking whether the canonical Project is linked to a repository
+- [ ] [depends on: repository-link GraphQL verification] Implement `tools/pj` support for linking the canonical Project to a repository
+- [ ] [depends on: repo-link status command, repo-link mutation] Link `Workspace Task Triage` into the `vibe-coding-workspace` repository Projects tab using `tools/pj`
+- [ ] [depends on: docs/spec updates] Decide whether `pj init` owner-targeting safety belongs in this execution PR or should be logged as a follow-up issue / separate plan
 - [ ] [depends on: repository link applied] Verify the linked board is discoverable from both the owner Projects page and the repository Projects tab
 
 ## Verification
 
 - Confirm docs/specs no longer imply that the canonical board is repository-owned
+- Confirm `tools/pj` can report whether the canonical board is linked to `vibe-coding-workspace`
+- Confirm `tools/pj` can link the canonical board to `vibe-coding-workspace`
 - Confirm the canonical board is linked from the `vibe-coding-workspace` repository Projects tab
 - Confirm any default-repository decision is reflected consistently in docs and observed GitHub behavior
 - Confirm `tools/pj` guidance still matches the actual bootstrap and day-to-day workflow after the clarification
+- Confirm the owner-targeting safety decision for `pj init` is either implemented or explicitly recorded as follow-up work
 
 ## Expected Outcome
 
 - The workspace workflow clearly treats `Workspace Task Triage` as an owner-scoped ProjectV2 linked to this repository
 - Operators no longer misread the owner Projects page as an implementation mistake
 - The repository gains a discoverable Projects-tab entry point to the canonical workspace board without changing the board's source of truth
+- `tools/pj` can both inspect and establish the repo link instead of relying on a manual GitHub UI step
