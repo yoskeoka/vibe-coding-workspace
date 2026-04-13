@@ -4,7 +4,7 @@
 
 ## Objective
 
-Clarify and operationalize how the workspace triage ProjectV2 is meant to work now that `tools/pj` has created the canonical `Workspace Task Triage` board under the `yoskeoka` user account.
+Clarify and operationalize how the workspace triage ProjectV2 is meant to work now that `tools/pj` has created the canonical `Workspace Task Triage` board under the configured owner account.
 
 The goal is to remove the remaining ambiguity between:
 
@@ -20,7 +20,7 @@ Current specs and guidance say the workspace uses a dedicated ProjectV2 named `W
 
 GitHub Projects (ProjectV2) are owned by a user or organization, not by a repository. Repositories can instead link an owner-scoped project into the repository's `Projects` tab and can set a default repository for that project. GitHub's official documentation for "Adding your project to a repository" states that only projects owned by the same user or organization as the repository can be linked.
 
-That means the current `yoskeoka`-owned `Workspace Task Triage` board is structurally valid for this repository, but the docs and workflow should make the distinction explicit and the repository-level linking step should be part of the operating model.
+That means the current configured-owner `Workspace Task Triage` board is structurally valid for this repository, but the docs and workflow should make the distinction explicit and the repository-level linking step should be part of the operating model.
 
 ## Spec Changes
 
@@ -82,7 +82,7 @@ That means the current `yoskeoka`-owned `Workspace Task Triage` board is structu
 - [ ] [depends on: repository-link GraphQL verification] Implement `tools/pj` support for linking the canonical Project to a repository
 - [ ] [depends on: repo-link status command, repo-link mutation] Link `Workspace Task Triage` into the `vibe-coding-workspace` repository Projects tab using `tools/pj`
 - [ ] [depends on: docs/spec updates] Decide whether `pj init` owner-targeting safety belongs in this execution PR or should be logged as a follow-up issue / separate plan
-- [ ] [depends on: repository link applied] Verify the linked board is discoverable from both the owner Projects page and the repository Projects tab
+- [ ] [depends on: repository link applied] Verify the linked board is discoverable from both the owner's Projects page and the repository Projects tab
 
 ## Verification
 
@@ -97,6 +97,6 @@ That means the current `yoskeoka`-owned `Workspace Task Triage` board is structu
 ## Expected Outcome
 
 - The workspace workflow clearly treats `Workspace Task Triage` as an owner-scoped ProjectV2 linked to this repository
-- Operators no longer misread the owner Projects page as an implementation mistake
+- Operators no longer misread the owner's Projects page as an implementation mistake
 - The repository gains a discoverable Projects-tab entry point to the canonical workspace board without changing the board's source of truth
 - `tools/pj` can both inspect and establish the repo link instead of relying on a manual GitHub UI step
