@@ -5,6 +5,7 @@ ww/
 envdiff/
 .site/
 .uv-cache/
+.local/
 
 
 # Dolt database files (added by bd init)
