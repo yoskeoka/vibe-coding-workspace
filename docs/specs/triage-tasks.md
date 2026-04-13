@@ -75,6 +75,23 @@ A workspace-local Go CLI provides the task operations. The initial command set i
 
 ### 6. `triage-tasks` skill integration
 The `triage-tasks` skill may use the local cache and/or the CLI output as its workspace-task source instead of `bd` or `.local/priority.md`.
+- The skill MUST bootstrap or refresh the cache with `pj init` and/or `pj sync` before relying on local task state.
+- The skill MUST treat `pj list` output plus the cached `Priority` field as the day-to-day "what next?" view; the current spike does not provide a separate `ready` command.
+- The skill MUST create new triage items with `pj add` and claim or complete them by changing `Status` with `pj move`.
+- After `pj init` or `pj sync`, the skill SHOULD include the canonical GitHub Project URL in the briefing when the owner scope and project number are known.
+- When `Priority` is missing or incomplete, the skill MUST still rank a small shortlist using explicit heuristics such as: active execution plans over vague future ideas, broken/failing workflow items over aspirational enhancements, and tasks in the currently active repo over distant backlog items.
+- The skill SHOULD present the top-priority shortlist before dumping the full board so the user can choose quickly, while still making the Project URL or full list available.
+- After presenting the current task list, the skill MUST offer the next step as explicit numbered choices:
+  `1. Pick a task`, `2. Update the list`, `3. Full re-triage`.
+- After offering those choices, the skill MUST wait for user confirmation instead of auto-choosing one of them.
+- During full re-triage, the skill MAY delegate repo-by-repo read-only exploration to subagents in order to keep the main context smaller.
+- When delegating that exploration, the skill SHOULD prefer an available low-cost small model rather than a frontier-sized model, but MUST avoid hard-coding a specific model version name in the workflow contract.
+- The main agent MUST keep responsibility for final prioritization, Project mutations, and the handoff prompt even when read-only exploration is delegated.
+- After the user picks a task, the default handoff SHOULD be a fresh-session prompt rather than immediately starting implementation in the same session, because triage often leaves broad cross-repo context in the conversation.
+- That handoff prompt SHOULD include enough context to start the next workflow step cleanly: target repo path, suggested branch command, files to read first, the goal, deliverables, and key constraints.
+- The skill MUST emit the handoff prompt in the same language the user is currently using in the chat, rather than always generating multiple language variants.
+- The skill MUST NOT instruct agents to use beads-only concepts such as Dolt backup restore, dependency edges, or `bd update --claim`.
+- Because the current spike only mutates `Status` on existing items, the skill SHOULD treat edits to `Repo`, `Kind`, or `Priority` as a manual GitHub Project follow-up unless the item is recreated.
 
 ### 7. Placement and structure
 - The spike CLI lives under `tools/pj/` as an independent Go module.
