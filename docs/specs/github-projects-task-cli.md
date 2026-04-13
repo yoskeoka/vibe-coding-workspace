@@ -15,6 +15,8 @@ This layout is preferred over `scripts/cmd/pj` because the spike is a compiled G
 - The GitHub token needs ProjectV2 scopes:
   - `read:project` for `sync` and remote-backed reads
   - write project scope for `add` and `move`
+- The canonical workspace board is a dedicated ProjectV2 named `Workspace Task Triage`.
+- The current spike assumes that this board already exists before CLI operations run.
 - The target project is configured by command flags and/or cached metadata:
   - `owner`
   - `owner_type` (`user` or `org`)
@@ -37,6 +39,7 @@ This layout is preferred over `scripts/cmd/pj` because the spike is a compiled G
 - Loads project field metadata
 - Loads project items and normalized field values
 - Writes `.local/pj/cache.json`
+- Fails clearly if the target ProjectV2 does not exist yet
 
 ### `pj list`
 - Reads `.local/pj/cache.json`
@@ -71,4 +74,5 @@ Each cached item MUST expose enough normalized data for AI and human use:
 - Full parity with `gh project`
 - Complex search syntax
 - Automatic project discovery across multiple boards
+- Automatic creation of the `Workspace Task Triage` ProjectV2
 - Cross-project aggregation beyond the single configured workspace board

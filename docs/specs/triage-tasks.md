@@ -18,6 +18,9 @@ A short entry in `AGENTS.md` MUST propose triage at the start of every new sessi
 
 ### 2. Canonical state
 - The canonical remote source of workspace triage state is a GitHub Project (ProjectV2).
+- The workspace MUST use a dedicated ProjectV2 named `Workspace Task Triage` for cross-project task coordination.
+- This board is reserved for workspace triage data; unrelated personal/work boards MUST NOT be reused as the canonical workspace tracker.
+- If `Workspace Task Triage` does not exist yet, it MUST be created before `pj` can manage items on it.
 - The local cache is derived data only. Deleting it must not lose task state.
 - `docs/exec-plan/todo/` remains the canonical tracker for implementation plans once a task is selected.
 
