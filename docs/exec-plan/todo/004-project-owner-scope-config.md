@@ -10,7 +10,7 @@ The intended outcome is:
 
 - the operator can intentionally choose `user` or `org`
 - the chosen owner scope is persisted in local metadata once established
-- later commands such as `sync`, `add`, `move`, and repo-link operations can reuse that stored configuration without re-specifying it every time
+- later commands such as `sync`, `add`, `move`, and `repo-link` operations can reuse that stored configuration without re-specifying it every time
 
 This supports the project-plan requirement that the GitHub Projects-based workspace triage flow be practical enough for repeated daily use without surprising behavior.
 
