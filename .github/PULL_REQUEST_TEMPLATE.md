@@ -15,19 +15,27 @@
 - [ ] Documentation only
 - [ ] Chore (CI, tooling, deps)
 
-## Instructions
+## Human Instructions / Intent
 
 <!--
-Specify the command or workflow the AI should run for this PR.
+Record the human instruction and intent that led to creating this PR.
+This section documents how the PR was initiated, not a command that must
+match text inside the diff.
+
+If this PR creates or updates an execution plan, record the planning command
+that produced the plan PR.
+If this PR executes an approved plan, record the execution command that
+produced the implementation PR.
+
 Examples:
-- Execution: `/execute-task docs/exec-plan/todo/<plan-name>.md`
-- Execution: `/plan-project docs/project-plan/todo/<project-name>.md`
-- Execution: `/plan-execution docs/exec-plan/todo/<plan-name>.md`
+- Plan creation: `/plan-execution docs/exec-plan/todo/<plan-name>.md`
+- Plan execution: `/execute-task docs/exec-plan/todo/<plan-name>.md`
+- Project planning: `/plan-project docs/project-plan.md`
 
 For chores/docs-only or other non-execution PRs, use:
-- Execution: `N/A`
+- Human instruction: `N/A`
 -->
-Execution: `________________`
+Human instruction: `________________`
 ### Additional Context from Instructing Human
 
 <!--
