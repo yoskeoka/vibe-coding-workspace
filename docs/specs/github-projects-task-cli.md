@@ -40,9 +40,11 @@ This layout is preferred over `scripts/cmd/pj` because the spike is a compiled G
 - Requires `--owner` and `--owner-type` unless that metadata already exists in cache
 - Resolves the canonical `Workspace Task Triage` board by owner and title before creating a new board
 - Creates the canonical board when absent
+- Provisions missing custom `Repo`, `Kind`, and `Priority` fields as single-select workflow fields during bootstrap
+- Reuses existing compatible workflow fields when they already exist instead of creating duplicates
 - Writes `.local/pj/cache.json` with the resolved project identity and current remote snapshot
 - Fails clearly if more than one board with the canonical title exists for the same owner
-- Fails clearly when required workflow fields are still missing after bootstrap; this spike does not need to auto-provision custom fields yet
+- Fails clearly when required workflow fields are still missing or incompatible after bootstrap, naming the blocking fields and compatibility problem
 
 ### `pj sync`
 - Resolves the target project through GitHub GraphQL
@@ -81,12 +83,13 @@ Each cached item MUST expose enough normalized data for AI and human use:
 - If GitHub returns a non-success HTTP response, the CLI must include the HTTP status in the returned error even when the response body is not valid JSON.
 - If the cache is missing, local-cache commands must tell the operator to run `pj init` or `pj sync`.
 - If a field is missing from the project, mutations must fail with a clear field-name error instead of silently skipping.
-- If `pj init` resolves or creates the canonical board but the required workflow fields are missing, it must name the missing fields in the returned error after writing the cache.
+- If `pj init` resolves or creates the canonical board but cannot provision or reconcile the required workflow fields, it must name the blocking fields in the returned error after writing the latest cache snapshot.
+- If a required field exists with an unsupported type or missing required single-select options, `pj init` must fail with a clear compatibility error instead of silently mutating an unknown schema.
 - If a query result exceeds the current single-page limits, the CLI must fail clearly instead of silently truncating the cache.
 
 ## Non-Goals
 - Full parity with `gh project`
 - Complex search syntax
 - Automatic project discovery across multiple boards
-- Automatic provisioning of the custom `Repo`, `Kind`, and `Priority` fields during bootstrap
+- General-purpose schema management for arbitrary ProjectV2 fields beyond the required workspace workflow fields
 - Cross-project aggregation beyond the single configured workspace board
