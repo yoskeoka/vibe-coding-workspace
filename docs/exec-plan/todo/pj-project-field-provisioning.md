@@ -14,7 +14,7 @@ This supports the project-plan requirement that workspace task coordination stay
 
 Current behavior creates or resolves the canonical board and writes cache metadata, but then fails if the board is missing custom fields. That leaves bootstrap half-finished on a fresh board and keeps a manual GitHub UI step in the critical path.
 
-Past decision: the original CLI spike explicitly treated custom-field auto-provisioning as out of scope. The new issue in [docs/issues/pj-project-field-provisioning.md](/home/yoske/src/github.com/yoskeoka/vibe-coding-workspace/docs/issues/pj-project-field-provisioning.md) narrows the next slice: extend bootstrap to provision the required field model without changing the existing cache-first, single-board workflow.
+Past decision: the original CLI spike explicitly treated custom-field auto-provisioning as out of scope. The new issue in [docs/issues/pj-project-field-provisioning.md](/docs/issues/pj-project-field-provisioning.md) narrows the next slice: extend bootstrap to provision the required field model without changing the existing cache-first, single-board workflow.
 
 Relevant existing constraints:
 
