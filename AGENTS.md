@@ -117,6 +117,7 @@ Workspace-level triage uses a GitHub Project plus a local derived cache managed 
 
 ### Expected Commands
 
+- `go -C tools/pj run ./cmd/pj init --owner <owner> --owner-type user|org`
 - `go -C tools/pj run ./cmd/pj sync --owner <owner> --owner-type user|org --project <number>`
 - `go -C tools/pj run ./cmd/pj list`
 - `go -C tools/pj run ./cmd/pj add --title "..." --status Todo`
@@ -127,6 +128,7 @@ Workspace-level triage uses a GitHub Project plus a local derived cache managed 
 - Use the GitHub Project flow for workspace-level task triage instead of `bd`
 - Do not treat `.local/pj/` as source-of-truth data; it can be regenerated
 - Do not create duplicate local task trackers for the same workspace board unless a spec explicitly adds one
+- Bootstrap the canonical board with `pj init` before relying on `sync`, `list`, `add`, or `move`
 
 ## Landing the Plane (Session Completion)
 

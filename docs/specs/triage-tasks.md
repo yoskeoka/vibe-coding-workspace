@@ -20,7 +20,8 @@ A short entry in `AGENTS.md` MUST propose triage at the start of every new sessi
 - The canonical remote source of workspace triage state is a GitHub Project (ProjectV2).
 - The workspace MUST use a dedicated ProjectV2 named `Workspace Task Triage` for cross-project task coordination.
 - This board is reserved for workspace triage data; unrelated personal/work boards MUST NOT be reused as the canonical workspace tracker.
-- If `Workspace Task Triage` does not exist yet, it MUST be created before `pj` can manage items on it.
+- Workspace triage MUST begin with an explicit bootstrap step, `pj init --owner <owner> --owner-type user|org`, which resolves the canonical board by name and creates it when absent.
+- If `Workspace Task Triage` does not exist yet, `pj init` MUST create it before later `pj` commands manage items on it.
 - The local cache is derived data only. Deleting it must not lose task state.
 - `docs/exec-plan/todo/` remains the canonical tracker for implementation plans once a task is selected.
 
@@ -46,10 +47,18 @@ The workflow depends on these GitHub Project fields:
 ### 5. Workspace CLI
 A workspace-local Go CLI provides the task operations. The initial command set is:
 
+#### `init`
+- Authenticates via `gh auth token`
+- Resolves the canonical `Workspace Task Triage` board by owner and title
+- Creates the canonical board when absent
+- Writes the resolved project identity into the local cache so later commands can reuse it
+- Fails clearly if the minimum workflow fields are still missing after bootstrap
+
 #### `sync`
 - Authenticates via `gh auth token`
 - Queries the configured GitHub Project through the GraphQL API
 - Refreshes the local cache from remote state
+- Reuses the cached project identity after a successful `init`
 
 #### `list`
 - Reads the local cache and renders the current task list
