@@ -32,7 +32,10 @@ The workflow depends on these GitHub Project fields:
 - `Kind`
 - `Priority`
 
-`Status` MUST be a single-select field. `Repo`, `Kind`, and `Priority` MAY be single-select fields for the initial spike; no other custom fields are required for the workflow to function.
+`Status`, `Repo`, `Kind`, and `Priority` MUST be available as single-select fields on the canonical workspace board.
+`pj init` MUST provision the custom `Repo`, `Kind`, and `Priority` fields when they are missing, using the workspace's canonical option sets for the spike.
+Provisioning MUST be idempotent for an already-compatible board; later `pj init` runs must reuse existing compatible fields instead of creating duplicates.
+No other custom fields are required for the workflow to function.
 
 ### 4. Local cache
 - The CLI MUST store a structured cache under `.local/pj/`.
@@ -51,8 +54,9 @@ A workspace-local Go CLI provides the task operations. The initial command set i
 - Authenticates via `gh auth token`
 - Resolves the canonical `Workspace Task Triage` board by owner and title
 - Creates the canonical board when absent
+- Provisions the minimum custom workflow fields when they are missing
 - Writes the resolved project identity into the local cache so later commands can reuse it
-- Fails clearly if the minimum workflow fields are still missing after bootstrap
+- Fails clearly if the minimum workflow fields cannot be provisioned or are still incompatible after bootstrap
 
 #### `sync`
 - Authenticates via `gh auth token`
