@@ -47,7 +47,7 @@ Run `go -C tools/pj run ./cmd/pj list` to inspect the current queue.
 
 - Treat `Status=Todo` items as the default candidate set.
 - Use the `Priority` column plus current session context to decide what is most actionable.
-- If `Priority` is missing, rank a short list anyway using explicit heuristics:
+- The canonical Project must have a `Priority` field; if an item's `Priority` value is empty, unset, or shows as `-`, rank a short list anyway using explicit heuristics:
   - active exec plans over vague future ideas
   - broken workflow or failing review items over speculative enhancements
   - the repo the user is currently focused on over unrelated backlog

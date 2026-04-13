@@ -81,9 +81,10 @@ A workspace-local Go CLI provides the task operations. The initial command set i
 The `triage-tasks` skill may use the local cache and/or the CLI output as its workspace-task source instead of `bd` or `.local/priority.md`.
 - The skill MUST bootstrap or refresh the cache with `pj init` and/or `pj sync` before relying on local task state.
 - The skill MUST treat `pj list` output plus the cached `Priority` field as the day-to-day "what next?" view; the current spike does not provide a separate `ready` command.
+- The canonical Project used by this workflow MUST include a `Priority` field; fallback ranking applies when an item's `Priority` value is empty, unset, or otherwise unknown, not when the field is absent from the Project schema.
 - The skill MUST create new triage items with `pj add` and claim or complete them by changing `Status` with `pj move`.
 - After `pj init` or `pj sync`, the skill SHOULD include the canonical GitHub Project URL in the briefing when the owner scope and project number are known.
-- When `Priority` is missing or incomplete, the skill MUST still rank a small shortlist using explicit heuristics such as: active execution plans over vague future ideas, broken/failing workflow items over aspirational enhancements, and tasks in the currently active repo over distant backlog items.
+- When an item's `Priority` value is empty, unset, incomplete, or displayed as unknown (for example `-` in `pj list`), the skill MUST still rank a small shortlist using explicit heuristics such as: active execution plans over vague future ideas, broken/failing workflow items over aspirational enhancements, and tasks in the currently active repo over distant backlog items.
 - The skill SHOULD present the top-priority shortlist before dumping the full board so the user can choose quickly, while still making the Project URL or full list available.
 - After presenting the current task list, the skill MUST offer the next step as explicit numbered choices:
   `1. Pick a task`, `2. Update the list`, `3. Full re-triage`.
