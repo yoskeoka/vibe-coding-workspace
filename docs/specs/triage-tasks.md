@@ -32,7 +32,10 @@ The workflow depends on these GitHub Project fields:
 - `Kind`
 - `Priority`
 
-`Status` MUST be a single-select field. `Repo`, `Kind`, and `Priority` MAY be single-select fields for the initial spike; no other custom fields are required for the workflow to function.
+`Status`, `Repo`, `Kind`, and `Priority` MUST be available as single-select fields on the canonical workspace board.
+`pj init` MUST provision the custom `Repo`, `Kind`, and `Priority` fields when they are missing, using the workspace's canonical option sets for the spike.
+Provisioning MUST be idempotent for an already-compatible board; later `pj init` runs must reuse existing compatible fields instead of creating duplicates.
+No other custom fields are required for the workflow to function.
 
 ### 4. Local cache
 - The CLI MUST store a structured cache under `.local/pj/`.
@@ -51,8 +54,9 @@ A workspace-local Go CLI provides the task operations. The initial command set i
 - Authenticates via `gh auth token`
 - Resolves the canonical `Workspace Task Triage` board by owner and title
 - Creates the canonical board when absent
+- Provisions the minimum custom workflow fields when they are missing
 - Writes the resolved project identity into the local cache so later commands can reuse it
-- Fails clearly if the minimum workflow fields are still missing after bootstrap
+- Fails clearly if the minimum workflow fields cannot be provisioned or are still incompatible after bootstrap
 
 #### `sync`
 - Authenticates via `gh auth token`
@@ -89,6 +93,9 @@ The `triage-tasks` skill may use the local cache and/or the CLI output as its wo
 - The main agent MUST keep responsibility for final prioritization, Project mutations, and the handoff prompt even when read-only exploration is delegated.
 - After the user picks a task, the default handoff SHOULD be a fresh-session prompt rather than immediately starting implementation in the same session, because triage often leaves broad cross-repo context in the conversation.
 - That handoff prompt SHOULD include enough context to start the next workflow step cleanly: target repo path, suggested branch command, files to read first, the goal, deliverables, and key constraints.
+- That handoff prompt SHOULD explicitly name the skill to use in the next session when the next workflow step is clear.
+- If the selected task is non-trivial and does not already have an execution plan, the handoff prompt SHOULD direct the next session to use `plan-execution`.
+- If the selected task already has an execution plan and the next step is implementation, the handoff prompt SHOULD direct the next session to use `execute-task`.
 - The skill MUST emit the handoff prompt in the same language the user is currently using in the chat, rather than always generating multiple language variants.
 - The skill MUST NOT instruct agents to use beads-only concepts such as Dolt backup restore, dependency edges, or `bd update --claim`.
 - Because the current spike only mutates `Status` on existing items, the skill SHOULD treat edits to `Repo`, `Kind`, or `Priority` as a manual GitHub Project follow-up unless the item is recreated.

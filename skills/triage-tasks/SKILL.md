@@ -116,6 +116,8 @@ Claim the chosen task: `go -C tools/pj run ./cmd/pj move --item <id> --status "I
 Generate the prompt in the same language the user is currently using in the chat:
 
 ```
+Use skill: <plan-execution|execute-task|other explicit next-step skill>
+
 ## Task: <task name>
 **Target repo**: <owner/repo> at <local path>
 **Branch**: `git fetch origin && git switch -c <type>/<name> origin/main`
@@ -134,6 +136,9 @@ Generate the prompt in the same language the user is currently using in the chat
 - Create PR via `gh pr create` using the **PR template** when done
 - Do not modify other repos
 ```
+
+- If the task is non-trivial and does not already have an execution plan, use `plan-execution`.
+- If the task already has an execution plan and the next session should implement it, use `execute-task`.
 
 ## Rules
 
