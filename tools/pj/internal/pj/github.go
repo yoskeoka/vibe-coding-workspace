@@ -11,10 +11,11 @@ import (
 	"time"
 )
 
-var githubGraphQLEndpoint = "https://api.github.com/graphql"
+const defaultGitHubGraphQLEndpoint = "https://api.github.com/graphql"
 
 type githubClient struct {
 	httpClient *http.Client
+	endpoint   string
 	token      string
 }
 
@@ -35,6 +36,7 @@ func newGitHubClient() (*githubClient, error) {
 
 	return &githubClient{
 		httpClient: &http.Client{Timeout: 30 * time.Second},
+		endpoint:   defaultGitHubGraphQLEndpoint,
 		token:      token,
 	}, nil
 }
@@ -50,7 +52,7 @@ func (c *githubClient) graphQL(query string, variables map[string]any, respData 
 		return fmt.Errorf("encode graphql request: %w", err)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, githubGraphQLEndpoint, bytes.NewReader(body))
+	req, err := http.NewRequest(http.MethodPost, c.endpoint, bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("build graphql request: %w", err)
 	}

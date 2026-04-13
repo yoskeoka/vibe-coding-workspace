@@ -10,11 +10,6 @@ import (
 )
 
 func TestEnsureProjectReturnsExistingProject(t *testing.T) {
-	originalEndpoint := githubGraphQLEndpoint
-	defer func() {
-		githubGraphQLEndpoint = originalEndpoint
-	}()
-
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 
@@ -42,8 +37,11 @@ func TestEnsureProjectReturnsExistingProject(t *testing.T) {
 	}))
 	defer server.Close()
 
-	githubGraphQLEndpoint = server.URL
-	client := &githubClient{httpClient: server.Client(), token: "token"}
+	client := &githubClient{
+		httpClient: server.Client(),
+		endpoint:   server.URL,
+		token:      "token",
+	}
 
 	ref, created, err := client.ensureProject("yoskeoka", "user", canonicalProjectTitle)
 	if err != nil {
@@ -58,11 +56,6 @@ func TestEnsureProjectReturnsExistingProject(t *testing.T) {
 }
 
 func TestEnsureProjectCreatesMissingProject(t *testing.T) {
-	originalEndpoint := githubGraphQLEndpoint
-	defer func() {
-		githubGraphQLEndpoint = originalEndpoint
-	}()
-
 	requests := 0
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
@@ -110,8 +103,11 @@ func TestEnsureProjectCreatesMissingProject(t *testing.T) {
 	}))
 	defer server.Close()
 
-	githubGraphQLEndpoint = server.URL
-	client := &githubClient{httpClient: server.Client(), token: "token"}
+	client := &githubClient{
+		httpClient: server.Client(),
+		endpoint:   server.URL,
+		token:      "token",
+	}
 
 	ref, created, err := client.ensureProject("yoskeoka", "user", canonicalProjectTitle)
 	if err != nil {
