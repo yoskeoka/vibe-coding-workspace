@@ -5,8 +5,21 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"strings"
 	"text/tabwriter"
 )
+
+type projectClient interface {
+	ensureProject(owner, ownerType, title string) (ProjectRef, bool, error)
+	syncProject(ref ProjectRef) (*Cache, error)
+	provisionWorkflowFields(cache *Cache) (bool, error)
+	addDraftItem(cache *Cache, title, body string, fieldValues map[string]string) error
+	moveItem(cache *Cache, itemID, status string) error
+}
+
+var newProjectClient = func() (projectClient, error) {
+	return newGitHubClient()
+}
 
 func Run(args []string, stdout, stderr io.Writer) error {
 	if len(args) == 0 {
@@ -56,7 +69,7 @@ func runInit(args []string, stdout io.Writer) error {
 		return fmt.Errorf("init requires --owner and --owner-type, or a cache with owner metadata")
 	}
 
-	client, err := newGitHubClient()
+	client, err := newProjectClient()
 	if err != nil {
 		return err
 	}
@@ -70,8 +83,25 @@ func runInit(args []string, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
+	provisioned, provisionErr := client.provisionWorkflowFields(cache)
+	if provisionErr != nil || provisioned {
+		refreshed, refreshErr := client.syncProject(cache.Project)
+		if refreshErr == nil {
+			cache = refreshed
+		} else if provisionErr == nil {
+			return refreshErr
+		}
+	}
 	if err := writeCache(*cachePath, cache); err != nil {
 		return err
+	}
+	if provisionErr != nil {
+		action := "resolved"
+		if created {
+			action = "created"
+		}
+		return fmt.Errorf("%s canonical project %q (#%d) and wrote cache to %s, but %w",
+			action, cache.Project.Title, cache.Project.ProjectNumber, *cachePath, provisionErr)
 	}
 	if err := validateRequiredFields(cache); err != nil {
 		action := "resolved"
@@ -115,7 +145,7 @@ func runSync(args []string, stdout io.Writer) error {
 		return fmt.Errorf("sync requires --owner, --owner-type, and --project, or a cache with project metadata")
 	}
 
-	client, err := newGitHubClient()
+	client, err := newProjectClient()
 	if err != nil {
 		return err
 	}
@@ -194,7 +224,7 @@ func runAdd(args []string, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
-	client, err := newGitHubClient()
+	client, err := newProjectClient()
 	if err != nil {
 		return err
 	}
@@ -239,7 +269,7 @@ func runMove(args []string, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
-	client, err := newGitHubClient()
+	client, err := newProjectClient()
 	if err != nil {
 		return err
 	}
@@ -293,15 +323,47 @@ func mergeProjectRef(ref, cached ProjectRef) ProjectRef {
 }
 
 func validateRequiredFields(cache *Cache) error {
-	missing := make([]string, 0, len(requiredFieldNames))
-	for _, fieldName := range requiredFieldNames {
-		field, ok := cache.Fields[fieldName]
+	missing := make([]string, 0, len(workflowFieldSchemas))
+	incompatible := make([]string, 0)
+	for _, schema := range workflowFieldSchemas {
+		field, ok := cache.Fields[schema.Name]
 		if !ok || field.ID == "" {
-			missing = append(missing, fieldName)
+			missing = append(missing, schema.Name)
+			continue
+		}
+		if err := validateFieldCompatibility(schema, field); err != nil {
+			incompatible = append(incompatible, err.Error())
 		}
 	}
+	parts := make([]string, 0, 2)
 	if len(missing) > 0 {
-		return fmt.Errorf("project is missing required fields: %s", commaList(missing))
+		parts = append(parts, fmt.Sprintf("missing required fields: %s", commaList(missing)))
+	}
+	if len(incompatible) > 0 {
+		parts = append(parts, fmt.Sprintf("incompatible required fields: %s", strings.Join(incompatible, "; ")))
+	}
+	if len(parts) > 0 {
+		return fmt.Errorf("project is incompatible with required workflow fields: %s", strings.Join(parts, "; "))
+	}
+	return nil
+}
+
+func validateFieldCompatibility(schema workflowFieldSchema, field FieldCache) error {
+	if field.Type != schema.Type {
+		return fmt.Errorf("%q has unsupported type %q (want %q)", schema.Name, field.Type, schema.Type)
+	}
+	if len(schema.Options) == 0 {
+		return nil
+	}
+
+	missingOptions := make([]string, 0, len(schema.Options))
+	for _, option := range schema.Options {
+		if field.Options[option.Name] == "" {
+			missingOptions = append(missingOptions, option.Name)
+		}
+	}
+	if len(missingOptions) > 0 {
+		return fmt.Errorf("%q is missing required options: %s", schema.Name, commaList(missingOptions))
 	}
 	return nil
 }

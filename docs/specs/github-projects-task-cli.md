@@ -40,7 +40,12 @@ This layout is preferred over `scripts/cmd/pj` because the spike is a compiled G
 - Requires `--owner` and `--owner-type` unless that metadata already exists in cache
 - Resolves the canonical `Workspace Task Triage` board by owner and title before creating a new board
 - Creates the canonical board when absent
-- Provisions missing custom `Repo`, `Kind`, and `Priority` fields as single-select workflow fields during bootstrap
+- Provisions missing custom `Workspace Repo`, `Kind`, and `Priority` fields as single-select workflow fields during bootstrap
+- Uses these canonical option sets for provisioned fields:
+  - `Workspace Repo`: `vibe-coding-workspace`, `ww`, `ai-arena`, `reversi-adventure`, `vim-learning-game`, `envdiff`
+  - `Kind`: `Feature`, `Bug`, `Chore`, `Research`
+  - `Priority`: `High`, `Medium`, `Low`
+- Keeps `--repo` as the CLI flag and normalized cache key even though the remote ProjectV2 field name is `Workspace Repo`
 - Reuses existing compatible workflow fields when they already exist instead of creating duplicates
 - Writes `.local/pj/cache.json` with the resolved project identity and current remote snapshot
 - Fails clearly if more than one board with the canonical title exists for the same owner

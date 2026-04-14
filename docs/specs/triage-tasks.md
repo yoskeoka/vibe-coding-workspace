@@ -28,13 +28,18 @@ A short entry in `AGENTS.md` MUST propose triage at the start of every new sessi
 ### 3. Minimum project fields
 The workflow depends on these GitHub Project fields:
 - `Status`
-- `Repo`
+- `Workspace Repo` (exposed by the CLI as `repo`)
 - `Kind`
 - `Priority`
 
-`Status`, `Repo`, `Kind`, and `Priority` MUST be available as single-select fields on the canonical workspace board.
-`pj init` MUST provision the custom `Repo`, `Kind`, and `Priority` fields when they are missing, using the workspace's canonical option sets for the spike.
+`Status`, `Workspace Repo`, `Kind`, and `Priority` MUST be available as single-select fields on the canonical workspace board.
+`pj init` MUST provision the custom `Workspace Repo`, `Kind`, and `Priority` fields when they are missing, using the workspace's canonical option sets for the spike.
 Provisioning MUST be idempotent for an already-compatible board; later `pj init` runs must reuse existing compatible fields instead of creating duplicates.
+The canonical `Workspace Repo` options for the spike are `vibe-coding-workspace`, `ww`, `ai-arena`, `reversi-adventure`, `vim-learning-game`, and `envdiff`.
+The canonical `Kind` options for the spike are `Feature`, `Bug`, `Chore`, and `Research`.
+The canonical `Priority` options for the spike are `High`, `Medium`, and `Low`.
+GitHub currently rejects `Repo` as a custom ProjectV2 field name, so the workflow MUST use `Workspace Repo` as the remote field name while keeping `--repo` as the CLI/operator-facing flag.
+If one of those required field names already exists with the wrong field type or without the required canonical options, `pj init` MUST fail with a compatibility error instead of rewriting the field automatically.
 No other custom fields are required for the workflow to function.
 
 ### 4. Local cache
