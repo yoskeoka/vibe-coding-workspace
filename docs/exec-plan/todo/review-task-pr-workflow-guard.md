@@ -28,7 +28,7 @@ Addresses:
   - exec-plan requirement is satisfied or explicitly exempt
   - PR title matches the branch/change classification
   - over-scoping and obvious out-of-scope changes are called out before proceeding
-- Make the skill's terminal path "if checks pass, create the PR" so PR creation is the completion path of `review-task`, not a separate implied step.
+- Make the skill's terminal path: if checks pass and no PR exists yet, create the PR; otherwise verify/update the existing PR so it is ready for review. This keeps PR creation as the completion path only for new PRs, not a separate implied step.
 
 ### `skills/plan-execution/SKILL.md`
 
