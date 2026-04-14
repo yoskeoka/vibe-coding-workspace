@@ -93,7 +93,8 @@ The `triage-tasks` skill may use the local cache and/or the CLI output as its wo
 - When delegating that exploration, the skill SHOULD prefer an available low-cost small model rather than a frontier-sized model, but MUST avoid hard-coding a specific model version name in the workflow contract.
 - The main agent MUST keep responsibility for final prioritization, Project mutations, and the handoff prompt even when read-only exploration is delegated.
 - After the user picks a task, the default handoff SHOULD be a fresh-session prompt rather than immediately starting implementation in the same session, because triage often leaves broad cross-repo context in the conversation.
-- That handoff prompt SHOULD include enough context to start the next workflow step cleanly: target repo path, suggested branch command, files to read first, the goal, deliverables, and key constraints.
+- That handoff prompt SHOULD include enough context to start the next workflow step cleanly: target repo path, suggested `ww` worktree command, files to read first, the goal, deliverables, and key constraints.
+- For normal planning/execution handoff, that suggested command SHOULD use the globally installed `ww` binary rather than raw `git switch -c`.
 - That handoff prompt SHOULD explicitly name the skill to use in the next session when the next workflow step is clear.
 - If the selected task is non-trivial and does not already have an execution plan, the handoff prompt SHOULD direct the next session to use `plan-execution`.
 - If the selected task already has an execution plan and the next step is implementation, the handoff prompt SHOULD direct the next session to use `execute-task`.
