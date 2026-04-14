@@ -179,7 +179,7 @@ check_branch_naming() {
     if ! echo "$branch" | grep -qE "^(${valid_types})/[a-z0-9]([a-z0-9-]*[a-z0-9])?$"; then
         warn "Invalid branch name: '${branch}'"
         warn "  WHY: Consistent naming enables automation and exec-plan mapping (AI_WORKFLOW.md Branch Naming Convention)"
-        warn "  FIX: git switch -c <type>/<description> where:"
+        warn "  FIX: ww create <type>/<description> where:"
         warn "       type = plan | feat | fix | chore | docs"
         warn "       description = kebab-case (e.g., feat/add-auth, fix/login-bug)"
     fi
@@ -206,9 +206,40 @@ check_exec_plan_existence() {
         warn "Missing exec-plan for branch '${branch}'"
         warn "  WHY: feat/* and fix/* branches must have a plan before implementation (AI_WORKFLOW.md Exec-Plan Mapping)"
         warn "  FIX: Create the plan file first on a plan/ branch:"
-        warn "       git switch -c plan/${plan_name} origin/main"
+        warn "       ww create plan/${plan_name}"
+        warn "       cd \"\$(ww cd plan/${plan_name})\""
         warn "       # then create: docs/exec-plan/todo/${plan_name}.md"
     fi
+}
+
+# =============================================================================
+# Check 5: Workflow docs should not reintroduce raw-git startup (pre-push + ci)
+# Warn when migrated workflow-facing docs/skills contain startup snippets that
+# bypass the global ww CLI.
+# =============================================================================
+check_workflow_doc_startup_commands() {
+    local workflow_files=(
+        "AI_WORKFLOW.md"
+        "AGENTS.md"
+        "README.md"
+        "skills/plan-execution/SKILL.md"
+        "skills/execute-task/SKILL.md"
+        "skills/triage-tasks/SKILL.md"
+    )
+    local raw_git_pattern='^[[:space:]]*git fetch origin([[:space:]]|$)|^[[:space:]]*git switch -c[[:space:]]|`git fetch origin`|`git switch -c [^`]+`|`git fetch origin && git switch -c [^`]+`'
+    local file
+
+    for file in "${workflow_files[@]}"; do
+        if ! echo "$CHANGED_FILES" | grep -qxF "$file"; then
+            continue
+        fi
+
+        if grep -nE "$raw_git_pattern" "$file" >/dev/null 2>&1; then
+            warn "Workflow doc '${file}' reintroduces raw git startup commands"
+            warn "  WHY: Normal planning/execution should dogfood the global ww CLI (docs/specs/ww-dogfooding-workflow.md)"
+            warn "  FIX: Replace startup instructions with 'ww create ...' and 'cd \"\$(ww cd ...)\"'"
+        fi
+    done
 }
 
 # Run checks
@@ -216,6 +247,7 @@ check_issue_lifecycle
 check_docs_change_hint
 check_branch_naming
 check_exec_plan_existence
+check_workflow_doc_startup_commands
 
 # Summary
 if [ "$WARN_COUNT" -gt 0 ]; then

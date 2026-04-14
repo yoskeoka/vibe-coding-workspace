@@ -20,3 +20,10 @@
 - **Pattern**: Over-compressing external references can preserve the high-level recommendation while destroying the practical lookup value of the note.
 - **Rule**: When ingesting references that compare concrete services, tools, libraries, APIs, or documents, keep those proper names in both the source note and the relevant compiled wiki page unless there is a strong reason not to.
 - **Applied**: `docs/kb/sources/`, `docs/kb/wiki/`, and the `knowledge-base` skill's ingest behavior.
+
+## Dogfooding Tasks Must Stay on the Released Global `ww`
+
+- **Mistake**: I could have treated a workspace workflow task as if it should use raw git or an in-repo `ww` build instead of the released global `ww` binary.
+- **Pattern**: When the repo contains the tool being dogfooded, it is easy to conflate "work on the workflow" with "work inside the tool repo" and silently switch operator paths.
+- **Rule**: For workspace workflow tasks, use the globally installed `ww` CLI as the default operator path and avoid touching the `ww/` repo unless the task explicitly targets unreleased `ww` behavior.
+- **Applied**: Workspace-level planning and execution tasks, especially dogfooding changes that mention `ww` but do not modify files under `ww/`.
