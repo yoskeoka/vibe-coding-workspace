@@ -83,14 +83,25 @@ func runInit(args []string, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
+
 	provisioned, provisionErr := client.provisionWorkflowFields(cache)
+	var refreshErr error
 	if provisionErr != nil || provisioned {
-		refreshed, refreshErr := client.syncProject(cache.Project)
+		var refreshed *Cache
+		refreshed, refreshErr = client.syncProject(cache.Project)
 		if refreshErr == nil {
 			cache = refreshed
 		} else if provisionErr == nil {
 			return refreshErr
 		}
+	}
+	if provisionErr != nil && provisioned && refreshErr != nil {
+		action := "resolved"
+		if created {
+			action = "created"
+		}
+		return fmt.Errorf("%s canonical project %q (#%d), but provisioning changed remote schema and cache refresh failed; refusing to write stale cache to %s: provision error: %w; refresh error: %v",
+			action, cache.Project.Title, cache.Project.ProjectNumber, *cachePath, provisionErr, refreshErr)
 	}
 	if err := writeCache(*cachePath, cache); err != nil {
 		return err

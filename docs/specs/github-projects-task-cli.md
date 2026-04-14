@@ -45,7 +45,7 @@ This layout is preferred over `scripts/cmd/pj` because the spike is a compiled G
   - `Workspace Repo`: `vibe-coding-workspace`, `ww`, `ai-arena`, `reversi-adventure`, `vim-learning-game`, `envdiff`
   - `Kind`: `Feature`, `Bug`, `Chore`, `Research`
   - `Priority`: `High`, `Medium`, `Low`
-- Keeps `--repo` as the CLI flag and normalized cache key even though the remote ProjectV2 field name is `Workspace Repo`
+- Keeps `--repo` as the CLI flag, and stores the normalized item property as `repo`, even though the remote ProjectV2 field name and cached field-metadata map key remain `Workspace Repo`
 - Reuses existing compatible workflow fields when they already exist instead of creating duplicates
 - Writes `.local/pj/cache.json` with the resolved project identity and current remote snapshot
 - Fails clearly if more than one board with the canonical title exists for the same owner

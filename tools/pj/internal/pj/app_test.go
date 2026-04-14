@@ -1,6 +1,7 @@
 package pj
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -8,8 +9,6 @@ import (
 )
 
 func TestRunInitProvisionsFieldsAndRefreshesCache(t *testing.T) {
-	t.Parallel()
-
 	cachePath := filepath.Join(t.TempDir(), "cache.json")
 	client := &stubProjectClient{
 		ensureProjectRef: ProjectRef{
@@ -75,10 +74,60 @@ func TestRunInitProvisionsFieldsAndRefreshesCache(t *testing.T) {
 	}
 }
 
+func TestRunInitDoesNotWriteStaleCacheWhenProvisioningMutatesAndRefreshFails(t *testing.T) {
+	cachePath := filepath.Join(t.TempDir(), "cache.json")
+	client := &stubProjectClient{
+		ensureProjectRef: ProjectRef{
+			Owner:         "yoskeoka",
+			OwnerType:     "user",
+			ProjectNumber: 7,
+			ProjectID:     "proj-1",
+			Title:         canonicalProjectTitle,
+		},
+		syncResults: []*Cache{
+			{
+				Project: ProjectRef{
+					Owner:         "yoskeoka",
+					OwnerType:     "user",
+					ProjectNumber: 7,
+					ProjectID:     "proj-1",
+					Title:         canonicalProjectTitle,
+				},
+				Fields: map[string]FieldCache{
+					fieldStatus: {ID: "status", Type: fieldTypeSingleSelect},
+				},
+			},
+		},
+		syncErrs:         []error{nil, os.ErrPermission},
+		provisionCreated: true,
+		provisionErr:     errStubProvision,
+	}
+
+	orig := newProjectClient
+	newProjectClient = func() (projectClient, error) { return client, nil }
+	defer func() { newProjectClient = orig }()
+
+	err := runInit([]string{
+		"--cache", cachePath,
+		"--owner", "yoskeoka",
+		"--owner-type", "user",
+	}, io.Discard)
+	if err == nil {
+		t.Fatal("runInit() error = nil, want combined provisioning/refresh error")
+	}
+	if !strings.Contains(err.Error(), "refusing to write stale cache") {
+		t.Fatalf("runInit() error = %q", err)
+	}
+	if _, statErr := os.Stat(cachePath); !os.IsNotExist(statErr) {
+		t.Fatalf("cache file should not exist, stat error = %v", statErr)
+	}
+}
+
 type stubProjectClient struct {
 	ensureProjectRef  ProjectRef
 	ensureProjectMade bool
 	syncResults       []*Cache
+	syncErrs          []error
 	syncCalls         int
 	provisionCreated  bool
 	provisionErr      error
@@ -90,9 +139,16 @@ func (s *stubProjectClient) ensureProject(owner, ownerType, title string) (Proje
 }
 
 func (s *stubProjectClient) syncProject(ref ProjectRef) (*Cache, error) {
-	result := s.syncResults[s.syncCalls]
+	var result *Cache
+	if s.syncCalls < len(s.syncResults) {
+		result = s.syncResults[s.syncCalls]
+	}
+	var err error
+	if s.syncCalls < len(s.syncErrs) {
+		err = s.syncErrs[s.syncCalls]
+	}
 	s.syncCalls++
-	return result, nil
+	return result, err
 }
 
 func (s *stubProjectClient) provisionWorkflowFields(cache *Cache) (bool, error) {
@@ -107,3 +163,5 @@ func (s *stubProjectClient) addDraftItem(cache *Cache, title, body string, field
 func (s *stubProjectClient) moveItem(cache *Cache, itemID, status string) error {
 	return nil
 }
+
+var errStubProvision = os.ErrInvalid
