@@ -58,7 +58,7 @@ Create a new plan file in `docs/exec-plan/todo/` that details the work to be don
 
 1. **Read `docs/project-plan.md` first**: Understand the project's goals before planning tasks.
 2. **One plan per logical unit of work**: Each plan file corresponds to a coherent, reviewable chunk of changes.
-3. **Naming convention**: Name the plan file `<name>.md` so it matches the branch description, e.g., `initial-setup.md`, `feature-name.md`, `fix-bug-x.md`.
+3. **Naming convention**: Name the plan file `<name>.md` so it matches the branch description, e.g., `initial-setup.md`, `feature-name.md`, `fix-bug-x.md`. If a plan is split into multiple files, continue using non-numeric, descriptive names derived from the same branch name, such as `feature-name-backend.md` and `feature-name-ui.md`; do not use numeric prefixes like `004a-feature-name.md`.
 4. **Check `docs/exec-plan/done/`** for completed plans to understand prior work and avoid duplication.
 
 ### Plan File Content
