@@ -148,7 +148,7 @@ The helper MUST derive the rendered `Sources` nav from `docs/kb/sources/YYYY/*.m
 
 ## Rendering and Publishing
 
-- The rendered site MUST be generated from the same Markdown files stored in git.
+- The git-tracked Markdown under `docs/kb/` MUST remain the source of truth for the rendered site, but the published site MAY be built from a derived docs tree that includes publish-only artifacts and sections derived from frontmatter.
 - Frontmatter relationships that drive human navigation MUST also be visible in rendered page content:
   - wiki page `sources:` entries MUST render as a visible `## Sources` section
   - source-note `related_pages:` entries MUST render as a visible `## Related pages` section

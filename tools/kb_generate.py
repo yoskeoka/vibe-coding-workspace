@@ -152,8 +152,25 @@ def generate_year_index(year: str, paths: list[Path], title_map: dict[str, str])
     target.write_text("\n".join(lines), encoding="utf-8")
 
 
+def generate_sources_index(by_year: dict[str, list[Path]]) -> None:
+    target = GENERATED_DOCS_DIR / "sources" / "index.md"
+    lines = ["# Sources", ""]
+    if not by_year:
+        lines.append("No source notes have been ingested yet.")
+        lines.append("")
+        target.write_text("\n".join(lines), encoding="utf-8")
+        return
+
+    lines.append("Browse source notes by year.")
+    lines.append("")
+    for year, paths in by_year.items():
+        lines.append(f"- [{year} ({len(paths)})]({year}/index.md)")
+    lines.append("")
+    target.write_text("\n".join(lines), encoding="utf-8")
+
+
 def build_sources_nav(by_year: dict[str, list[Path]], title_map: dict[str, str]) -> str:
-    lines = []
+    lines = ["      - Index: sources/index.md"]
     for year, paths in by_year.items():
         lines.append(f"      - {yaml_quote(f'{year} ({len(paths)})')}:")
         lines.append(f"          - Index: sources/{year}/index.md")
@@ -181,6 +198,7 @@ def main() -> None:
 
     initial_title_map = build_title_map()
     by_year = collect_source_notes()
+    generate_sources_index(by_year)
     for year, paths in by_year.items():
         generate_year_index(year, paths, initial_title_map)
 

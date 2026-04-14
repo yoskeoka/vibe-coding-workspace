@@ -47,6 +47,13 @@ run_mkdocs() {
 
 generate_inputs() {
     mkdir -p "$GENERATED_ROOT"
+
+    if command -v uv >/dev/null 2>&1; then
+        mkdir -p "$UV_CACHE_DIR"
+        UV_CACHE_DIR="$UV_CACHE_DIR" uv run python "${ROOT_DIR}/tools/kb_generate.py"
+        return
+    fi
+
     python3 "${ROOT_DIR}/tools/kb_generate.py"
 }
 
