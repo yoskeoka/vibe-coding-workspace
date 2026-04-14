@@ -17,16 +17,18 @@ This plan covers three user-facing improvements:
 ### `tools/kb`
 - Add a nav-generation step or helper that derives the `Sources` navigation from files under `docs/kb/sources/YYYY/`.
 - Ensure the generated nav labels include per-year counts and stay deterministic.
+- Generate publish-only year index pages and a generated MkDocs config in a temporary or local-only workspace, not as committed source files.
 - Keep `build` strict and fail fast if generated KB navigation inputs are stale or missing.
 
-### `mkdocs.kb.yml`
-- Stop hand-maintaining the full source-note list directly in `nav`.
-- Point `Sources` to generated year sections or generated year index pages.
+### `mkdocs.kb.template.yml`
+- Replace the hand-maintained `mkdocs.kb.yml` with a template file that keeps the stable site configuration and fixed wiki navigation.
+- Leave the `Sources` section to be injected by the KB generation step so newly added source notes cannot be omitted accidentally.
 - Remove always-expanded source navigation if it prevents the year grouping from collapsing.
 
-### `docs/kb/sources/<year>/index.md`
-- Add one landing page per year that lists source-note dates and titles.
-- Treat these pages as generated or maintained artifacts owned by the KB build flow.
+### Generated KB build inputs
+- Generate one landing page per year that lists source-note dates and titles.
+- Keep these year index pages out of git and generate them only for build, check, and publish flows.
+- Generate the effective MkDocs config as a derived file such as `.local/mkdocs.kb.generated.yml` and pass it to `mkdocs -f`.
 
 ### KB rendering hooks or templates
 - Add a small rendering extension so wiki pages show their `sources:` links in page content.
@@ -37,15 +39,16 @@ This plan covers three user-facing improvements:
 
 ### `docs/specs/knowledge-base.md`
 - Define that `Sources` navigation is grouped by year rather than a flat manually curated list.
-- Define that each `sources/YYYY/` directory has a human-facing yearly index page.
+- Define that each `sources/YYYY/` directory has a human-facing yearly index page in the rendered site, but that these pages are derived artifacts rather than committed source files.
 - Define that source relationships stored in frontmatter must also be visible in rendered page content for web readers.
+- Define that the KB site uses a template config plus generated nav instead of a hand-maintained full MkDocs nav file.
 
 ### `docs/kb/schema.md`
-- Document the year index page convention.
+- Document the year index page convention as a generated publish artifact.
 - Document that `sources` and `related_pages` metadata are rendered into visible link sections in the site output.
 
 ### `docs/kb/ingest.md`
-- Clarify whether yearly index pages and source nav are generated automatically during build/check or must be refreshed during ingest.
+- Clarify that yearly index pages and source nav are generated automatically during build/check rather than maintained during ingest.
 
 ## Design Decisions
 
@@ -54,7 +57,7 @@ Past decision: the KB is stored in-repo under `docs/kb/` so the same Markdown fi
 ## Sub-tasks
 
 - [ ] Add spec updates for grouped `Sources` navigation and visible metadata-derived link sections
-- [ ] Implement KB nav generation and yearly source index pages
+- [ ] Implement template-based KB config generation, grouped source nav generation, and publish-only yearly source index pages
 - [ ] Implement rendering support for visible `sources` / `related_pages` link sections
 - [ ] Update existing KB pages or generated outputs as needed for the new navigation structure
 - [ ] Verify with `tools/kb check` and `tools/kb build`
