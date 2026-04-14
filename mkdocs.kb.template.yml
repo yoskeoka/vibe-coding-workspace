@@ -22,26 +22,29 @@ markdown_extensions:
   - toc:
       permalink: true
 
+extra_javascript:
+  - assets/javascripts/kb-nav-default-state.js
+
 nav:
-  - Home: README.md
-  - Schema: schema.md
-  - Ingest: ingest.md
-  - Wiki:
-      - Index: wiki/index.md
-      - Log: wiki/log.md
-      - Topics:
-          - LLM Knowledge Bases: wiki/topics/llm-knowledge-bases.md
-          - AI-Assisted Game Development: wiki/topics/ai-game-dev.md
-          - Deployment Options: wiki/topics/deployment-options.md
-          - Pixel Art UI: wiki/topics/pixel-art-ui.md
-      - Tools:
-          - Phaser: wiki/tools/phaser.md
-      - Patterns:
-          - Source Ingestion: wiki/patterns/source-ingestion.md
-          - Cheap Hosting: wiki/patterns/cheap-hosting.md
-      - Projects:
-          - ww: wiki/projects/ww.md
-          - reversi-adventure: wiki/projects/reversi-adventure.md
-          - vim-learning-game: wiki/projects/vim-learning-game.md
+  - Index: wiki/index.md
+  - Log: wiki/log.md
+  - Topics:
+      - LLM Knowledge Bases: wiki/topics/llm-knowledge-bases.md
+      - AI-Assisted Game Development: wiki/topics/ai-game-dev.md
+      - Deployment Options: wiki/topics/deployment-options.md
+      - Pixel Art UI: wiki/topics/pixel-art-ui.md
+  - Tools:
+      - Phaser: wiki/tools/phaser.md
+  - Patterns:
+      - Source Ingestion: wiki/patterns/source-ingestion.md
+      - Cheap Hosting: wiki/patterns/cheap-hosting.md
+  - Projects:
+      - ww: wiki/projects/ww.md
+      - reversi-adventure: wiki/projects/reversi-adventure.md
+      - vim-learning-game: wiki/projects/vim-learning-game.md
   - Sources:
 __GENERATED_SOURCES_NAV__
+  - KB Docs:
+      - Home: README.md
+      - Schema: schema.md
+      - Ingest: ingest.md

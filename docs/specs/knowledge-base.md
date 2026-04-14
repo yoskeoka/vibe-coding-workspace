@@ -149,6 +149,15 @@ The helper MUST derive the rendered `Sources` nav from `docs/kb/sources/YYYY/*.m
 ## Rendering and Publishing
 
 - The git-tracked Markdown under `docs/kb/` MUST remain the source of truth for the rendered site, but the published site MAY be built from a derived docs tree that includes publish-only artifacts and sections derived from frontmatter.
+- The published top-level navigation MUST treat wiki content as the primary browsing surface:
+  - `wiki/index.md` MUST be the leading top-level page in the rendered nav.
+  - the current wiki groupings (`Log`, `Topics`, `Tools`, `Patterns`, `Projects`) SHOULD remain top-level rendered entries instead of being nested under a `Wiki` parent.
+  - `README.md`, `schema.md`, and `ingest.md` MAY remain published pages, but they MUST NOT lead the rendered top-level nav ahead of the wiki entry points.
+- The published `Sources` navigation MUST stay grouped by year and default to a compact initial state:
+  - the top-level `Sources` section MUST start expanded on first render.
+  - generated yearly groups inside `Sources` MUST start expanded on first render.
+  - individual source-note entries inside each year group MUST remain collapsed until opened through normal navigation.
+  - any KB-specific navigation script used for this default state MUST only adjust the initial render and MUST NOT override later manual expand/collapse actions.
 - Frontmatter relationships that drive human navigation MUST also be visible in rendered page content:
   - wiki page `sources:` entries MUST render as a visible `## Sources` section
   - source-note `related_pages:` entries MUST render as a visible `## Related pages` section
