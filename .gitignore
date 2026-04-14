@@ -1,12 +1,15 @@
+# managed child git repositories
 reversi-adventure/
 ai-arena/
 vim-learning-game/
 ww/
 envdiff/
+
+# development files
 .site/
 .uv-cache/
 .local/
-
+.worktrees/
 
 # Dolt database files (added by bd init)
 .dolt/
