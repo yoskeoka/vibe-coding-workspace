@@ -95,6 +95,7 @@ The `triage-tasks` skill may use the local cache and/or the CLI output as its wo
 - After the user picks a task, the default handoff SHOULD be a fresh-session prompt rather than immediately starting implementation in the same session, because triage often leaves broad cross-repo context in the conversation.
 - That handoff prompt SHOULD include enough context to start the next workflow step cleanly: target repo path, suggested `ww` worktree command, files to read first, the goal, deliverables, and key constraints.
 - For normal planning/execution handoff, that suggested command SHOULD use the globally installed `ww` binary rather than raw `git switch -c`.
+- Until the skill migration work is executed, any remaining raw-git wording in `skills/triage-tasks/SKILL.md` is a temporary migration gap rather than the intended steady-state workflow.
 - That handoff prompt SHOULD explicitly name the skill to use in the next session when the next workflow step is clear.
 - If the selected task is non-trivial and does not already have an execution plan, the handoff prompt SHOULD direct the next session to use `plan-execution`.
 - If the selected task already has an execution plan and the next step is implementation, the handoff prompt SHOULD direct the next session to use `execute-task`.

@@ -38,7 +38,7 @@ At the start of a new session, if the user has not given a specific task, sugges
     - ALWAYS go through GitHub PR review for every change — including doc-only changes (Project Plan, Execution Plan).
 
 2.  **Branch & PR Rules**:
-    - Create a fresh task worktree from `main` for every task with global `ww`: `ww create <branch-name>` from the target repo, or `ww create --repo <repo> <branch-name>` from the workspace root
+    - Create a fresh task worktree from `main` for every task with global `ww`: `ww create <type>/<description>` from the target repo, or `ww create --repo <repo> <type>/<description>` from the workspace root
     - Never reuse an existing feature branch or primary checkout silently; each active task should have its own `ww` worktree
     - **Before pushing to a PR branch**, always verify the PR is still OPEN: `gh pr view <number> --json state --jq '.state'`. Never push to a MERGED or CLOSED PR.
     - Run all lint and test checks (non-AI tooling) before creating a PR. Fix failures before proceeding.

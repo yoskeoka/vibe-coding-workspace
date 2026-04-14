@@ -21,11 +21,15 @@ Make the workspace workflow use the globally installed `ww` CLI as the default o
 - Workflow docs and handoff prompts MUST prefer the stable released global binary. They MUST NOT default to `go run ./cmd/ww`, a repo-local dev build, or raw git branch creation.
 
 ### 2. Workflow touchpoints
-The workflow must describe `ww` usage consistently anywhere it currently creates a branch or starts task execution. At minimum this includes:
+The workflow must eventually describe `ww` usage consistently anywhere it currently creates a branch or starts task execution.
+
+This planning change defines the required operator-facing touchpoints to align now:
 - `AI_WORKFLOW.md` branch setup plus Step 1/2/3 examples
 - `AGENTS.md` branch rules and "start new feature / fix a bug" recipes
 - `docs/specs/triage-tasks.md` handoff prompt contract
 - `README.md` operator-facing workflow summary
+
+The following skill contracts are part of the migration scope but remain pending execution-plan work in this repository:
 - `skills/plan-execution/SKILL.md`
 - `skills/execute-task/SKILL.md`
 - `skills/triage-tasks/SKILL.md`

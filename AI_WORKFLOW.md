@@ -41,13 +41,13 @@ This document outlines the workflow for developing projects with AI as the centr
 - **Default operator path**: use the globally installed `ww` CLI for normal plan/execution startup instead of raw `git switch -c`.
 - From the target repo root:
     ```sh
-    ww create <branch-name>
-    cd "$(ww cd <branch-name>)"
+    ww create <type>/<description>
+    cd "$(ww cd <type>/<description>)"
     ```
 - From the workspace root when targeting a child repo:
     ```sh
-    ww create --repo <repo> <branch-name>
-    cd "$(ww cd --repo <repo> <branch-name>)"
+    ww create --repo <repo> <type>/<description>
+    cd "$(ww cd --repo <repo> <type>/<description>)"
     ```
 - Never reuse an existing feature branch or task worktree silently; each active task should get its own `ww` worktree.
 - Raw git branch creation is reserved for `ww` bootstrap/recovery cases and for developing or verifying unreleased `ww` behavior inside `ww/`. If `ww` fails unexpectedly, follow `docs/specs/ww-dogfooding-workflow.md` instead of bypassing it silently.
