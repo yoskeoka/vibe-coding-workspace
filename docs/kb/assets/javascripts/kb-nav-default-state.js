@@ -1,4 +1,5 @@
 const INIT_KEY = "kb-nav-default-state-initialized";
+let didInit = false;
 
 function getStoredFlag() {
   try {
@@ -36,7 +37,8 @@ function setExpanded(item, expanded) {
 }
 
 function applyKbNavDefaultState() {
-  if (getStoredFlag()) {
+  if (didInit || getStoredFlag()) {
+    didInit = true;
     return;
   }
 
@@ -59,6 +61,7 @@ function applyKbNavDefaultState() {
   });
 
   if (changed) {
+    didInit = true;
     setStoredFlag();
   }
 }
