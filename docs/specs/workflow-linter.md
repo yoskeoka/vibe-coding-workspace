@@ -4,6 +4,19 @@
 
 Mechanically enforce AI-Centered Development workflow rules declared in `AI_WORKFLOW.md`. Runs as a pre-push git hook (local) and as a CI check. All checks are **warnings only** (exit 0) to provide visibility without blocking.
 
+## Warning Classes
+
+Warnings are classified to distinguish findings that should normally be fixed before push/PR from findings that are informative only.
+
+| Class | Meaning | Expected Action |
+|---|---|---|
+| `fixable` | The repo state can usually be corrected immediately by moving files, renaming a branch, creating a missing plan, or making another straightforward change | Resolve before push/PR unless an explicit human instruction conflicts or the warning is a clear false positive |
+| `advisory` | Useful workflow signal, but not something that should automatically trigger a repo mutation | Review and use judgment; no default repo mutation required |
+
+When a `fixable` warning is intentionally skipped, the PR body must explain why. Allowed reasons are:
+- an explicit user/human instruction takes precedence
+- the warning is judged to be a clear false positive
+
 ## Components
 
 ### `tools/workflow-lint.sh`
@@ -19,18 +32,33 @@ tools/workflow-lint.sh --mode=ci [--pr-title=TITLE] [--pr-body=BODY]
 **Behavior:**
 - Computes changed files via `git diff --name-only --diff-filter=ADMR origin/main...HEAD`
 - Runs checks based on mode
-- Outputs colored warnings to stderr
+- Outputs normalized warning blocks to stderr
+- Each warning block includes:
+  - warning class (`fixable` or `advisory`)
+  - one primary finding message
+  - rationale line prefixed with `WHY:`
+  - remediation line prefixed with `FIX:` for `fixable` warnings
+- Counts warnings by finding block, not by output line
+- Prints summary totals by warning class
+- Prints a final reminder when any `fixable` warnings remain
 - Always exits 0
 
 **Checks:**
 
-| # | Check | Mode | Description | Rule Source |
-|---|-------|------|-------------|-------------|
-| 1 | Issue lifecycle | pre-push, ci | Files removed from `docs/issues/` must appear in `docs/issues/done/` (moved, not deleted) | AI_WORKFLOW.md Step 3: "Issue Resolution" |
-| 2 | Docs-change hint | ci only | If code files changed but no `docs/` files changed, and PR title/body does not contain `[trivial]`, emit warning | AI_WORKFLOW.md: "Spec-Code Parity" principle |
-| 3 | Branch naming | pre-push, ci | Branch name must match `<type>/<description>` where type is `plan\|feat\|fix\|chore\|docs` and description is non-empty kebab-case. `main` is exempt. | AI_WORKFLOW.md: "Branch Naming Convention" |
-| 4 | Exec-plan existence | pre-push, ci | For `feat/*` and `fix/*` branches, `docs/exec-plan/todo/<name>.md` or `docs/exec-plan/done/<name>.md` must exist. `plan/*`, `chore/*`, `docs/*` branches are exempt. | AI_WORKFLOW.md: "Exec-Plan Mapping" |
-| 5 | Workflow startup wording | pre-push, ci | If changed workflow-facing docs or skills reintroduce raw startup snippets like `git fetch origin` or `git switch -c`, emit a warning to keep global `ww` as the default operator path. | docs/specs/ww-dogfooding-workflow.md: "Workflow lint guard" |
+| # | Check | Class | Mode | Description | Rule Source |
+|---|-------|-------|------|-------------|-------------|
+| 1 | Issue lifecycle | `fixable` | pre-push, ci | Files removed from `docs/issues/` must appear in `docs/issues/done/` (moved, not deleted) | AI_WORKFLOW.md Step 3: "Issue Resolution" |
+| 2 | Docs-change hint | `advisory` | ci only | If code files changed but no `docs/` files changed, and PR title/body does not contain `[trivial]`, emit warning | AI_WORKFLOW.md: "Spec-Code Parity" principle |
+| 3 | Branch naming | `fixable` | pre-push, ci | Branch name must match `<type>/<description>` where type is `plan\|feat\|fix\|chore\|docs` and description is non-empty kebab-case. `main` is exempt. | AI_WORKFLOW.md: "Branch Naming Convention" |
+| 4 | Exec-plan existence | `fixable` | pre-push, ci | For `feat/*` and `fix/*` branches, `docs/exec-plan/todo/<name>.md` or `docs/exec-plan/done/<name>.md` must exist. `plan/*`, `chore/*`, `docs/*` branches are exempt. | AI_WORKFLOW.md: "Exec-Plan Mapping" |
+| 5 | Workflow startup wording | `fixable` | pre-push, ci | If changed workflow-facing docs or skills reintroduce raw startup snippets like `git fetch origin` or `git switch -c`, emit a warning to keep global `ww` as the default operator path. | docs/specs/ww-dogfooding-workflow.md: "Workflow lint guard" |
+
+**Operating rule:**
+- `fixable` warnings should normally be resolved before push/PR
+- `fixable` warnings may be skipped only for explicit human instruction or a clear false positive
+- skipped `fixable` warnings must be justified in the PR body
+- `advisory` warnings remain non-blocking judgment calls
+- exit behavior stays non-blocking (`exit 0`)
 
 **Exit codes:**
 - Always 0 (warnings only)

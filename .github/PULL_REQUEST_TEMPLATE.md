@@ -72,6 +72,7 @@ N/A
 - [ ] Branch created from latest `origin/main`
 - [ ] `docs/specs/` updated (Spec-Code Parity) — _if code changed_
 - [ ] Plan moved from `todo/` to `done/` — _if executing a plan_
+- [ ] Workflow-linter warnings reviewed; all `fixable` warnings were resolved or explicitly justified in this PR
 - [ ] New issues logged in `docs/issues/` — _if discovered during work_
 - [ ] No unresolved blockers remain
 

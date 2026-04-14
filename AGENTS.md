@@ -42,6 +42,8 @@ At the start of a new session, if the user has not given a specific task, sugges
     - Enter task worktrees with `ww cd` rather than guessing paths manually
     - Never reuse an existing feature branch or primary checkout silently; each active task should have its own `ww` worktree
     - **Before pushing to a PR branch**, always verify the PR is still OPEN: `gh pr view <number> --json state --jq '.state'`. Never push to a MERGED or CLOSED PR.
+    - Workflow-linter findings must not be ignored. Resolve all `fixable` warnings before push/PR unless an explicit human instruction conflicts or the warning is a clear false positive.
+    - If a `fixable` workflow-linter warning is skipped, record the reason in the PR body.
     - Run all lint and test checks (non-AI tooling) before creating a PR. Fix failures before proceeding.
     - Create PRs via `gh pr create` and wait for review approval before merging.
 
