@@ -15,15 +15,40 @@ MODE=""
 PR_TITLE=""
 PR_BODY=""
 WARN_COUNT=0
+FIXABLE_WARN_COUNT=0
+ADVISORY_WARN_COUNT=0
 
 usage() {
     echo "Usage: $0 --mode=pre-push|ci [--pr-title=TITLE] [--pr-body=BODY]" >&2
     exit 1
 }
 
-warn() {
+emit_warning() {
+    local warning_class="$1"
+    local finding="$2"
+    local why="$3"
+    local fix="${4:-}"
+
     WARN_COUNT=$((WARN_COUNT + 1))
-    echo -e "${YELLOW}[WARN]${NC} $1" >&2
+
+    case "$warning_class" in
+        fixable)
+            FIXABLE_WARN_COUNT=$((FIXABLE_WARN_COUNT + 1))
+            ;;
+        advisory)
+            ADVISORY_WARN_COUNT=$((ADVISORY_WARN_COUNT + 1))
+            ;;
+        *)
+            echo "Unknown warning class: $warning_class" >&2
+            exit 1
+            ;;
+    esac
+
+    echo -e "${YELLOW}[WARN:${warning_class}]${NC} ${finding}" >&2
+    echo "  WHY: ${why}" >&2
+    if [ -n "$fix" ]; then
+        echo "  FIX: ${fix}" >&2
+    fi
 }
 
 info() {
@@ -99,9 +124,11 @@ check_issue_lifecycle() {
         done_file="docs/issues/done/$basename"
         # Check if the file was added to done/ in this diff
         if ! echo "$CHANGED_FILES" | grep -qF "$done_file"; then
-            warn "Issue file '${issue_file}' was deleted instead of moved to done/"
-            warn "  WHY: Issues must be preserved for audit trail (AI_WORKFLOW.md Step 3)"
-            warn "  FIX: git mv ${issue_file} docs/issues/done/${basename}"
+            emit_warning \
+                "fixable" \
+                "Issue file '${issue_file}' was deleted instead of moved to done/" \
+                "Issues must be preserved for audit trail (AI_WORKFLOW.md Step 3)" \
+                "git mv ${issue_file} docs/issues/done/${basename}"
         fi
     done
 }
@@ -155,10 +182,11 @@ check_docs_change_hint() {
     done <<< "$CHANGED_FILES"
 
     if ! $docs_changed; then
-        warn "Code changed without updating docs/ (Spec-Code Parity violation)"
-        warn "  WHY: docs/specs/ must match implementation (AI_WORKFLOW.md Core Principle 2)"
-        warn "  FIX: Update the relevant file in docs/specs/ to reflect your code changes"
-        warn "       OR add [trivial] to the PR title if no spec update is needed"
+        emit_warning \
+            "advisory" \
+            "Code changed without updating docs/ (Spec-Code Parity review needed)" \
+            "docs/specs/ should usually change with implementation updates (AI_WORKFLOW.md Core Principle 2)" \
+            "Update the relevant file in docs/specs/ to reflect your code changes, or add [trivial] to the PR title if no spec update is needed"
     fi
 }
 
@@ -177,11 +205,11 @@ check_branch_naming() {
 
     local valid_types="plan|feat|fix|chore|docs"
     if ! echo "$branch" | grep -qE "^(${valid_types})/[a-z0-9]([a-z0-9-]*[a-z0-9])?$"; then
-        warn "Invalid branch name: '${branch}'"
-        warn "  WHY: Consistent naming enables automation and exec-plan mapping (AI_WORKFLOW.md Branch Naming Convention)"
-        warn "  FIX: ww create <type>/<description> where:"
-        warn "       type = plan | feat | fix | chore | docs"
-        warn "       description = kebab-case (e.g., feat/add-auth, fix/login-bug)"
+        emit_warning \
+            "fixable" \
+            "Invalid branch name: '${branch}'" \
+            "Consistent naming enables automation and exec-plan mapping (AI_WORKFLOW.md Branch Naming Convention)" \
+            "Create a compliant branch with ww create <type>/<description> where type = plan|feat|fix|chore|docs and description is kebab-case (for example: feat/add-auth)"
     fi
 }
 
@@ -203,12 +231,11 @@ check_exec_plan_existence() {
     local done_file="docs/exec-plan/done/${plan_name}.md"
 
     if [ ! -f "$todo_file" ] && [ ! -f "$done_file" ]; then
-        warn "Missing exec-plan for branch '${branch}'"
-        warn "  WHY: feat/* and fix/* branches must have a plan before implementation (AI_WORKFLOW.md Exec-Plan Mapping)"
-        warn "  FIX: Create the plan file first on a plan/ branch:"
-        warn "       ww create plan/${plan_name}"
-        warn "       cd \"\$(ww cd plan/${plan_name})\""
-        warn "       # then create: docs/exec-plan/todo/${plan_name}.md"
+        emit_warning \
+            "fixable" \
+            "Missing exec-plan for branch '${branch}'" \
+            "feat/* and fix/* branches must have a plan before implementation (AI_WORKFLOW.md Exec-Plan Mapping)" \
+            "Create the matching plan first on plan/${plan_name}, then add docs/exec-plan/todo/${plan_name}.md"
     fi
 }
 
@@ -235,9 +262,11 @@ check_workflow_doc_startup_commands() {
         fi
 
         if grep -nE "$raw_git_pattern" "$file" >/dev/null 2>&1; then
-            warn "Workflow doc '${file}' reintroduces raw git startup commands"
-            warn "  WHY: Normal planning/execution should dogfood the global ww CLI (docs/specs/ww-dogfooding-workflow.md)"
-            warn "  FIX: Replace startup instructions with 'ww create ...' and 'cd \"\$(ww cd ...)\"'"
+            emit_warning \
+                "fixable" \
+                "Workflow doc '${file}' reintroduces raw git startup commands" \
+                "Normal planning/execution should dogfood the global ww CLI (docs/specs/ww-dogfooding-workflow.md)" \
+                "Replace startup instructions with 'ww create ...' and 'cd \"\$(ww cd ...)\"'"
         fi
     done
 }
@@ -251,7 +280,13 @@ check_workflow_doc_startup_commands
 
 # Summary
 if [ "$WARN_COUNT" -gt 0 ]; then
-    echo -e "${YELLOW}Workflow linter: ${WARN_COUNT} warning(s)${NC}" >&2
+    echo -e "${YELLOW}Workflow linter summary:${NC}" >&2
+    echo "  Total warnings: ${WARN_COUNT}" >&2
+    echo "  Fixable: ${FIXABLE_WARN_COUNT}" >&2
+    echo "  Advisory: ${ADVISORY_WARN_COUNT}" >&2
+    if [ "$FIXABLE_WARN_COUNT" -gt 0 ]; then
+        echo "  Reminder: resolve fixable warnings before push/PR unless a human instruction conflicts or the warning is a clear false positive." >&2
+    fi
 else
     info "Workflow linter: all checks passed"
 fi
