@@ -226,7 +226,7 @@ check_workflow_doc_startup_commands() {
         "skills/execute-task/SKILL.md"
         "skills/triage-tasks/SKILL.md"
     )
-    local raw_git_pattern='^[[:space:]]*git fetch origin([[:space:]]|$)|^[[:space:]]*git switch -c[[:space:]]|`git fetch origin && git switch -c [^`]+`'
+    local raw_git_pattern='^[[:space:]]*git fetch origin([[:space:]]|$)|^[[:space:]]*git switch -c[[:space:]]|`git fetch origin`|`git switch -c [^`]+`|`git fetch origin && git switch -c [^`]+`'
     local file
 
     for file in "${workflow_files[@]}"; do
