@@ -33,6 +33,22 @@ This workspace is managed using a strict **AI-first workflow**. The core idea is
 4.  **Code**: Implement the change.
 5.  **Verify**: Ensure specs and code match, then move the plan to `done/`.
 
+For normal day-to-day task startup, use the globally installed `ww` CLI instead of raw `git switch -c` so the workflow continuously dogfoods the released tool:
+
+```bash
+ww create plan/example-task
+cd "$(ww cd plan/example-task)"
+```
+
+From the workspace root when targeting a child repo:
+
+```bash
+ww create --repo ww feat/example-task
+cd "$(ww cd --repo ww feat/example-task)"
+```
+
+Reserve repo-local `ww` development builds for work inside `ww/` itself or for reproducing/verifying a `ww` bug.
+
 For a new project, run `./skills/manage-workflow/run.sh <project-dir>` to apply this structure.
 
 ## Workspace Task Triage CLI

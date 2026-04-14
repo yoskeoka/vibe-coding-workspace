@@ -34,11 +34,12 @@ At the start of a new session, if the user has not given a specific task, sugges
     - NEVER skip the "Execution Plan" phase for non-trivial changes. Trivial changes (single-line fixes, typos, doc-only updates) may skip the plan and go directly to execution.
     - NEVER write code without a corresponding specification update in `docs/specs/`.
     - ALWAYS create a new branch from the latest `main` before starting any work.
+    - For normal planning/execution work, use the globally installed `ww` CLI as the default branch/worktree operator path.
     - ALWAYS go through GitHub PR review for every change — including doc-only changes (Project Plan, Execution Plan).
 
 2.  **Branch & PR Rules**:
-    - Create a fresh branch from `origin/main` for every task: `git fetch origin && git switch -c <branch-name> origin/main`
-    - Never reuse an existing feature branch; always create a fresh one.
+    - Create a fresh task worktree from `main` for every task with global `ww`: `ww create <type>/<description>` from the target repo, or `ww create --repo <repo> <type>/<description>` from the workspace root
+    - Never reuse an existing feature branch or primary checkout silently; each active task should have its own `ww` worktree
     - **Before pushing to a PR branch**, always verify the PR is still OPEN: `gh pr view <number> --json state --jq '.state'`. Never push to a MERGED or CLOSED PR.
     - Run all lint and test checks (non-AI tooling) before creating a PR. Fix failures before proceeding.
     - Create PRs via `gh pr create` and wait for review approval before merging.
@@ -54,17 +55,18 @@ At the start of a new session, if the user has not given a specific task, sugges
     - **Plan First**: Before writing code, ensure a plan exists in `docs/exec-plan/todo/`. If not, create one.
     - **Spec First**: Update `docs/specs/` to reflect changes BEFORE modifying code.
     - **Focus**: if you find unrelated issues, log them in `docs/issues/<name>.md` and ignore them for the current task (unless they are blockers).
+    - If `ww` fails or behaves unexpectedly during normal workflow use, capture it as a first-class workflow output per `docs/specs/ww-dogfooding-workflow.md` instead of silently dropping to raw git.
     - **Issue Resolution**: When an issue in `docs/issues/` is resolved, move the file to `docs/issues/done/`.
     - **Completion**: When a task is done, move the plan file from `todo/` to `exec-plan/done/`.
     - **Post-Task Review**: After completing significant work, run `post-task-review` to log issues, update lessons learned, and propose CLAUDE.md/AGENTS.md updates before creating a PR.
 
 ## When asked to "Start a new feature":
-1.  Create a branch: `git fetch origin && git switch -c plan/feature-name origin/main`
+1.  Create a planning worktree with global `ww`: `ww create plan/feature-name`
 2.  Read `docs/project-plan.md`.
 3.  Create a new file in `docs/exec-plan/todo/feature-name.md`.
 4.  Outline the changes to specs and code in that plan.
 5.  Create a PR for the plan and wait for review.
-6.  After plan PR is merged, create a new branch for execution: `git fetch origin && git switch -c feat/feature-name origin/main`
+6.  After plan PR is merged, create an execution worktree with global `ww`: `ww create feat/feature-name`
 7.  Execute the plan following **Spec First** rule.
 8.  Run lint/tests, fix any failures, then create a PR.
 
@@ -74,11 +76,11 @@ At the start of a new session, if the user has not given a specific task, sugges
 3.  If go, complete bootstrap via `new-project-intake`, then move to the child repo and continue with `plan-project`.
 
 ## When asked to "Fix a bug":
-1.  Create a branch: `git fetch origin && git switch -c plan/fix-bug-x origin/main`
+1.  Create a planning worktree with global `ww`: `ww create plan/fix-bug-x`
 2.  Create a plan in `docs/exec-plan/todo/fix-bug-x.md`.
 3.  Reproduction steps go into the plan.
 4.  Create a PR for the plan and wait for review.
-5.  After plan PR is merged, create a new branch: `git fetch origin && git switch -c fix/fix-bug-x origin/main`
+5.  After plan PR is merged, create an execution worktree with global `ww`: `ww create fix/fix-bug-x`
 6.  Execute the fix following the **Spec First** rule.
 7.  Run lint/tests, fix any failures, then create a PR.
 8.  Move plan to `done/`.

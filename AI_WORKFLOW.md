@@ -38,12 +38,19 @@ This document outlines the workflow for developing projects with AI as the centr
 > **Rule**: Every step that produces changes MUST go through a GitHub PR review — including doc-only changes like Project Plan and Execution Plan updates. AI Agents must always create a new clean branch from the latest `main` before starting any work.
 
 ### Branch Setup (applies to every step below)
-- **Always** start from the latest `main`:
+- **Default operator path**: use the globally installed `ww` CLI for normal plan/execution startup instead of raw `git switch -c`.
+- From the target repo root:
     ```sh
-    git fetch origin
-    git switch -c <branch-name> origin/main
+    ww create <type>/<description>
+    cd "$(ww cd <type>/<description>)"
     ```
-- Never reuse an existing feature branch; always create a fresh one.
+- From the workspace root when targeting a child repo:
+    ```sh
+    ww create --repo <repo> <type>/<description>
+    cd "$(ww cd --repo <repo> <type>/<description>)"
+    ```
+- Never reuse an existing feature branch or task worktree silently; each active task should get its own `ww` worktree.
+- Raw git branch creation is reserved for `ww` bootstrap/recovery cases and for developing or verifying unreleased `ww` behavior inside `ww/`. If `ww` fails unexpectedly, follow `docs/specs/ww-dogfooding-workflow.md` instead of bypassing it silently.
 
 #### Branch Naming Convention
 
@@ -76,13 +83,13 @@ The branch description and the exec-plan filename MUST share the same name:
 ---
 
 ### 1. Project Plan (`docs/project-plan.md`) — **requires PR**
-- Create a new branch (e.g., `plan/project-plan-v1`).
+- Create a new `ww` worktree/branch (e.g., `ww create plan/project-plan-v1`).
 - Define or update the Goal, Significance, and Requirements.
 - Follow the **PR Workflow** above to merge the plan into `main`.
 - Update this as the project evolves (each update = new branch + PR).
 
 ### 2. Execution Plan (`docs/exec-plan/todo/`) — **requires PR**
-- Create a new branch (e.g., `plan/initial-setup`).
+- Create a new `ww` worktree/branch (e.g., `ww create plan/initial-setup`).
 - Create a new plan file (e.g., `initial-setup.md`) in `todo/`.
 - Detail:
     - Code changes.
@@ -92,7 +99,7 @@ The branch description and the exec-plan filename MUST share the same name:
 - Follow the **PR Workflow** above to merge the plan into `main`.
 
 ### 3. Execution — **requires PR**
-- Create a new branch (e.g., `feat/initial-setup`).
+- Create a new `ww` worktree/branch (e.g., `ww create feat/initial-setup`).
 - **Spec First**: Update `docs/specs/` *before* modifying code.
 - **Implement**: Write the code to match the spec.
 - **Issues**: If unrelated problems are found, log them in `docs/issues/<name>.md`. Do not fix them within the current plan unless blocking.
