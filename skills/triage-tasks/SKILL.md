@@ -120,7 +120,9 @@ Use skill: <plan-execution|execute-task|other explicit next-step skill>
 
 ## Task: <task name>
 **Target repo**: <owner/repo> at <local path>
-**Branch**: `git fetch origin && git switch -c <type>/<name> origin/main`
+**Worktree setup**:
+- If starting in the target repo root: `ww create <type>/<name>` then `cd "$(ww cd <type>/<name>)"`
+- If starting in the workspace root for a child repo: `ww create --repo <repo> <type>/<name>` then `cd "$(ww cd --repo <repo> <type>/<name>)"`
 **Context to read first**:
 - docs/project-plan.md
 - docs/exec-plan/todo/<relevant plan if any>

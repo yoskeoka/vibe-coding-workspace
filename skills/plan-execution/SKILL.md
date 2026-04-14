@@ -32,14 +32,23 @@ Task received
 
 ## Branch Setup
 
-Before making any changes, create a fresh branch from the latest `main`:
+Before making any changes, create a fresh worktree from the latest `main` with the globally installed `ww` CLI:
+
+From the target repo root:
 
 ```sh
-git fetch origin
-git switch -c plan/<NNN>-<description> origin/main
+ww create plan/<name>
+cd "$(ww cd plan/<name>)"
 ```
 
-Use a descriptive branch name (e.g., `plan/001-initial-setup`, `plan/002-feature-name`).
+From the workspace root when targeting a child repo:
+
+```sh
+ww create --repo <repo> plan/<name>
+cd "$(ww cd --repo <repo> plan/<name>)"
+```
+
+Use a descriptive kebab-case name that matches the exec-plan filename (e.g., `plan/initial-setup`, `plan/feature-name`).
 
 ## What to Do
 
@@ -49,7 +58,7 @@ Create a new plan file in `docs/exec-plan/todo/` that details the work to be don
 
 1. **Read `docs/project-plan.md` first**: Understand the project's goals before planning tasks.
 2. **One plan per logical unit of work**: Each plan file corresponds to a coherent, reviewable chunk of changes.
-3. **Naming convention**: Use sequential numbering, e.g., `001-initial-setup.md`, `002-feature-name.md`, `003-fix-bug-x.md`.
+3. **Naming convention**: Name the plan file `<name>.md` so it matches the branch description, e.g., `initial-setup.md`, `feature-name.md`, `fix-bug-x.md`.
 4. **Check `docs/exec-plan/done/`** for completed plans to understand prior work and avoid duplication.
 
 ### Plan File Content
@@ -90,13 +99,13 @@ Example:
 ### For a New Feature
 
 1. Read `docs/project-plan.md`.
-2. Create `docs/exec-plan/todo/<NNN>-feature-name.md`.
+2. Create `docs/exec-plan/todo/<feature-name>.md`.
 3. Outline the spec and code changes.
 4. Wait for user confirmation or proceed if authorized.
 
 ### For a Bug Fix
 
-1. Create `docs/exec-plan/todo/<NNN>-fix-bug-name.md`.
+1. Create `docs/exec-plan/todo/<fix-bug-name>.md`.
 2. Include reproduction steps in the plan.
 3. Outline the fix approach, spec updates, and verification steps.
 

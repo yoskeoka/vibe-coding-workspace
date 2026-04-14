@@ -23,16 +23,15 @@ Make the workspace workflow use the globally installed `ww` CLI as the default o
 ### 2. Workflow touchpoints
 The workflow must eventually describe `ww` usage consistently anywhere it currently creates a branch or starts task execution.
 
-This planning change defines the required operator-facing touchpoints to align now:
+This execution change defines the required operator-facing touchpoints to align now:
 - `AI_WORKFLOW.md` branch setup plus Step 1/2/3 examples
 - `AGENTS.md` branch rules and "start new feature / fix a bug" recipes
 - `docs/specs/triage-tasks.md` handoff prompt contract
 - `README.md` operator-facing workflow summary
-
-The following skill contracts are part of the migration scope but remain pending execution-plan work in this repository:
 - `skills/plan-execution/SKILL.md`
 - `skills/execute-task/SKILL.md`
 - `skills/triage-tasks/SKILL.md`
+- `tools/workflow-lint.sh` guidance for workflow-facing raw-git startup wording
 
 ### 3. Parallel task operator experience
 - Each active task SHOULD get its own `ww` worktree. Operators SHOULD avoid reusing the primary checkout as a task branch sandbox.
@@ -64,6 +63,7 @@ The following skill contracts are part of the migration scope but remain pending
 ### 6. `ww` issue filing policy
 - Unexpected `ww` bugs, workflow friction, or confusing behavior discovered during normal workflow use are first-class outputs and SHOULD be filed back to `ww`.
 - The filing target may be a GitHub issue, a `ww` execution plan, or a `ww` local issue file, depending on the next action, but the finding MUST be recorded somewhere durable.
+- Workflow docs and skills that mention fallback handling SHOULD point operators to this checklist instead of inventing ad-hoc evidence requirements.
 - A recorded `ww` issue MUST include:
   - `ww` version and install path if known
   - exact command
@@ -73,6 +73,17 @@ The following skill contracts are part of the migration scope but remain pending
   - relevant stderr/stdout
   - whether a raw git fallback was used
   - impact on the blocked workspace task
+
+### 7. Workflow lint guard
+- `tools/workflow-lint.sh` SHOULD warn when changed workflow-facing docs or skills reintroduce raw startup commands such as `git fetch origin` plus `git switch -c` in places that are supposed to dogfood the global `ww` binary.
+- The warning scope MUST cover the migrated operator-facing touchpoints in this spec:
+  - `AI_WORKFLOW.md`
+  - `AGENTS.md`
+  - `README.md`
+  - `skills/plan-execution/SKILL.md`
+  - `skills/execute-task/SKILL.md`
+  - `skills/triage-tasks/SKILL.md`
+- The warning is advisory only; it does not need to fail the push.
 
 ## Non-Goals
 - Replacing git for all low-level operations inside `ww`

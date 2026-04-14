@@ -12,14 +12,23 @@ metadata:
 
 ## Branch Setup
 
-Before making any changes, create a fresh branch from the latest `main`:
+Before making any changes, create a fresh worktree from the latest `main` with the globally installed `ww` CLI:
+
+From the target repo root:
 
 ```sh
-git fetch origin
-git switch -c feat/<NNN>-<description> origin/main
+ww create feat/<name>
+cd "$(ww cd feat/<name>)"
 ```
 
-Use a descriptive branch name (e.g., `feat/001-initial-setup`, `fix/003-bug-x`).
+From the workspace root when targeting a child repo:
+
+```sh
+ww create --repo <repo> feat/<name>
+cd "$(ww cd --repo <repo> feat/<name>)"
+```
+
+Use `feat/<name>` or `fix/<name>` to match the execution-plan filename (e.g., `feat/initial-setup`, `fix/bug-x`).
 
 ## What to Do
 
@@ -84,7 +93,7 @@ For non-trivial changes, pause and ask: **"Is there a more elegant way?"**
 When all tasks in the plan are done:
 
 1. Verify spec-code parity: `docs/specs/` matches the implementation.
-2. Move the plan file: `docs/exec-plan/todo/<NNN>-name.md` → `docs/exec-plan/done/<NNN>-name.md`.
+2. Move the plan file: `docs/exec-plan/todo/<name>.md` → `docs/exec-plan/done/<name>.md`.
 3. Proceed to Verify & PR.
 
 ## Verify (Pre-PR Gate)

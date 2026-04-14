@@ -49,6 +49,8 @@ cd "$(ww cd --repo ww feat/example-task)"
 
 Reserve repo-local `ww` development builds for work inside `ww/` itself or for reproducing/verifying a `ww` bug.
 
+If global `ww` fails during normal workflow startup, treat that as a first-class workflow finding. Capture the command, cwd, target repo, expected behavior, actual behavior, relevant output, any raw-git fallback, and the impact on the blocked task so it can be filed back to `ww`.
+
 For a new project, run `./skills/manage-workflow/run.sh <project-dir>` to apply this structure.
 
 ## Workspace Task Triage CLI

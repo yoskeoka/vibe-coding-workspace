@@ -39,6 +39,7 @@ At the start of a new session, if the user has not given a specific task, sugges
 
 2.  **Branch & PR Rules**:
     - Create a fresh task worktree from `main` for every task with global `ww`: `ww create <type>/<description>` from the target repo, or `ww create --repo <repo> <type>/<description>` from the workspace root
+    - Enter task worktrees with `ww cd` rather than guessing paths manually
     - Never reuse an existing feature branch or primary checkout silently; each active task should have its own `ww` worktree
     - **Before pushing to a PR branch**, always verify the PR is still OPEN: `gh pr view <number> --json state --jq '.state'`. Never push to a MERGED or CLOSED PR.
     - Run all lint and test checks (non-AI tooling) before creating a PR. Fix failures before proceeding.
@@ -55,18 +56,18 @@ At the start of a new session, if the user has not given a specific task, sugges
     - **Plan First**: Before writing code, ensure a plan exists in `docs/exec-plan/todo/`. If not, create one.
     - **Spec First**: Update `docs/specs/` to reflect changes BEFORE modifying code.
     - **Focus**: if you find unrelated issues, log them in `docs/issues/<name>.md` and ignore them for the current task (unless they are blockers).
-    - If `ww` fails or behaves unexpectedly during normal workflow use, capture it as a first-class workflow output per `docs/specs/ww-dogfooding-workflow.md` instead of silently dropping to raw git.
+    - If `ww` fails or behaves unexpectedly during normal workflow use, capture it as a first-class workflow output per `docs/specs/ww-dogfooding-workflow.md` instead of silently dropping to raw git. Record the command, cwd, target repo, expected vs actual behavior, relevant output, fallback usage, and impact.
     - **Issue Resolution**: When an issue in `docs/issues/` is resolved, move the file to `docs/issues/done/`.
     - **Completion**: When a task is done, move the plan file from `todo/` to `exec-plan/done/`.
     - **Post-Task Review**: After completing significant work, run `post-task-review` to log issues, update lessons learned, and propose CLAUDE.md/AGENTS.md updates before creating a PR.
 
 ## When asked to "Start a new feature":
-1.  Create a planning worktree with global `ww`: `ww create plan/feature-name`
+1.  Create a planning worktree with global `ww`: `ww create plan/feature-name`, then enter it with `cd "$(ww cd plan/feature-name)"`
 2.  Read `docs/project-plan.md`.
 3.  Create a new file in `docs/exec-plan/todo/feature-name.md`.
 4.  Outline the changes to specs and code in that plan.
 5.  Create a PR for the plan and wait for review.
-6.  After plan PR is merged, create an execution worktree with global `ww`: `ww create feat/feature-name`
+6.  After plan PR is merged, create an execution worktree with global `ww`: `ww create feat/feature-name`, then enter it with `cd "$(ww cd feat/feature-name)"`
 7.  Execute the plan following **Spec First** rule.
 8.  Run lint/tests, fix any failures, then create a PR.
 
@@ -76,11 +77,11 @@ At the start of a new session, if the user has not given a specific task, sugges
 3.  If go, complete bootstrap via `new-project-intake`, then move to the child repo and continue with `plan-project`.
 
 ## When asked to "Fix a bug":
-1.  Create a planning worktree with global `ww`: `ww create plan/fix-bug-x`
+1.  Create a planning worktree with global `ww`: `ww create plan/fix-bug-x`, then enter it with `cd "$(ww cd plan/fix-bug-x)"`
 2.  Create a plan in `docs/exec-plan/todo/fix-bug-x.md`.
 3.  Reproduction steps go into the plan.
 4.  Create a PR for the plan and wait for review.
-5.  After plan PR is merged, create an execution worktree with global `ww`: `ww create fix/fix-bug-x`
+5.  After plan PR is merged, create an execution worktree with global `ww`: `ww create fix/fix-bug-x`, then enter it with `cd "$(ww cd fix/fix-bug-x)"`
 6.  Execute the fix following the **Spec First** rule.
 7.  Run lint/tests, fix any failures, then create a PR.
 8.  Move plan to `done/`.
