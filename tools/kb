@@ -2,7 +2,9 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CONFIG_FILE="${ROOT_DIR}/mkdocs.kb.yml"
+CONFIG_TEMPLATE_FILE="${ROOT_DIR}/mkdocs.kb.template.yml"
+GENERATED_ROOT="${ROOT_DIR}/.local/kb-generated"
+GENERATED_CONFIG_FILE="${GENERATED_ROOT}/mkdocs.kb.generated.yml"
 UV_CACHE_DIR="${UV_CACHE_DIR:-${ROOT_DIR}/.uv-cache}"
 
 usage() {
@@ -36,11 +38,23 @@ require_dir() {
 run_mkdocs() {
     if command -v uv >/dev/null 2>&1; then
         mkdir -p "$UV_CACHE_DIR"
-        UV_CACHE_DIR="$UV_CACHE_DIR" uv run --with-requirements "${ROOT_DIR}/requirements-kb.txt" mkdocs "$@" -f "$CONFIG_FILE"
+        UV_CACHE_DIR="$UV_CACHE_DIR" uv run --with-requirements "${ROOT_DIR}/requirements-kb.txt" mkdocs "$@" -f "$GENERATED_CONFIG_FILE"
         return
     fi
 
-    python3 -m mkdocs "$@" -f "$CONFIG_FILE"
+    python3 -m mkdocs "$@" -f "$GENERATED_CONFIG_FILE"
+}
+
+generate_inputs() {
+    mkdir -p "$GENERATED_ROOT"
+
+    if command -v uv >/dev/null 2>&1; then
+        mkdir -p "$UV_CACHE_DIR"
+        UV_CACHE_DIR="$UV_CACHE_DIR" uv run python "${ROOT_DIR}/tools/kb_generate.py"
+        return
+    fi
+
+    python3 "${ROOT_DIR}/tools/kb_generate.py"
 }
 
 check_structure() {
@@ -54,7 +68,7 @@ check_structure() {
     require_dir "${ROOT_DIR}/docs/kb/wiki/topics"
     require_dir "${ROOT_DIR}/docs/kb/wiki/tools"
     require_dir "${ROOT_DIR}/docs/kb/wiki/patterns"
-    require_file "$CONFIG_FILE"
+    require_file "$CONFIG_TEMPLATE_FILE"
     echo "knowledge base structure: OK"
 }
 
@@ -63,13 +77,16 @@ command="${1:-}"
 case "$command" in
     check)
         check_structure
+        generate_inputs
         ;;
     build|compile)
         check_structure
+        generate_inputs
         run_mkdocs build --strict
         ;;
     serve)
         check_structure
+        generate_inputs
         run_mkdocs serve
         ;;
     ""|-h|--help|help)

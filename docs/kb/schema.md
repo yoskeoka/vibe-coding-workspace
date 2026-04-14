@@ -9,6 +9,7 @@ The knowledge base is not a dumping ground for raw article text. It is a compile
 ## Directory rules
 
 - `sources/YYYY/*.md`: one file per ingested source
+- rendered `Sources` year landing pages are generated from `sources/YYYY/*.md` during build/check and are not hand-maintained in git
 - `wiki/index.md`: top-level navigation page
 - `wiki/log.md`: ingest and maintenance log
 - `wiki/projects/*.md`: project-specific compiled pages
@@ -59,6 +60,11 @@ sources: []
 ---
 ```
 
+In the rendered site:
+- wiki page `sources:` frontmatter is converted into a visible `## Sources` section
+- source-note `related_pages:` frontmatter is converted into a visible `## Related pages` section
+- these visible sections are derived from frontmatter during build/check and should not be duplicated manually unless the prose itself needs additional context
+
 ## During ingest
 
 For each new source:
@@ -67,6 +73,8 @@ For each new source:
 3. Create new wiki pages only when the concept does not already have a natural home.
 4. Update `wiki/index.md` if a new section or notable page was added.
 5. Append a dated item to `wiki/log.md`.
+
+Do not hand-edit generated `Sources` navigation or yearly source landing pages.
 
 When compressing a source, prefer this order of preservation:
 1. concrete product or document names

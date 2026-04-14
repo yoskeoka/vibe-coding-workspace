@@ -4,7 +4,9 @@ on:
   pull_request:
     paths:
       - 'docs/kb/**'
-      - 'mkdocs.kb.yml'
+      - 'mkdocs.kb.template.yml'
+      - 'tools/kb'
+      - 'tools/kb_generate.py'
       - 'requirements-kb.txt'
       - '.github/workflows/kb-pages.yml'
   push:
@@ -12,7 +14,9 @@ on:
       - main
     paths:
       - 'docs/kb/**'
-      - 'mkdocs.kb.yml'
+      - 'mkdocs.kb.template.yml'
+      - 'tools/kb'
+      - 'tools/kb_generate.py'
       - 'requirements-kb.txt'
       - '.github/workflows/kb-pages.yml'
   workflow_dispatch:
@@ -36,7 +40,7 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v5
       - name: Build site
-        run: uv run --with-requirements requirements-kb.txt mkdocs build --strict -f mkdocs.kb.yml
+        run: tools/kb build
       - name: Upload artifact
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3

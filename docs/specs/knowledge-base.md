@@ -37,6 +37,8 @@ docs/kb/
     topics/
     tools/
     patterns/
+
+Generated build inputs MAY be created under `.local/` during build, check, or preview, but the git-tracked source of truth remains `docs/kb/`.
 ```
 
 ## Content Model
@@ -81,6 +83,12 @@ The knowledge base MUST contain:
 - `docs/kb/wiki/index.md` as the primary human and AI entry point
 - `docs/kb/wiki/log.md` as an append-only-ish ingest and maintenance log
 
+The rendered site MUST expose a `Sources` navigation section grouped by year.
+
+Each year entry SHOULD use a compact label such as `2026 (6)` and point to a generated yearly landing page in the rendered site.
+
+Those yearly landing pages are publish artifacts derived from `docs/kb/sources/YYYY/*.md` and MUST NOT become hand-maintained source files in git.
+
 ## Operations
 
 ### 1. Ingest
@@ -99,6 +107,8 @@ Ingest SHOULD:
 - preserve the user's framing about why the source matters
 - prefer updating an existing wiki page over creating duplicates
 - identify which workspace projects, tools, topics, and patterns are affected
+
+Ingest does NOT need to hand-maintain rendered `Sources` nav entries or yearly source index pages. Those are derived during build/check.
 
 ### 1a. Skill discovery
 
@@ -121,7 +131,10 @@ The knowledge base SHOULD support periodic AI maintenance to detect:
 
 ### 4. Compile
 
-Human-readable publishing MUST use MkDocs with a dedicated config file `mkdocs.kb.yml`.
+Human-readable publishing MUST use MkDocs with:
+- a git-tracked template config file `mkdocs.kb.template.yml`
+- a generated effective config file produced during build/check/serve
+- a generated docs tree that may include publish-only files such as yearly source index pages
 
 The local helper command `tools/kb` MUST provide:
 - `build` to render the site
@@ -131,9 +144,14 @@ The local helper command `tools/kb` MUST provide:
 `build` SHOULD run in strict mode so broken links and missing pages fail fast.
 The helper SHOULD prefer `uv` when available and fall back to `python3 -m mkdocs` otherwise.
 
+The helper MUST derive the rendered `Sources` nav from `docs/kb/sources/YYYY/*.md` so newly added source notes cannot be omitted accidentally.
+
 ## Rendering and Publishing
 
-- The rendered site MUST be generated from the same Markdown files stored in git.
+- The git-tracked Markdown under `docs/kb/` MUST remain the source of truth for the rendered site, but the published site MAY be built from a derived docs tree that includes publish-only artifacts and sections derived from frontmatter.
+- Frontmatter relationships that drive human navigation MUST also be visible in rendered page content:
+  - wiki page `sources:` entries MUST render as a visible `## Sources` section
+  - source-note `related_pages:` entries MUST render as a visible `## Related pages` section
 - Pull requests that change the knowledge base publishing inputs MUST run a strict MkDocs build in CI before merge.
 - GitHub Pages MUST publish the rendered site from GitHub Actions.
 - Local build output MUST be ignored by git.

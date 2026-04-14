@@ -15,6 +15,8 @@ The intended UX is conversational:
 5. Add a short entry to `wiki/log.md`.
 6. If the source suggests a concrete experiment, record it as a follow-up bullet.
 
+Do not hand-maintain rendered `Sources` navigation or yearly source index pages during ingest. `tools/kb check`, `tools/kb build`, and `tools/kb serve` derive those artifacts automatically.
+
 ## Classification hints
 
 Ask these questions during ingest:
@@ -28,3 +30,4 @@ Ask these questions during ingest:
 - The human can skim source notes for accuracy.
 - The human can browse the compiled wiki or the rendered Pages site.
 - The human can redirect emphasis in the next ingest request instead of editing the wiki manually.
+- The rendered site should expose source relationships visibly, even when the source-of-truth links live in frontmatter.
