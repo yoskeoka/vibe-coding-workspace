@@ -318,6 +318,81 @@ mutation($ownerId: ID!, $title: String!) {
 	}, nil
 }
 
+func (c *githubClient) provisionWorkflowFields(cache *Cache) (bool, error) {
+	createdAny := false
+	for _, schema := range workflowFieldSchemas {
+		field, ok := cache.Fields[schema.Name]
+		if ok && field.ID != "" {
+			if err := validateFieldCompatibility(schema, field); err != nil {
+				return createdAny, fmt.Errorf("field %q is incompatible: %w", schema.Name, err)
+			}
+			continue
+		}
+		if !schema.Provision {
+			continue
+		}
+		if err := c.createSingleSelectField(cache.Project.ProjectID, schema); err != nil {
+			return createdAny, fmt.Errorf("create field %q: %w", schema.Name, err)
+		}
+		createdAny = true
+	}
+	return createdAny, nil
+}
+
+func (c *githubClient) createSingleSelectField(projectID string, schema workflowFieldSchema) error {
+	options := make([]map[string]string, 0, len(schema.Options))
+	for _, option := range schema.Options {
+		options = append(options, map[string]string{
+			"name":        option.Name,
+			"description": option.Description,
+			"color":       option.Color,
+		})
+	}
+
+	var resp struct {
+		CreateProjectV2Field struct {
+			ProjectV2Field struct {
+				Typename string `json:"__typename"`
+				ID       string `json:"id"`
+				Name     string `json:"name"`
+			} `json:"projectV2Field"`
+		} `json:"createProjectV2Field"`
+	}
+
+	err := c.graphQL(`
+mutation($projectId: ID!, $name: String!, $dataType: ProjectV2CustomFieldType!, $options: [ProjectV2SingleSelectFieldOptionInput!]) {
+  createProjectV2Field(input: {
+    projectId: $projectId
+    name: $name
+    dataType: $dataType
+    singleSelectOptions: $options
+  }) {
+    projectV2Field {
+      __typename
+      ... on ProjectV2FieldCommon {
+        id
+        name
+      }
+    }
+  }
+}
+`, map[string]any{
+		"projectId": projectID,
+		"name":      schema.Name,
+		"dataType":  fieldDataTypeSingle,
+		"options":   options,
+	}, &resp)
+	if err != nil {
+		return err
+	}
+
+	field := resp.CreateProjectV2Field.ProjectV2Field
+	if field.ID == "" || field.Name == "" {
+		return fmt.Errorf("createProjectV2Field returned incomplete field metadata")
+	}
+	return nil
+}
+
 func (c *githubClient) addDraftItem(cache *Cache, title, body string, fieldValues map[string]string) error {
 	var resp struct {
 		AddProjectV2DraftIssue struct {

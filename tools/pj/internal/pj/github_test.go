@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -119,6 +120,258 @@ func TestEnsureProjectCreatesMissingProject(t *testing.T) {
 	if ref.ProjectID != "proj-2" || ref.ProjectNumber != 43 {
 		t.Fatalf("ensureProject() project = %+v", ref)
 	}
+}
+
+func TestProvisionWorkflowFieldsNoOpForCompatibleBoard(t *testing.T) {
+	t.Parallel()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Fatalf("unexpected GraphQL request")
+	}))
+	defer server.Close()
+
+	client := &githubClient{
+		httpClient: server.Client(),
+		endpoint:   server.URL,
+		token:      "token",
+	}
+
+	cache := &Cache{
+		Project: ProjectRef{ProjectID: "proj-1"},
+		Fields:  compatibleWorkflowFields(),
+	}
+
+	created, err := client.provisionWorkflowFields(cache)
+	if err != nil {
+		t.Fatalf("provisionWorkflowFields() error = %v", err)
+	}
+	if created {
+		t.Fatal("provisionWorkflowFields() created = true, want false")
+	}
+}
+
+func TestProvisionWorkflowFieldsCreatesMissingFields(t *testing.T) {
+	t.Parallel()
+
+	var requests []map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode request body: %v", err)
+		}
+		requests = append(requests, payload)
+
+		vars := payload["variables"].(map[string]any)
+		name := vars["name"].(string)
+		writeGraphQLResponse(t, w, map[string]any{
+			"data": map[string]any{
+				"createProjectV2Field": map[string]any{
+					"projectV2Field": map[string]any{
+						"__typename": "ProjectV2SingleSelectField",
+						"id":         "field-" + name,
+						"name":       name,
+					},
+				},
+			},
+		})
+	}))
+	defer server.Close()
+
+	client := &githubClient{
+		httpClient: server.Client(),
+		endpoint:   server.URL,
+		token:      "token",
+	}
+
+	cache := &Cache{
+		Project: ProjectRef{ProjectID: "proj-1"},
+		Fields: map[string]FieldCache{
+			fieldStatus: {ID: "status", Type: fieldTypeSingleSelect},
+		},
+	}
+
+	created, err := client.provisionWorkflowFields(cache)
+	if err != nil {
+		t.Fatalf("provisionWorkflowFields() error = %v", err)
+	}
+	if !created {
+		t.Fatal("provisionWorkflowFields() created = false, want true")
+	}
+	if len(requests) != 3 {
+		t.Fatalf("request count = %d, want 3", len(requests))
+	}
+
+	var gotNames []string
+	for _, payload := range requests {
+		query := payload["query"].(string)
+		if !strings.Contains(query, "createProjectV2Field") {
+			t.Fatalf("unexpected graphql query: %s", query)
+		}
+
+		vars := payload["variables"].(map[string]any)
+		gotNames = append(gotNames, vars["name"].(string))
+
+		schema := workflowFieldSchemaByName[vars["name"].(string)]
+		var gotOptions []string
+		for _, raw := range vars["options"].([]any) {
+			option := raw.(map[string]any)
+			gotOptions = append(gotOptions, option["name"].(string))
+		}
+		if !slices.Equal(gotOptions, optionNames(schema.Options)) {
+			t.Fatalf("options for %q = %v, want %v", schema.Name, gotOptions, optionNames(schema.Options))
+		}
+	}
+	if !slices.Equal(gotNames, []string{fieldRepo, fieldKind, fieldPriority}) {
+		t.Fatalf("created field names = %v", gotNames)
+	}
+}
+
+func TestProvisionWorkflowFieldsCreatesOnlyMissingFields(t *testing.T) {
+	t.Parallel()
+
+	var gotNames []string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+
+		var payload struct {
+			Variables map[string]any `json:"variables"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode request body: %v", err)
+		}
+		gotNames = append(gotNames, payload.Variables["name"].(string))
+
+		writeGraphQLResponse(t, w, map[string]any{
+			"data": map[string]any{
+				"createProjectV2Field": map[string]any{
+					"projectV2Field": map[string]any{
+						"__typename": "ProjectV2SingleSelectField",
+						"id":         "field",
+						"name":       payload.Variables["name"].(string),
+					},
+				},
+			},
+		})
+	}))
+	defer server.Close()
+
+	client := &githubClient{
+		httpClient: server.Client(),
+		endpoint:   server.URL,
+		token:      "token",
+	}
+
+	fields := compatibleWorkflowFields()
+	delete(fields, fieldKind)
+	delete(fields, fieldPriority)
+
+	created, err := client.provisionWorkflowFields(&Cache{
+		Project: ProjectRef{ProjectID: "proj-1"},
+		Fields:  fields,
+	})
+	if err != nil {
+		t.Fatalf("provisionWorkflowFields() error = %v", err)
+	}
+	if !created {
+		t.Fatal("provisionWorkflowFields() created = false, want true")
+	}
+	if !slices.Equal(gotNames, []string{fieldKind, fieldPriority}) {
+		t.Fatalf("created field names = %v", gotNames)
+	}
+}
+
+func TestProvisionWorkflowFieldsFailsForIncompatibleField(t *testing.T) {
+	t.Parallel()
+
+	client := &githubClient{
+		httpClient: http.DefaultClient,
+		endpoint:   "http://example.invalid",
+		token:      "token",
+	}
+
+	fields := compatibleWorkflowFields()
+	fields[fieldRepo] = FieldCache{ID: "repo", Type: "ProjectV2Field"}
+
+	_, err := client.provisionWorkflowFields(&Cache{
+		Project: ProjectRef{ProjectID: "proj-1"},
+		Fields:  fields,
+	})
+	if err == nil {
+		t.Fatal("provisionWorkflowFields() error = nil, want incompatible-field error")
+	}
+	if !strings.Contains(err.Error(), `field "Workspace Repo" is incompatible`) || !strings.Contains(err.Error(), `unsupported type`) {
+		t.Fatalf("provisionWorkflowFields() error = %q", err)
+	}
+}
+
+func TestProvisionWorkflowFieldsFailsForMissingRequiredOption(t *testing.T) {
+	t.Parallel()
+
+	client := &githubClient{
+		httpClient: http.DefaultClient,
+		endpoint:   "http://example.invalid",
+		token:      "token",
+	}
+
+	fields := compatibleWorkflowFields()
+	fields[fieldPriority] = FieldCache{
+		ID:      "priority",
+		Type:    fieldTypeSingleSelect,
+		Options: map[string]string{"High": "high"},
+	}
+
+	_, err := client.provisionWorkflowFields(&Cache{
+		Project: ProjectRef{ProjectID: "proj-1"},
+		Fields:  fields,
+	})
+	if err == nil {
+		t.Fatal("provisionWorkflowFields() error = nil, want incompatible-field error")
+	}
+	if !strings.Contains(err.Error(), `field "Priority" is incompatible`) || !strings.Contains(err.Error(), `missing required options: Medium, Low`) {
+		t.Fatalf("provisionWorkflowFields() error = %q", err)
+	}
+}
+
+func compatibleWorkflowFields() map[string]FieldCache {
+	return map[string]FieldCache{
+		fieldStatus: {
+			ID:   "status",
+			Type: fieldTypeSingleSelect,
+		},
+		fieldRepo: {
+			ID:      "repo",
+			Type:    fieldTypeSingleSelect,
+			Options: optionIDs(workflowFieldSchemaByName[fieldRepo].Options),
+		},
+		fieldKind: {
+			ID:      "kind",
+			Type:    fieldTypeSingleSelect,
+			Options: optionIDs(workflowFieldSchemaByName[fieldKind].Options),
+		},
+		fieldPriority: {
+			ID:      "priority",
+			Type:    fieldTypeSingleSelect,
+			Options: optionIDs(workflowFieldSchemaByName[fieldPriority].Options),
+		},
+	}
+}
+
+func optionIDs(options []workflowFieldOption) map[string]string {
+	ids := make(map[string]string, len(options))
+	for _, option := range options {
+		ids[option.Name] = strings.ToLower(option.Name)
+	}
+	return ids
+}
+
+func optionNames(options []workflowFieldOption) []string {
+	names := make([]string, 0, len(options))
+	for _, option := range options {
+		names = append(names, option.Name)
+	}
+	return names
 }
 
 func writeGraphQLResponse(t *testing.T, w http.ResponseWriter, payload map[string]any) {

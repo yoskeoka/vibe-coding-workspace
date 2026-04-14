@@ -97,8 +97,12 @@ func TestValidateRequiredFields(t *testing.T) {
 
 	cache := &Cache{
 		Fields: map[string]FieldCache{
-			fieldStatus: {ID: "status"},
-			fieldRepo:   {ID: "repo"},
+			fieldStatus: {ID: "status", Type: fieldTypeSingleSelect},
+			fieldRepo: {
+				ID:      "repo",
+				Type:    fieldTypeSingleSelect,
+				Options: optionIDs(workflowFieldSchemaByName[fieldRepo].Options),
+			},
 		},
 	}
 
@@ -107,7 +111,7 @@ func TestValidateRequiredFields(t *testing.T) {
 		t.Fatal("validateRequiredFields() error = nil, want missing-field error")
 	}
 	got := err.Error()
-	if got != "project is missing required fields: Kind, Priority" {
+	if got != "project is incompatible with required workflow fields: missing required fields: Kind, Priority" {
 		t.Fatalf("validateRequiredFields() error = %q", got)
 	}
 }

@@ -10,9 +10,11 @@ const (
 	defaultCacheRelPath   = ".local/pj/cache.json"
 	canonicalProjectTitle = "Workspace Task Triage"
 	fieldStatus           = "Status"
-	fieldRepo             = "Repo"
+	fieldRepo             = "Workspace Repo"
 	fieldKind             = "Kind"
 	fieldPriority         = "Priority"
+	fieldTypeSingleSelect = "ProjectV2SingleSelectField"
+	fieldDataTypeSingle   = "SINGLE_SELECT"
 )
 
 var defaultCachePath = resolveDefaultCachePath()
@@ -51,11 +53,68 @@ type Cache struct {
 	Items    []Item                `json:"items"`
 }
 
-var requiredFieldNames = []string{
-	fieldStatus,
-	fieldRepo,
-	fieldKind,
-	fieldPriority,
+type workflowFieldOption struct {
+	Name        string
+	Description string
+	Color       string
+}
+
+type workflowFieldSchema struct {
+	Name      string
+	Type      string
+	Provision bool
+	Options   []workflowFieldOption
+}
+
+var workflowFieldSchemas = []workflowFieldSchema{
+	{
+		Name: fieldStatus,
+		Type: fieldTypeSingleSelect,
+	},
+	{
+		Name:      fieldRepo,
+		Type:      fieldTypeSingleSelect,
+		Provision: true,
+		Options: []workflowFieldOption{
+			{Name: "vibe-coding-workspace", Description: "Meta workspace repository", Color: "BLUE"},
+			{Name: "ww", Description: "Workspace worktree CLI", Color: "GREEN"},
+			{Name: "ai-arena", Description: "AI Arena child project", Color: "PURPLE"},
+			{Name: "reversi-adventure", Description: "Reversi Adventure child project", Color: "ORANGE"},
+			{Name: "vim-learning-game", Description: "Vim Learning Game child project", Color: "PINK"},
+			{Name: "envdiff", Description: "envdiff child project", Color: "YELLOW"},
+		},
+	},
+	{
+		Name:      fieldKind,
+		Type:      fieldTypeSingleSelect,
+		Provision: true,
+		Options: []workflowFieldOption{
+			{Name: "Feature", Description: "Feature work", Color: "GREEN"},
+			{Name: "Bug", Description: "Bug fix", Color: "RED"},
+			{Name: "Chore", Description: "Maintenance or workflow work", Color: "GRAY"},
+			{Name: "Research", Description: "Investigation or discovery work", Color: "BLUE"},
+		},
+	},
+	{
+		Name:      fieldPriority,
+		Type:      fieldTypeSingleSelect,
+		Provision: true,
+		Options: []workflowFieldOption{
+			{Name: "High", Description: "Needs prompt attention", Color: "RED"},
+			{Name: "Medium", Description: "Normal scheduling priority", Color: "YELLOW"},
+			{Name: "Low", Description: "Can wait", Color: "BLUE"},
+		},
+	},
+}
+
+var workflowFieldSchemaByName = makeWorkflowFieldSchemaByName()
+
+func makeWorkflowFieldSchemaByName() map[string]workflowFieldSchema {
+	byName := make(map[string]workflowFieldSchema, len(workflowFieldSchemas))
+	for _, schema := range workflowFieldSchemas {
+		byName[schema.Name] = schema
+	}
+	return byName
 }
 
 func resolveDefaultCachePath() string {
