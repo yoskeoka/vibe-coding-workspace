@@ -16,6 +16,7 @@ Create a follow-up execution plan that:
 - updates the applicable skills to `ww create` / `ww cd`
 - explicitly documents any justified exceptions where raw git remains the correct startup path
 - extends workflow docs and lint coverage if those skills become part of the dogfooding contract
+- removes the temporary follow-up note in `AI_WORKFLOW.md` once the remaining migration work is complete or the remaining exceptions are documented in steady-state form
 
 ## Priority
 
