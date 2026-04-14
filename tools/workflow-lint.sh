@@ -28,10 +28,11 @@ emit_warning() {
     local finding="$2"
     local why="$3"
     local fix="${4:-}"
+    local normalized_class="$warning_class"
 
     WARN_COUNT=$((WARN_COUNT + 1))
 
-    case "$warning_class" in
+    case "$normalized_class" in
         fixable)
             FIXABLE_WARN_COUNT=$((FIXABLE_WARN_COUNT + 1))
             ;;
@@ -39,14 +40,15 @@ emit_warning() {
             ADVISORY_WARN_COUNT=$((ADVISORY_WARN_COUNT + 1))
             ;;
         *)
-            echo "Unknown warning class: $warning_class" >&2
-            exit 1
+            echo "Internal warning: unknown workflow-lint warning class '${warning_class}', treating it as advisory" >&2
+            normalized_class="advisory"
+            ADVISORY_WARN_COUNT=$((ADVISORY_WARN_COUNT + 1))
             ;;
     esac
 
-    echo -e "${YELLOW}[WARN:${warning_class}]${NC} ${finding}" >&2
+    echo -e "${YELLOW}[WARN:${normalized_class}]${NC} ${finding}" >&2
     echo "  WHY: ${why}" >&2
-    if [ -n "$fix" ]; then
+    if [ "$normalized_class" = "fixable" ] && [ -n "$fix" ]; then
         echo "  FIX: ${fix}" >&2
     fi
 }
@@ -185,8 +187,7 @@ check_docs_change_hint() {
         emit_warning \
             "advisory" \
             "Code changed without updating docs/ (Spec-Code Parity review needed)" \
-            "docs/specs/ should usually change with implementation updates (AI_WORKFLOW.md Core Principle 2)" \
-            "Update the relevant file in docs/specs/ to reflect your code changes, or add [trivial] to the PR title if no spec update is needed"
+            "docs/specs/ should usually change with implementation updates (AI_WORKFLOW.md Core Principle 2)"
     fi
 }
 
