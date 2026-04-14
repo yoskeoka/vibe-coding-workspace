@@ -5,7 +5,19 @@ prefix_rule(
 )
 
 prefix_rule(
+    pattern = ["rtk", "git"],
+    decision = "allow",
+    justification = "Allow rtk git throughout this workspace project",
+)
+
+prefix_rule(
     pattern = ["ww"],
     decision = "allow",
     justification = "Allow ww throughout this workspace project",
+)
+
+prefix_rule(
+    pattern = ["rtk", "ww"],
+    decision = "allow",
+    justification = "Allow rtk ww throughout this workspace project",
 )
