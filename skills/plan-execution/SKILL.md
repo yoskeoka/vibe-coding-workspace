@@ -71,7 +71,7 @@ Each plan file in `docs/exec-plan/todo/` must detail:
 - **Sub-tasks**: Break large tasks into smaller steps if needed.
 - **Design decisions**: If architectural choices are being made, note them for `docs/design-decisions/adr.md`.
 - **Parallelism**: Identify which sub-tasks are independent (see below).
-- **Execution instruction**: Include the following line at the top of every plan file:
+- **Execution instruction**: Place the following line immediately below the H1 title in every plan file:
   > **Execution**: Use `/execute-task` to implement this plan.
 
 ### Parallel Execution Planning

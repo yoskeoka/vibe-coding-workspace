@@ -1,6 +1,6 @@
-> **Execution**: Use `/execute-task` to implement this plan.
-
 # Knowledge Base Sources Sidebar Navigation
+
+> **Execution**: Use `/execute-task` to implement this plan.
 
 ## Objective
 
