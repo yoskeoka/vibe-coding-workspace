@@ -1,0 +1,11 @@
+prefix_rule(
+    pattern = ["git"],
+    decision = "allow",
+    justification = "Allow git throughout this workspace project",
+)
+
+prefix_rule(
+    pattern = ["ww"],
+    decision = "allow",
+    justification = "Allow ww throughout this workspace project",
+)

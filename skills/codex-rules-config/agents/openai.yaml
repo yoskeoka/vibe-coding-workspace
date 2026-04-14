@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Rules Config"
+  short_description: "Update Codex config.toml and .rules files"
+  default_prompt: "Use this skill when editing or validating Codex config.toml or .rules files for user, project, or team setup."
