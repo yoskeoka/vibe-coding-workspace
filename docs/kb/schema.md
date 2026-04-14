@@ -61,6 +61,9 @@ sources: []
 ```
 
 In the rendered site:
+- wiki pages are the primary top-level browsing surface
+- `README.md`, `schema.md`, and `ingest.md` remain source files and published pages, but they do not need to lead the rendered top-level nav
+- `Sources` opens to yearly groups by default, while individual source-note leaves remain collapsed until opened through normal navigation
 - wiki page `sources:` frontmatter is converted into a visible `## Sources` section
 - source-note `related_pages:` frontmatter is converted into a visible `## Related pages` section
 - these visible sections are derived from frontmatter during build/check and should not be duplicated manually unless the prose itself needs additional context
