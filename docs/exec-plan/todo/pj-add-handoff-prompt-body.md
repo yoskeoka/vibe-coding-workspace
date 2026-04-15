@@ -98,19 +98,12 @@ Open design choice to settle during execution:
 
 ## Sub-tasks
 
-- [ ] Update `docs/specs/triage-tasks.md` to require the richer `pj add` body
-      structure and define its minimum fields
-- [ ] Update `skills/triage-tasks/SKILL.md` so full re-triage emits the richer
-      body format for newly created Project items
-- [ ] [parallel] Decide and document the storage-language rule for Project item
-      bodies
-- [ ] [parallel] Decide the minimal body variants for exec plans, local issues,
-      PRs, and GitHub Issues
-- [ ] [depends on: spec and skill updates] Re-run `triage-tasks` against the
-      workspace Project and inspect a sample of created item bodies in the cache
-      and/or GitHub UI
-- [ ] [depends on: verification] Confirm the richer body still stays concise
-      enough for Project scanning and does not make board maintenance noisy
+- [ ] Update `docs/specs/triage-tasks.md` to require the richer `pj add` body structure and define its minimum fields
+- [ ] Update `skills/triage-tasks/SKILL.md` so full re-triage emits the richer body format for newly created Project items
+- [ ] [parallel] Decide and document the storage-language rule for Project item bodies
+- [ ] [parallel] Decide the minimal body variants for exec plans, local issues, PRs, and GitHub Issues
+- [ ] [depends on: spec and skill updates] Re-run `triage-tasks` against the workspace Project and inspect a sample of created item bodies in the cache and/or GitHub UI
+- [ ] [depends on: verification] Confirm the richer body still stays concise enough for Project scanning and does not make board maintenance noisy
 
 ## Verification
 
