@@ -39,6 +39,7 @@ docs/kb/
     patterns/
 
 Generated build inputs MAY be created under `.local/` during build, check, or preview, but the git-tracked source of truth remains `docs/kb/`.
+```
 
 Video ingest jobs MAY also use:
 
@@ -48,7 +49,6 @@ Video ingest jobs MAY also use:
 ```
 
 for resumable repo-local scratch data. When the user does not need persistence, the video pipeline SHOULD default to OS temp storage instead.
-```
 
 ## Content Model
 

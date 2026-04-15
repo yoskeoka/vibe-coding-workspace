@@ -84,8 +84,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--transcribe-command",
         help=(
-            "Fallback shell command when subtitles are missing. "
-            "Use {video_path} and {job_dir} placeholders. The command must print VTT to stdout."
+            "Fallback transcription command template when subtitles are missing. "
+            "Use {video_path} and {job_dir} placeholders. The command is parsed as argv, not through a shell, "
+            "and must print VTT to stdout."
         ),
     )
     parser.add_argument(
@@ -111,6 +112,8 @@ def validate_args(args: argparse.Namespace) -> None:
             f"--ocr-batch-size {args.ocr_batch_size} is too high for this pipeline. "
             f"Use {MAX_RECOMMENDED_OCR_BATCH_SIZE} or less."
         )
+    if args.segment_length_sec < 1:
+        raise SystemExit("--segment-length-sec must be at least 1.")
     if args.frame_interval_sec < 5:
         raise SystemExit("--frame-interval-sec below 5 is too aggressive for the intended lightweight pipeline.")
 

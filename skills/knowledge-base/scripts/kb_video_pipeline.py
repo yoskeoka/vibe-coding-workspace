@@ -5,6 +5,7 @@ import math
 import os
 import platform
 import re
+import shlex
 import shutil
 import subprocess
 import tempfile
@@ -527,12 +528,14 @@ def run_external_transcription(
     video_path: Path,
     transcribe_command: str,
 ) -> list[dict[str, Any]]:
-    command_text = (
-        transcribe_command.replace("{video_path}", str(video_path)).replace("{job_dir}", str(job_dir))
-    )
+    command_args = [
+        token.replace("{video_path}", str(video_path)).replace("{job_dir}", str(job_dir))
+        for token in shlex.split(transcribe_command)
+    ]
+    if not command_args:
+        raise RuntimeError("Transcription command was empty after parsing.")
     proc = subprocess.run(
-        command_text,
-        shell=True,
+        command_args,
         check=True,
         capture_output=True,
         text=True,
@@ -610,16 +613,17 @@ def dedupe_frames(job_dir: Path, frames: list[dict[str, Any]]) -> list[dict[str,
 
 
 def compute_dhash(path: Path, image_module: Any) -> str:
-    image = image_module.open(path).convert("L").resize((9, 8))
-    bits = []
-    pixels = list(image.getdata())
-    for row in range(8):
-        row_start = row * 9
-        for col in range(8):
-            left = pixels[row_start + col]
-            right = pixels[row_start + col + 1]
-            bits.append("1" if left > right else "0")
-    return f"{int(''.join(bits), 2):016x}"
+    with image_module.open(path) as source_image:
+        image = source_image.convert("L").resize((9, 8))
+        bits = []
+        pixels = list(image.getdata())
+        for row in range(8):
+            row_start = row * 9
+            for col in range(8):
+                left = pixels[row_start + col]
+                right = pixels[row_start + col + 1]
+                bits.append("1" if left > right else "0")
+        return f"{int(''.join(bits), 2):016x}"
 
 
 def run_ocr(
@@ -685,6 +689,8 @@ def build_segments(
     ocr_results: list[dict[str, Any]],
     segment_length_sec: int,
 ) -> list[dict[str, Any]]:
+    if segment_length_sec < 1:
+        raise ValueError("segment_length_sec must be at least 1")
     if not transcript:
         return []
     ocr_by_path = {entry["path"]: entry for entry in ocr_results}
