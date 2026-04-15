@@ -22,13 +22,14 @@ Addresses:
 ### `skills/review-task/SKILL.md`
 
 - Update the branch guidance to match current `ww`-first workflow and current branch naming rules in `AI_WORKFLOW.md`.
-- Add an explicit first step that classifies the current work as `plan`, `feat`, `fix`, `chore`, or `docs` before any PR creation work.
+- Add an explicit first step that classifies the current work as `plan`, `feat`, `fix`, `chore`, or `docs` before branch creation for new work and before PR creation for existing work.
 - Require a pre-PR check for:
   - branch name matches the classified change type
   - exec-plan requirement is satisfied or explicitly exempt
   - PR title matches the branch/change classification
   - over-scoping and obvious out-of-scope changes are called out before proceeding
 - Make the skill's terminal path: if checks pass and no PR exists yet, create the PR; otherwise verify/update the existing PR so it is ready for review. This keeps PR creation as the completion path only for new PRs, not a separate implied step.
+- Clarify PR template fallback paths for workflow child repos that use `.claude/vendor/workflow`.
 
 ### `skills/plan-execution/SKILL.md`
 
@@ -44,6 +45,14 @@ Addresses:
 
 - Add one explicit rule for lightweight/no-plan changes:
   - even when skipping an exec-plan, check `AI_WORKFLOW.md` before PR creation and align the branch type and PR title with the change scope (`docs`, `chore`, etc.)
+
+### `skills/plan-project/SKILL.md`, `AI_WORKFLOW.md`, `skills/manage-workflow/SKILL.md`
+
+- Route Step 1 project-plan PR preparation through `review-task` as well so the shared-gate wording is accurate end-to-end.
+- Align all workflow-facing docs on the concrete PR template fallback order:
+  - current repo `.github/PULL_REQUEST_TEMPLATE.md`
+  - child repo `.claude/vendor/workflow/.github/PULL_REQUEST_TEMPLATE.md`
+  - workflow repo `.github/PULL_REQUEST_TEMPLATE.md`
 
 ## Spec Changes
 

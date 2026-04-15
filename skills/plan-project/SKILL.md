@@ -16,14 +16,23 @@ Define the project's **Goal**, **Significance**, and **Requirements** in `docs/p
 
 ### Branch Setup
 
-Before making any changes, create a fresh branch from the latest `main`:
+Before making any changes, create a fresh worktree from the latest `main` with the globally installed `ww` CLI:
+
+From the target repo root:
 
 ```sh
-git fetch origin
-git switch -c plan/project-plan-<description> origin/main
+ww create plan/<name>
+cd "$(ww cd plan/<name>)"
 ```
 
-Use a descriptive branch name (e.g., `plan/project-plan-v1`, `plan/project-plan-add-requirements`).
+From the workspace root when targeting a child repo:
+
+```sh
+ww create --repo <repo> plan/<name>
+cd "$(ww cd --repo <repo> plan/<name>)"
+```
+
+Use a descriptive kebab-case name (e.g., `plan/project-plan-v1`, `plan/project-plan-add-requirements`).
 
 ### Rules
 
@@ -51,8 +60,8 @@ The project plan should contain:
 After making changes to `docs/project-plan.md`:
 
 1. Commit the changes on the branch.
-2. Push the branch and create a PR via `gh pr create`, using the **PR template** (project-level `.github/PULL_REQUEST_TEMPLATE.md` if present, otherwise the workspace-level one).
-3. Wait for GitHub PR review approval before merging into `main`.
+2. Invoke **`review-task`** before any PR creation work so the shared PR gate checks branch classification, branch name, PR title, scope, verification evidence, and PR template/body readiness for the project-plan PR.
+3. Create or update the project-plan PR through that `review-task` flow, then wait for GitHub PR review approval before merging into `main`.
 
 ## Next Step
 

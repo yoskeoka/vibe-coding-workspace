@@ -41,6 +41,7 @@ At the start of a new session, if the user has not given a specific task, sugges
     - Create a fresh task worktree from `main` for every task with global `ww`: `ww create <type>/<description>` from the target repo, or `ww create --repo <repo> <type>/<description>` from the workspace root
     - Enter task worktrees with `ww cd` rather than guessing paths manually
     - Never reuse an existing feature branch or primary checkout silently; each active task should have its own `ww` worktree
+    - Even for lightweight/no-plan changes, re-check `AI_WORKFLOW.md` before PR creation so the branch type and PR title match the actual scope (`docs`, `chore`, etc.)
     - **Before pushing to a PR branch**, always verify the PR is still OPEN: `gh pr view <number> --json state --jq '.state'`. Never push to a MERGED or CLOSED PR.
     - Workflow-linter findings must not be ignored. Resolve all `fixable` warnings before push/PR unless an explicit human instruction conflicts or the warning is a clear false positive.
     - If a `fixable` workflow-linter warning is skipped, record the reason in the PR body.
