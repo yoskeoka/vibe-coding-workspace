@@ -4,7 +4,7 @@
 
 ## Objective
 
-Extend the workflow so `review-task` does not stop at PR creation. After opening or updating a PR, the agent should wait for CI completion, detect whether Copilot review is active, automatically pursue CI-failure fixes, and produce a human-review briefing for Copilot comments instead of auto-applying them.
+Extend the workflow so `review-task` does not stop at PR creation. After opening or updating a PR, the agent should wait for CI completion, detect whether GitHub Copilot code review is active, automatically pursue CI-failure fixes, and produce a human-review briefing for Copilot comments instead of auto-applying them.
 
 This captures the actual operator workflow already used after PR creation:
 
