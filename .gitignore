@@ -10,3 +10,5 @@ envdiff/
 .uv-cache/
 .local/
 .worktrees/
+__pycache__/
+*.py[cod]

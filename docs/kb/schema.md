@@ -41,12 +41,25 @@ Source note frontmatter:
 ---
 title:
 source_url:
-source_type: article|post|docs|video|repo|demo
+source_type: article|post|docs|video|video_backed_article|repo|demo
 ingested_on:
 status: active|watch|superseded
 tags: []
 related_pages: []
 ---
+```
+
+Video-oriented source notes SHOULD also preserve durable retrieval anchors when available:
+
+```yaml
+video_url:
+video_platform:
+channel:
+published_on:
+duration:
+time_anchors:
+selected_screenshots: []
+named_entities: []
 ```
 
 Wiki page frontmatter:
@@ -83,6 +96,17 @@ When compressing a source, prefer this order of preservation:
 1. concrete product or document names
 2. selection criteria or trade-offs
 3. workspace-specific recommendation
+
+## Video-specific ingest rules
+
+- Prefer `source_type: video` for direct video URLs and `source_type: video_backed_article` for thin articles whose useful content lives in a referenced video.
+- Preserve canonical video metadata even when the original ingest target was the article wrapper.
+- Keep segment summaries concise and attach concrete time anchors so the human can jump back into the source quickly.
+- Preserve named entities, tool names, library names, commands, and UI labels found through transcript and OCR when they are useful retrieval anchors.
+- Store raw transcripts, OCR dumps, extracted frame sets, and other bulky intermediates outside `docs/kb/`.
+- Store durable screenshots only when they materially improve comprehension and only under `docs/kb/assets/source-images/<year>/<source-slug>/`.
+- Durable screenshots should be referenced from the source note with enough context to explain why the image was kept.
+- Do not keep more than a small curated set of screenshots in git. Bulk candidate frames remain temporary job artifacts.
 
 ## During query filing-back
 

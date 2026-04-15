@@ -41,6 +41,15 @@ docs/kb/
 Generated build inputs MAY be created under `.local/` during build, check, or preview, but the git-tracked source of truth remains `docs/kb/`.
 ```
 
+Video ingest jobs MAY also use:
+
+```text
+.local/kb-ingest/
+  <job-id>/
+```
+
+for resumable repo-local scratch data. When the user does not need persistence, the video pipeline SHOULD default to OS temp storage instead.
+
 ## Content Model
 
 ### 1. Source Notes
@@ -58,6 +67,14 @@ A source note MUST include:
 - concise summary bullets
 - candidate follow-up actions
 - links to related wiki pages
+
+Video-backed sources MAY additionally include:
+- canonical video URL when the source URL is a thin article that points to a video
+- video duration
+- channel or author metadata
+- segment summaries with time anchors
+- named entities or tool names recovered from transcript/OCR
+- selected screenshot references when screenshots materially improve later human review
 
 Source notes are source-oriented and append-only in spirit. They MAY be corrected, but they should not become general wiki pages.
 
@@ -103,18 +120,109 @@ Ingest MUST:
 - update `docs/kb/wiki/index.md` if navigation changes
 - append a short entry to `docs/kb/wiki/log.md`
 
+The knowledge-base ingest flow MUST support two video-oriented operating modes:
+- `skim`: produce a compact review artifact for deciding whether the source belongs in the KB
+- `ingest`: produce KB-ready source-note and wiki-update drafts from the already skimmed job data
+
 Ingest SHOULD:
 - preserve the user's framing about why the source matters
 - prefer updating an existing wiki page over creating duplicates
 - identify which workspace projects, tools, topics, and patterns are affected
+- prefer subtitles over fresh transcription when the source provides usable subtitles
+- narrow AI context to structured segment summaries and representative frame candidates instead of passing full transcripts or all frames
 
 Ingest does NOT need to hand-maintain rendered `Sources` nav entries or yearly source index pages. Those are derived during build/check.
+
+For video-backed sources, ingest MUST keep raw transcripts, OCR dumps, extracted frame sets, and other bulky intermediates outside `docs/kb/`.
 
 ### 1a. Skill discovery
 
 The `knowledge-base` skill is workspace-only and MUST NOT be distributed to child repos via `setup-workspace.sh`.
 
 The workspace repo itself MUST expose the skill through `.claude/skills/knowledge-base` so local agents can invoke it. Agent directories that mirror `.claude/skills/` (for example `.agents/skills/`) MUST therefore resolve the same skill as well.
+
+The skill MUST keep heavy video-processing helpers, prompt contracts, and Python runtime files inside `skills/knowledge-base/` for portability.
+
+## Video Pipeline
+
+Video-backed ingest MUST support direct video URLs and thin articles whose substantive content lives in a referenced video.
+
+The skill-local entrypoint MUST provide:
+- `skim` to fetch/normalize video context and generate a human-skimmable review packet
+- `ingest` to turn a prepared or resumed job into KB-ready drafts
+- `--check-deps` to fail fast with actionable dependency guidance before long-running work starts
+
+The implementation MUST orchestrate these stages:
+1. metadata fetch
+2. subtitles-first transcript acquisition
+3. candidate frame extraction
+4. OCR over candidate frames
+5. candidate dedupe and segment building
+6. AI checkpoint preparation for segment summarization
+7. AI checkpoint preparation for representative-frame selection
+8. `skim` or `ingest` output compilation
+
+### Dependency model
+
+The video pipeline MUST depend on:
+- `yt-dlp` for metadata, subtitles, and media fetch
+- `ffmpeg` for frame extraction
+- a skill-local Python runtime with `paddleocr`, a CPU `paddlepaddle` variant, and image-processing helpers
+
+The pipeline MUST check for these dependencies at startup and exit with actionable setup instructions if they are missing.
+
+The skill docs MUST include install guidance for:
+- macOS/Homebrew
+- Debian/Ubuntu
+- environment-matched Paddle runtime selection for CPU vs GPU hosts
+
+The CLI SHOULD inspect the runtime environment before heavy work starts and choose safe defaults for:
+- OCR batch size
+- frame extraction cadence
+- GPU enablement when supported by both the host and the installed Paddle runtime
+
+The initial tuning heuristics MAY use signals such as:
+- host OS or WSL detection
+- available system memory
+- CUDA / GPU availability
+
+### AI checkpoints
+
+The implementation MUST define structured prompt contracts for:
+- segment summarization
+- representative-frame selection
+- KB compile/review
+
+The initial implementation MAY emit prompt-ready markdown or JSON payloads instead of invoking an LLM directly, as long as the job artifacts cleanly separate the three checkpoints.
+
+### Temporary and durable artifacts
+
+Temporary job artifacts MUST stay outside `docs/kb/` and SHOULD be resumable. A job directory MUST be able to store:
+- job metadata
+- normalized transcript segments
+- extracted candidate frames
+- OCR outputs
+- deduped frame candidates by segment
+- AI-written or AI-ready segment summary payloads
+- AI-selected or AI-ready representative-frame payloads
+- source-note and wiki-update drafts
+
+Durable KB outputs remain limited to:
+- source notes in `docs/kb/sources/<year>/`
+- wiki updates in `docs/kb/wiki/`
+- `docs/kb/wiki/log.md`
+- selected representative screenshots under `docs/kb/assets/source-images/<year>/<source-slug>/` when screenshots materially improve human skimmability
+
+Raw transcripts, bulk OCR output, and bulk extracted frames MUST NOT be committed under `docs/kb/`.
+
+### Screenshot policy
+
+Representative screenshots are optional. The pipeline SHOULD keep them only when they add meaning beyond transcript text alone, such as:
+- UI state changes
+- diagrams or slide content
+- code or terminal output that anchors a segment summary
+
+The durable screenshot budget SHOULD stay small. The initial implementation SHOULD target at most two selected screenshots per segment and MUST avoid persisting bulk candidates in `docs/kb/`.
 
 ### 2. Query
 
