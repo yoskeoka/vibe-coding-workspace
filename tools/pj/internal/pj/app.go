@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 	"text/tabwriter"
 )
@@ -32,6 +33,8 @@ func Run(args []string, stdout, stderr io.Writer) error {
 		return runInit(args[1:], stdout)
 	case "sync":
 		return runSync(args[1:], stdout)
+	case "config":
+		return runConfig(args[1:], stdout)
 	case "list":
 		return runList(args[1:], stdout)
 	case "add":
@@ -51,6 +54,7 @@ func runInit(args []string, stdout io.Writer) error {
 	fs := flag.NewFlagSet("init", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 
+	configPath := fs.String("config", defaultConfigPath, "owner config file path")
 	cachePath := fs.String("cache", defaultCachePath, "cache file path")
 	owner := fs.String("owner", "", "GitHub login or organization")
 	ownerType := fs.String("owner-type", "", "owner type: user or org")
@@ -58,15 +62,9 @@ func runInit(args []string, stdout io.Writer) error {
 		return err
 	}
 
-	ref := ProjectRef{
-		Owner:     *owner,
-		OwnerType: *ownerType,
-	}
-	if cached, err := loadCache(*cachePath); err == nil {
-		ref = mergeProjectRef(ref, cached.Project)
-	}
-	if ref.Owner == "" || ref.OwnerType == "" {
-		return fmt.Errorf("init requires --owner and --owner-type, or a cache with owner metadata")
+	cfg, err := resolveOwnerConfig(*configPath, *cachePath, *owner, *ownerType)
+	if err != nil {
+		return err
 	}
 
 	client, err := newProjectClient()
@@ -74,7 +72,7 @@ func runInit(args []string, stdout io.Writer) error {
 		return err
 	}
 
-	projectRef, created, err := client.ensureProject(ref.Owner, ref.OwnerType, canonicalProjectTitle)
+	projectRef, created, err := client.ensureProject(cfg.Owner, cfg.OwnerType, canonicalProjectTitle)
 	if err != nil {
 		return err
 	}
@@ -102,6 +100,9 @@ func runInit(args []string, stdout io.Writer) error {
 		}
 		return fmt.Errorf("%s canonical project %q (#%d), but provisioning changed remote schema and cache refresh failed; refusing to write stale cache to %s: provision error: %w; refresh error: %v",
 			action, cache.Project.Title, cache.Project.ProjectNumber, *cachePath, provisionErr, refreshErr)
+	}
+	if err := writeOwnerConfigFromProject(*configPath, cache.Project); err != nil {
+		return err
 	}
 	if err := writeCache(*cachePath, cache); err != nil {
 		return err
@@ -136,6 +137,7 @@ func runSync(args []string, stdout io.Writer) error {
 	fs := flag.NewFlagSet("sync", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 
+	configPath := fs.String("config", defaultConfigPath, "owner config file path")
 	cachePath := fs.String("cache", defaultCachePath, "cache file path")
 	owner := fs.String("owner", "", "GitHub login or organization")
 	ownerType := fs.String("owner-type", "", "owner type: user or org")
@@ -144,16 +146,22 @@ func runSync(args []string, stdout io.Writer) error {
 		return err
 	}
 
+	cfg, err := resolveOwnerConfig(*configPath, *cachePath, *owner, *ownerType)
+	if err != nil {
+		return err
+	}
+
 	ref := ProjectRef{
-		Owner:         *owner,
-		OwnerType:     *ownerType,
-		ProjectNumber: *projectNumber,
+		Owner:     cfg.Owner,
+		OwnerType: cfg.OwnerType,
 	}
-	if cached, err := loadCache(*cachePath); err == nil {
-		ref = mergeProjectRef(ref, cached.Project)
+	if *projectNumber != 0 {
+		ref.ProjectNumber = *projectNumber
+	} else if cached, err := loadCache(*cachePath); err == nil {
+		ref.ProjectNumber = cached.Project.ProjectNumber
 	}
-	if ref.Owner == "" || ref.OwnerType == "" || ref.ProjectNumber == 0 {
-		return fmt.Errorf("sync requires --owner, --owner-type, and --project, or a cache with project metadata")
+	if ref.ProjectNumber == 0 {
+		return fmt.Errorf("sync requires --project, or a cache with project metadata")
 	}
 
 	client, err := newProjectClient()
@@ -164,12 +172,111 @@ func runSync(args []string, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
+	if err := writeOwnerConfigFromProject(*configPath, cache.Project); err != nil {
+		return err
+	}
 	if err := writeCache(*cachePath, cache); err != nil {
 		return err
 	}
 
 	fmt.Fprintf(stdout, "synced %d items from %s project %q (#%d) to %s\n",
 		len(cache.Items), cache.Project.OwnerType, cache.Project.Owner, cache.Project.ProjectNumber, *cachePath)
+	return nil
+}
+
+func runConfig(args []string, stdout io.Writer) error {
+	if len(args) == 0 {
+		return fmt.Errorf("config requires a subcommand: show, set, or clear")
+	}
+
+	switch args[0] {
+	case "show":
+		return runConfigShow(args[1:], stdout)
+	case "set":
+		return runConfigSet(args[1:], stdout)
+	case "clear":
+		return runConfigClear(args[1:], stdout)
+	default:
+		return fmt.Errorf("unknown config subcommand %q", args[0])
+	}
+}
+
+func runConfigShow(args []string, stdout io.Writer) error {
+	fs := flag.NewFlagSet("config show", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+
+	configPath := fs.String("config", defaultConfigPath, "owner config file path")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	cfg, err := loadOwnerConfig(*configPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return fmt.Errorf("owner config not found at %s; run `pj init` or `pj config set` first", *configPath)
+		}
+		return err
+	}
+
+	fmt.Fprintf(stdout, "%s %q\n", cfg.OwnerType, cfg.Owner)
+	return nil
+}
+
+func runConfigSet(args []string, stdout io.Writer) error {
+	fs := flag.NewFlagSet("config set", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+
+	configPath := fs.String("config", defaultConfigPath, "owner config file path")
+	cachePath := fs.String("cache", defaultCachePath, "cache file path")
+	owner := fs.String("owner", "", "GitHub login or organization")
+	ownerType := fs.String("owner-type", "", "owner type: user or org")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	cfg, err := ownerConfigFromFlags(*owner, *ownerType)
+	if err != nil {
+		return err
+	}
+	if cfg == nil {
+		return fmt.Errorf("config set requires --owner and --owner-type")
+	}
+
+	if cached, err := loadCache(*cachePath); err == nil {
+		cachedOwner := OwnerConfig{Owner: cached.Project.Owner, OwnerType: cached.Project.OwnerType}
+		if cachedOwner.Owner != "" && cachedOwner.OwnerType != "" && !sameOwnerTarget(*cfg, cachedOwner) {
+			if err := removeFileIfExists(*cachePath); err != nil {
+				return fmt.Errorf("clear stale cache: %w", err)
+			}
+		}
+	} else if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+
+	if err := writeOwnerConfig(*configPath, cfg); err != nil {
+		return err
+	}
+	fmt.Fprintf(stdout, "set owner config to %s %q\n", cfg.OwnerType, cfg.Owner)
+	return nil
+}
+
+func runConfigClear(args []string, stdout io.Writer) error {
+	fs := flag.NewFlagSet("config clear", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+
+	configPath := fs.String("config", defaultConfigPath, "owner config file path")
+	cachePath := fs.String("cache", defaultCachePath, "cache file path")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	if err := removeFileIfExists(*configPath); err != nil {
+		return fmt.Errorf("clear owner config: %w", err)
+	}
+	if err := removeFileIfExists(*cachePath); err != nil {
+		return fmt.Errorf("clear cache: %w", err)
+	}
+	fmt.Fprintln(stdout, "cleared owner config and cache")
 	return nil
 }
 
@@ -305,7 +412,10 @@ func printUsage(w io.Writer) {
 
 Usage:
   go -C tools/pj run ./cmd/pj init --owner <owner> --owner-type user|org
-  go -C tools/pj run ./cmd/pj sync --owner <owner> --owner-type user|org --project <number>
+  go -C tools/pj run ./cmd/pj sync [--project <number>]
+  go -C tools/pj run ./cmd/pj config show
+  go -C tools/pj run ./cmd/pj config set --owner <owner> --owner-type user|org
+  go -C tools/pj run ./cmd/pj config clear
   go -C tools/pj run ./cmd/pj list [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]
   go -C tools/pj run ./cmd/pj add --title <title> [--body <text>] [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]
   go -C tools/pj run ./cmd/pj move --item <item-id> --status <value>
@@ -318,19 +428,6 @@ func valueOrDash(v string) string {
 		return "-"
 	}
 	return v
-}
-
-func mergeProjectRef(ref, cached ProjectRef) ProjectRef {
-	if ref.Owner == "" {
-		ref.Owner = cached.Owner
-	}
-	if ref.OwnerType == "" {
-		ref.OwnerType = cached.OwnerType
-	}
-	if ref.ProjectNumber == 0 {
-		ref.ProjectNumber = cached.ProjectNumber
-	}
-	return ref
 }
 
 func validateRequiredFields(cache *Cache) error {

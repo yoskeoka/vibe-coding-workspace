@@ -81,9 +81,38 @@ Then bootstrap the canonical workspace board:
 go -C tools/pj run ./cmd/pj init --owner <owner> --owner-type user|org
 ```
 
+That first `pj init` establishes the local owner scope in `.local/pj/config.json`. After that, the normal daily flow can reuse the stored owner target:
+
+```bash
+go -C tools/pj run ./cmd/pj sync
+go -C tools/pj run ./cmd/pj list
+go -C tools/pj run ./cmd/pj add --title "..."
+go -C tools/pj run ./cmd/pj move --item <item-id> --status "In Progress"
+```
+
+Inspect the stored owner target with:
+
+```bash
+go -C tools/pj run ./cmd/pj config show
+```
+
+If you need to switch this workspace from a personal board to an organization board, make that explicit first:
+
+```bash
+go -C tools/pj run ./cmd/pj config set --owner <owner> --owner-type user|org
+go -C tools/pj run ./cmd/pj init
+```
+
+Or clear the stored target entirely:
+
+```bash
+go -C tools/pj run ./cmd/pj config clear
+```
+
 Notes:
 - `read:project` is enough for read-only sync, but `pj init`, `pj add`, and `pj move` require the `project` scope.
-- `pj init` can create the `Workspace Task Triage` board, but the current spike still expects the custom `Repo`, `Kind`, and `Priority` fields to be provisioned separately.
+- `pj init` can create the `Workspace Task Triage` board and provision the custom `Workspace Repo`, `Kind`, and `Priority` fields when they are missing.
+- Owner flags are for establishing or explicitly re-establishing the local owner scope. They do not silently override an existing `.local/pj/config.json`.
 
 ## Using Skills in Child Projects
 

@@ -7,6 +7,7 @@ import (
 )
 
 const (
+	defaultConfigRelPath  = ".local/pj/config.json"
 	defaultCacheRelPath   = ".local/pj/cache.json"
 	canonicalProjectTitle = "Workspace Task Triage"
 	fieldStatus           = "Status"
@@ -17,6 +18,7 @@ const (
 	fieldDataTypeSingle   = "SINGLE_SELECT"
 )
 
+var defaultConfigPath = resolveDefaultLocalPath(defaultConfigRelPath)
 var defaultCachePath = resolveDefaultCachePath()
 
 type ProjectRef struct {
@@ -25,6 +27,11 @@ type ProjectRef struct {
 	ProjectNumber int    `json:"project_number"`
 	ProjectID     string `json:"project_id"`
 	Title         string `json:"title"`
+}
+
+type OwnerConfig struct {
+	Owner     string `json:"owner"`
+	OwnerType string `json:"owner_type"`
 }
 
 type FieldCache struct {
@@ -118,16 +125,20 @@ func makeWorkflowFieldSchemaByName() map[string]workflowFieldSchema {
 }
 
 func resolveDefaultCachePath() string {
+	return resolveDefaultLocalPath(defaultCacheRelPath)
+}
+
+func resolveDefaultLocalPath(relPath string) string {
 	wd, err := os.Getwd()
 	if err != nil {
-		return defaultCacheRelPath
+		return relPath
 	}
 
 	root, ok := findGitRoot(wd)
 	if !ok {
-		return defaultCacheRelPath
+		return relPath
 	}
-	return filepath.Join(root, defaultCacheRelPath)
+	return filepath.Join(root, relPath)
 }
 
 func findGitRoot(start string) (string, bool) {

@@ -22,6 +22,8 @@ A short entry in `AGENTS.md` MUST propose triage at the start of every new sessi
 - This board is reserved for workspace triage data; unrelated personal/work boards MUST NOT be reused as the canonical workspace tracker.
 - Workspace triage MUST begin with an explicit bootstrap step, `pj init --owner <owner> --owner-type user|org`, which resolves the canonical board by name and creates it when absent.
 - If `Workspace Task Triage` does not exist yet, `pj init` MUST create it before later `pj` commands manage items on it.
+- The active owner target for that board MUST be stored explicitly in `.local/pj/config.json`.
+- A single local workspace operates against one owner scope at a time. Switching from a personal board to an organization board later requires an explicit configuration change, not a different one-off flag on a later command.
 - The local cache is derived data only. Deleting it must not lose task state.
 - `docs/exec-plan/todo/` remains the canonical tracker for implementation plans once a task is selected.
 
@@ -44,7 +46,9 @@ No other custom fields are required for the workflow to function.
 
 ### 4. Local cache
 - The CLI MUST store a structured cache under `.local/pj/`.
+- The CLI MUST store owner-scope configuration under `.local/pj/config.json`.
 - The primary cache artifact MUST be JSON so agents can read it without re-querying GitHub.
+- The owner config MUST include `owner` and `owner_type`.
 - The cache MUST include:
   - sync timestamp
   - project identity (`owner`, `owner_type`, `project_number`, `project_id`)
@@ -60,6 +64,7 @@ A workspace-local Go CLI provides the task operations. The initial command set i
 - Resolves the canonical `Workspace Task Triage` board by owner and title
 - Creates the canonical board when absent
 - Provisions the minimum custom workflow fields when they are missing
+- Writes the active owner target to `.local/pj/config.json`
 - Writes the resolved project identity into the local cache so later commands can reuse it
 - Fails clearly if the minimum workflow fields cannot be provisioned or are still incompatible after bootstrap
 
@@ -67,6 +72,7 @@ A workspace-local Go CLI provides the task operations. The initial command set i
 - Authenticates via `gh auth token`
 - Queries the configured GitHub Project through the GraphQL API
 - Refreshes the local cache from remote state
+- Reuses the configured owner target after a successful `init`
 - Reuses the cached project identity after a successful `init`
 
 #### `list`
@@ -81,6 +87,12 @@ A workspace-local Go CLI provides the task operations. The initial command set i
 #### `move`
 - Updates the `Status` field for an existing project item
 - Refreshes the local cache after mutation succeeds
+
+#### `config`
+- Prints, sets, or clears the active owner target
+- Must be the explicit mechanism for switching the local workspace from one owner scope to another
+- Must clear incompatible cached project identity when the owner scope changes
+- `clear` must also remove the cached project snapshot so later commands cannot keep operating on the old board implicitly
 
 ### 6. `triage-tasks` skill integration
 The `triage-tasks` skill may use the local cache and/or the CLI output as its workspace-task source instead of `bd` or `.local/priority.md`.
