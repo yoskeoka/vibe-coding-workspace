@@ -143,10 +143,10 @@ This project follows the AI-Centered Development workflow.
    - ALWAYS go through GitHub PR review for every change — including doc-only changes.
 
 2. **Branch & PR Rules**:
-   - Create a fresh branch from `origin/main` for every task: `git fetch origin && git switch -c <branch-name> origin/main`
+   - Create a fresh worktree from `main` for every task with global `ww`: `ww create <type>/<description>` from the target repo, or `ww create --repo <repo> <type>/<description>` from the workspace root
    - Never reuse an existing feature branch.
    - Run all lint and test checks (non-AI tooling) before creating a PR.
-   - Create PRs via `gh pr create` using the **PR template** (project-level `.github/PULL_REQUEST_TEMPLATE.md` if present, otherwise workspace-level) and wait for review approval before merging.
+   - Route PR preparation through `review-task` and use the **PR template** with this fallback order: project repo `.github/PULL_REQUEST_TEMPLATE.md` → child repo `.claude/vendor/workflow/.github/PULL_REQUEST_TEMPLATE.md` → workflow repo `.github/PULL_REQUEST_TEMPLATE.md`
 
 3. **Context Management**:
    - Your "memory" is the `docs/` directory.

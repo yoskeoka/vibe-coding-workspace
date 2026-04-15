@@ -8,11 +8,11 @@ metadata:
 
 # Review Task (PR Preparation Gate)
 
-**Position in workflow**: PR review is **not a standalone step** — it is embedded into every step of the AI-Centered Development cycle. Steps 1 (Project Plan), 2 (Execution Plan), and 3 (Execution) each require their own branch and PR. This skill is the shared pre-PR gate that checks branch/type/title/scope discipline, verification evidence, and PR readiness before human review.
+**Position in workflow**: PR review is **not a standalone step** — it is embedded into every step of the AI-Centered Development cycle. Steps 1 (Project Plan), 2 (Execution Plan), and 3 (Execution) can route PR preparation through this skill so branch/type/title/scope discipline, verification evidence, and PR readiness are checked before human review.
 
 ## Step 1: Classify the Change
 
-Before any PR creation or PR update work, classify the current branch into one of the workflow change types from `AI_WORKFLOW.md`:
+Before creating a `ww` worktree/branch for new work, classify the change into one of the workflow change types from `AI_WORKFLOW.md`. If work is already in progress on a branch, use this classification to verify the branch still matches the intended scope before any PR creation or PR update work:
 
 - `plan`: Project-plan or execution-plan authoring/update work
 - `feat`: Implementation work executing an approved plan
@@ -27,6 +27,8 @@ Use the classification to drive every later PR decision:
 - PR title
 - PR template checkboxes
 - reviewer expectations
+
+If the existing branch does **not** match the classification, fix that mismatch before proceeding to PR preparation. Do not carry a mis-typed branch into review.
 
 ## Branch Rule
 
@@ -125,16 +127,17 @@ Do not use a title that implies implementation when the branch is `docs/*` or `c
 Use the **PR template** when creating or repairing pull requests. Template priority:
 
 - If the child project has `.github/PULL_REQUEST_TEMPLATE.md`, use it.
-- Otherwise, use the workspace-level `.github/PULL_REQUEST_TEMPLATE.md`.
+- Otherwise, if working in a child repo that vendors this workflow under `.claude/vendor/workflow`, use `.claude/vendor/workflow/.github/PULL_REQUEST_TEMPLATE.md`.
+- Otherwise, if working in the workflow repo itself, use `.github/PULL_REQUEST_TEMPLATE.md`.
 
-If no PR exists yet, determine which template to use (project-level if present, otherwise workspace-level), then run:
+If no PR exists yet, determine which template path applies in the current repo, then run:
 
 ```sh
 git push origin <branch-name>
 gh pr create --title "<descriptive title>" --body-file <template-path>
 ```
 
-For example, if using the workspace-level template:
+For example, if working in this workflow repo:
 
 ```sh
 gh pr create --title "<descriptive title>" --body-file .github/PULL_REQUEST_TEMPLATE.md

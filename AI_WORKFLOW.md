@@ -79,7 +79,7 @@ The branch description and the exec-plan filename MUST share the same name:
 
 ### PR Workflow (applies to every step below)
 1. **Verify** — Run **all** project lint and test commands using non-AI tooling (e.g., `make lint`, `npm run lint`, `go vet`, `pytest`, `npm test`, or whatever the project defines). If any check fails, fix the issue in the same branch and re-run until **all pass**. Skip this for doc-only PRs when no lint/test tooling covers documentation.
-2. **Create PR** — Push the branch and create a PR via `gh pr create`. Use the **PR template** (`.github/PULL_REQUEST_TEMPLATE.md`) and fill in all sections. Template priority: **project-level template > workspace-level template** — if the child project has its own `.github/PULL_REQUEST_TEMPLATE.md`, use that; otherwise fall back to the workspace template.
+2. **Create PR** — Push the branch and create or update the PR through the shared `review-task` gate when using project workflow skills. Use the **PR template** and fill in all sections. Template priority: **project-level template > vendored workflow template > workflow-repo template** — if the current repo has `.github/PULL_REQUEST_TEMPLATE.md`, use that; otherwise, in child repos that vendor this workflow, use `.claude/vendor/workflow/.github/PULL_REQUEST_TEMPLATE.md`; otherwise use the workflow repo's `.github/PULL_REQUEST_TEMPLATE.md`.
 3. **Review** — Wait for GitHub PR review approval before merging into `main`.
 
 ---
