@@ -24,6 +24,8 @@ A short entry in `AGENTS.md` MUST propose triage at the start of every new sessi
 - If `Workspace Task Triage` does not exist yet, `pj init` MUST create it before later `pj` commands manage items on it.
 - The active owner target for that board MUST be stored explicitly in `.local/pj/config.json`.
 - A single local workspace operates against one owner scope at a time. Switching from a personal board to an organization board later requires an explicit configuration change, not a different one-off flag on a later command.
+- `.local/pj/` is the only supported local workspace-triage state for the current workflow.
+- The workspace MUST NOT depend on committed legacy tracker runtime artifacts or local database state for current task coordination.
 - The local cache is derived data only. Deleting it must not lose task state.
 - `docs/exec-plan/todo/` remains the canonical tracker for implementation plans once a task is selected.
 
@@ -49,6 +51,7 @@ No other custom fields are required for the workflow to function.
 - The CLI MUST store owner-scope configuration under `.local/pj/config.json`.
 - The primary cache artifact MUST be JSON so agents can read it without re-querying GitHub.
 - The owner config MUST include `owner` and `owner_type`.
+- No committed fallback cache, archive, or mirror under legacy tracker runtime paths is part of the supported workflow contract.
 - The cache MUST include:
   - sync timestamp
   - project identity (`owner`, `owner_type`, `project_number`, `project_id`)
@@ -95,7 +98,7 @@ A workspace-local Go CLI provides the task operations. The initial command set i
 - `clear` must also remove the cached project snapshot so later commands cannot keep operating on the old board implicitly
 
 ### 6. `triage-tasks` skill integration
-The `triage-tasks` skill may use the local cache and/or the CLI output as its workspace-task source instead of `bd` or `.local/priority.md`.
+The `triage-tasks` skill may use the local cache and/or the CLI output as its workspace-task source instead of historical local-priority-file flows.
 - The skill MUST bootstrap or refresh the cache with `pj init` and/or `pj sync` before relying on local task state.
 - The skill MUST treat `pj list` output plus the cached `Priority` field as the day-to-day "what next?" view; the current spike does not provide a separate `ready` command.
 - The canonical Project used by this workflow MUST include a `Priority` field; fallback ranking applies when an item's `Priority` value is empty, unset, or otherwise unknown, not when the field is absent from the Project schema.
@@ -119,7 +122,7 @@ The `triage-tasks` skill may use the local cache and/or the CLI output as its wo
 - If the selected task is non-trivial and does not already have an execution plan, the handoff prompt SHOULD direct the next session to use `plan-execution`.
 - If the selected task already has an execution plan and the next step is implementation, the handoff prompt SHOULD direct the next session to use `execute-task`.
 - The skill MUST emit the handoff prompt in the same language the user is currently using in the chat, rather than always generating multiple language variants.
-- The skill MUST NOT instruct agents to use beads-only concepts such as Dolt backup restore, dependency edges, or `bd update --claim`.
+- The skill MUST NOT instruct agents to use legacy tracker-only concepts such as backup restore flows, dependency edges, or claim-style mutations outside the GitHub Project workflow.
 - Because the current spike only mutates `Status` on existing items, the skill SHOULD treat edits to `Repo`, `Kind`, or `Priority` as a manual GitHub Project follow-up unless the item is recreated.
 
 ### 7. Placement and structure
@@ -130,6 +133,6 @@ The `triage-tasks` skill may use the local cache and/or the CLI output as its wo
 
 ## Non-Goals
 - Replacing GitHub Issues, child-repo issue trackers, or `docs/exec-plan/todo/`
-- Implementing dependency graphs, recursive task trees, or Dolt-like history
+- Implementing dependency graphs, recursive task trees, or database-style local history
 - Publishing the CLI as a reusable public tool in this spike
 - Full automation of task selection without user confirmation

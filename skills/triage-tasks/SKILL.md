@@ -51,7 +51,7 @@ Run `go -C tools/pj run ./cmd/pj list` to inspect the current queue.
   - active exec plans over vague future ideas
   - broken workflow or failing review items over speculative enhancements
   - the repo the user is currently focused on over unrelated backlog
-- This spike does **not** have `bd ready`-style dependency resolution; do not infer blockers unless the task title/body or repo context makes them explicit.
+- This spike does **not** have dependency-aware "ready queue" resolution; do not infer blockers unless the task title/body or repo context makes them explicit.
 
 - If tasks exist, present them to the user.
 - Include the GitHub Project URL when owner scope and project number are known.
@@ -149,5 +149,5 @@ Use skill: <plan-execution|execute-task|other explicit next-step skill>
 3. Do not auto-execute tasks without user confirmation.
 4. Keep the briefing fast: aim for < 2 minutes to reach a task selection.
 5. Prefer `pj list` plus the cached `Priority` field over full re-triage. Full re-triage is expensive.
-6. Do not mention or rely on beads/Dolt backup, dependency commands, or other `bd`-only concepts in this workflow.
+6. Do not mention or rely on legacy tracker backup, dependency commands, or other retired workflow concepts in this workflow.
 7. After a task is selected, default to emitting a fresh-session handoff prompt instead of starting the work in the same session.
