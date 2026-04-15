@@ -4,6 +4,10 @@ The intended UX is conversational:
 
 > Ingest these URLs into the knowledge base.
 
+For video-heavy sources, the intended UX also includes:
+
+> Skim this video-backed source first, then ingest it if it looks KB-worthy.
+
 ## Expected agent behavior
 
 1. Read the given URLs or the provided source material.
@@ -17,6 +21,41 @@ The intended UX is conversational:
 
 Do not hand-maintain rendered `Sources` navigation or yearly source index pages during ingest. `tools/kb check`, `tools/kb build`, and `tools/kb serve` derive those artifacts automatically.
 
+## Video-backed flow
+
+When the useful content lives in a video:
+
+1. Run the skill-local video pipeline in `skim` mode first when KB value is uncertain.
+2. Prefer subtitles over fresh transcription to reduce cost and latency.
+3. Extract candidate frames at a conservative interval and run OCR on them.
+4. Dedupe candidate frames before any AI checkpoint.
+5. Summarize by segment with time anchors instead of treating the full transcript as one blob.
+6. Keep only the most useful representative screenshots for human review.
+7. Run `ingest` only after the skim output indicates the source is worth keeping.
+
+`skim` should produce a compact review artifact that includes:
+- normalized metadata
+- segment summaries
+- representative screenshot candidates
+- suggested KB relevance and tags
+
+`ingest` should produce:
+- a source-note draft
+- wiki update guidance or draft content
+- a short log entry draft
+
+## Temporary vs durable outputs
+
+Temporary processing artifacts belong in OS temp storage or `.local/kb-ingest/<job-id>/` when resume/debug value matters.
+
+Durable KB outputs remain limited to:
+- `docs/kb/sources/<year>/`
+- `docs/kb/wiki/`
+- `docs/kb/wiki/log.md`
+- `docs/kb/assets/source-images/<year>/<source-slug>/` for selected screenshots only
+
+Raw transcripts, bulk OCR output, and full frame dumps must not be copied into `docs/kb/`.
+
 ## Classification hints
 
 Ask these questions during ingest:
@@ -24,6 +63,8 @@ Ask these questions during ingest:
 - Is this primarily a tool note, topic note, or reusable pattern?
 - Is it a durable insight or just a temporary watch item?
 - Should it modify an existing page or create a new one?
+- If this is video-backed, which segments are actually durable enough to keep?
+- Does any screenshot add meaning that the text summary alone would miss?
 
 ## Human review expectations
 
@@ -31,3 +72,4 @@ Ask these questions during ingest:
 - The human can browse the compiled wiki or the rendered Pages site.
 - The human can redirect emphasis in the next ingest request instead of editing the wiki manually.
 - The rendered site should expose source relationships visibly, even when the source-of-truth links live in frontmatter.
+- For video-backed sources, the human should be able to review the skim packet without opening a raw transcript dump.
