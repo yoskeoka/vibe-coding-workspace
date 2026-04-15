@@ -27,3 +27,10 @@
 - **Pattern**: When the repo contains the tool being dogfooded, it is easy to conflate "work on the workflow" with "work inside the tool repo" and silently switch operator paths.
 - **Rule**: For workspace workflow tasks, use the globally installed `ww` CLI as the default operator path and avoid touching the `ww/` repo unless the task explicitly targets unreleased `ww` behavior.
 - **Applied**: Workspace-level planning and execution tasks, especially dogfooding changes that mention `ww` but do not modify files under `ww/`.
+
+## Python Cache Files Must Be Ignored Before Staging
+
+- **Mistake**: I let `skills/knowledge-base/scripts/__pycache__/` get staged after running Python verification commands.
+- **Pattern**: When verification creates interpreter cache files in a new script directory, they can slip into the index if the repo does not already ignore them.
+- **Rule**: When adding Python files or running Python verification in a repo, ensure `.gitignore` covers `__pycache__/` and `*.py[cod]` before staging, and remove any generated cache files from the worktree before `git add`.
+- **Applied**: Any workspace or child-repo task that adds Python code or runs Python commands that emit bytecode caches.
