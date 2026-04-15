@@ -43,7 +43,8 @@ Recent discussion also settled these product directions for the spike:
   - case-insensitive
   - `-`, `_`, and spaces normalized together
   - unique prefix matching allowed
-  - `repo` additionally accepts integer selection by current remote option order
+  - `repo` additionally accepts integer selection using a stable alphabetical
+    order persisted in cache
 
 ## Spec Changes
 
@@ -64,13 +65,30 @@ Recent discussion also settled these product directions for the spike:
 - Define `pj url` as the command that prints the canonical GitHub Project URL to
   stdout without opening it.
 - Define value-resolution rules for enum-like inputs:
-  - canonical slug exact match
+  - for `repo`, canonical slug exact match using the full source identity
   - recognized alias exact match
-  - for `repo`, integer index using the current remote option order from cache
-  - unique prefix match after normalization
+  - for `repo`, integer index using ordered repo-option metadata stored in
+    cache, sorted ascending by canonical slug
+  - unique prefix match after normalization against canonical slugs and aliases
   - ambiguous or unknown input must fail clearly
-- Clarify that runtime resolution uses cached remote field options, not a
-  hardcoded repo list, and therefore requires a valid cache/field snapshot.
+- Define repo-option metadata for runtime resolution:
+  - remote display value remains the basename (`ww`, `ai-arena`, etc.)
+  - each repo option also carries:
+    - `source_type`
+    - `source_url`
+    - `canonical_slug`
+    - alias values derived from the source metadata
+- Define `github-repo` as the initial `source_type`.
+- Define the `github-repo` canonical slug as `github.com/<owner>/<repo>`,
+  derived from the repo option's `source_url`.
+- Clarify that `repo` runtime resolution uses this enriched ordered metadata
+  from cache rather than only the current remote field display names.
+- Clarify that `pj init` provisions `Workspace Repo` display values from
+  `setup.sh`, while also deriving the enriched repo metadata from the same
+  source.
+- Clarify that runtime resolution uses cached remote field options and enriched
+  repo metadata, not a hardcoded repo list, and therefore requires a valid
+  cache/field snapshot.
 
 ### `docs/specs/triage-tasks.md`
 
@@ -102,9 +120,18 @@ Recent discussion also settled these product directions for the spike:
   - `Kind`
   - `Priority`
 - Reuse a shared value resolver for `repo`, `status`, `kind`, and `priority`.
-- Resolve repo integers and prefixes against the cached remote option order from
-  `.local/pj/cache.json`.
-- Normalize alias input before remote option lookup.
+- Replace map-only repo option metadata with an ordered cache representation
+  that preserves stable alphabetical ordering by canonical slug.
+- Derive repo-option metadata from `setup.sh`, including:
+  - remote display basename
+  - `source_type=github-repo`
+  - `source_url`
+  - `canonical_slug`
+  - aliases such as basename and `owner/repo`
+- Resolve repo integers against the ordered cached repo metadata.
+- Normalize alias input before repo option lookup.
+- Apply prefix matching to both canonical slugs and aliases, with clear
+  ambiguity errors.
 - Add URL helpers that derive the canonical Project URL from cached project
   metadata for `pj url` and `pj open`.
 
@@ -129,6 +156,9 @@ Apply the same reasoning here:
 - `pj update` should become the single existing-item mutation path.
 - Runtime enum resolution should use the cached remote field options rather than
   code-local constants, especially for `Workspace Repo`.
+- For `repo`, internal identity should be stronger than the remote display
+  label: keep basename values in GitHub Projects, but resolve against canonical
+  source-backed slugs such as `github.com/yoskeoka/ww`.
 - `pj open` / `pj url` should prefer the canonical Project metadata already
   stored in cache instead of re-deriving the URL ad hoc in higher-level skills.
 
@@ -140,6 +170,8 @@ Apply the same reasoning here:
       instead of `pj move`, and can rely on `pj open` / `pj url`
 - [ ] [parallel] Design the normalized resolver behavior for `repo`, `status`,
       `kind`, and `priority`, including ambiguous-input errors
+- [ ] [parallel] Define the ordered cache shape for enriched repo-option
+      metadata and how it is derived from `setup.sh`
 - [ ] [parallel] Design the operator-facing help text and command examples for
       `pj update`, `pj open`, and `pj url`
 - [ ] [depends on: spec updates, resolver design] Implement `pj update` and
@@ -160,8 +192,12 @@ Apply the same reasoning here:
 - Confirm `pj update --item <id> --status todo` resolves to `Todo`
 - Confirm `pj update --item <id> --status in-progress` resolves to
   `In Progress`
-- Confirm `pj update --item <id> --repo 1` resolves using the current remote
-  option order from cache
+- Confirm `pj update --item <id> --repo 1` resolves using cache metadata saved
+  in ascending alphabetical order by repo canonical slug
+- Confirm `pj update --item <id> --repo github.com/yoskeoka/ww` resolves to the
+  `ww` display value
+- Confirm `pj update --item <id> --repo yoskeoka/ww` and `--repo ww` both
+  resolve through alias metadata
 - Confirm `pj update --item <id> --repo <unique-prefix>` succeeds and
   ambiguous prefixes fail clearly
 - Confirm `pj url` prints the same canonical Project URL that `triage-tasks`
