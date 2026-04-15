@@ -6,12 +6,15 @@
 
 Extend the workflow so `review-task` does not stop at PR creation. After opening or updating a PR, the agent should wait for CI completion, detect whether GitHub Copilot code review is active, automatically pursue CI-failure fixes, and produce a human-review briefing for Copilot comments instead of auto-applying them.
 
+The same monitoring loop should restart after later pushes to the PR branch, including larger comment-driven course corrections rather than only tiny follow-up patches.
+
 This captures the actual operator workflow already used after PR creation:
 
 - wait for CI
 - wait briefly for Copilot review when the repo/PR is configured for it
 - auto-fix mechanical CI failures when possible
 - read Copilot comments and summarize whether to ignore, apply as-is, adapt, or defer to a separate issue
+- if a later push changes the PR branch again, restart the wait/triage cycle for the new head SHA
 
 ## Current State
 
@@ -27,6 +30,7 @@ This captures the actual operator workflow already used after PR creation:
 ### `AI_WORKFLOW.md`
 
 - Clarify that the PR workflow includes post-creation monitoring until initial CI and any configured automatic AI review have settled.
+- Clarify that the same monitoring responsibility re-triggers after subsequent pushes to the same PR branch, not only on the first PR creation.
 - State the policy split:
   - CI failures are mechanical verification failures and should be fixed in-branch when feasible before handing off.
   - Copilot review comments are advisory review input and require explicit analysis rather than automatic acceptance.
@@ -35,6 +39,7 @@ This captures the actual operator workflow already used after PR creation:
 
 - Add a concise session-end rule for PR follow-up:
   - after PR creation, wait for CI to finish
+  - after any later push to the PR branch, repeat the same bounded follow-up cycle for the new commit set
   - if Copilot auto-review appears, wait a short bounded interval for it to post comments
   - treat CI failures as auto-fix candidates
   - treat Copilot comments as human-review prep, not auto-merge criteria and not auto-fix instructions
@@ -45,6 +50,7 @@ This captures the actual operator workflow already used after PR creation:
 - Define a bounded post-PR monitoring loop:
   - create/update PR
   - prefer delegating polling to a low-cost subagent when available so the main agent does not burn expensive tokens on wait loops
+  - track the PR head SHA and restart the monitoring cycle whenever the branch receives a newer push, including comment-driven larger rewrites
   - wait for CI checks
   - if the PR timeline shows Copilot auto-review starting, wait for review completion/comments
   - stop waiting after a short bounded timeout when no Copilot review appears
@@ -82,6 +88,7 @@ Past decisions:
 
 Apply the same reasoning here:
 - keep one owner skill for PR readiness and initial post-PR follow-up
+- make that ownership apply to later PR updates as well, not only the first open/create event
 - separate mechanical verification failures from advisory review feedback
 - preserve human judgment for review comments even when automation is available
 - use cheaper delegated polling for idle wait loops when available, while keeping final decisions and implementation in the main agent
@@ -91,7 +98,7 @@ No ADR update is expected unless execution reveals a broader policy for third-pa
 ## Sub-tasks
 
 - [ ] [parallel] Inventory the current `review-task` wording and identify exactly which steps stop at PR creation
-- [ ] [parallel] Decide the minimum workflow contract for CI waiting, retry/fix loops, Copilot detection windows, and low-cost polling delegation
+- [ ] [parallel] Decide the minimum workflow contract for CI waiting, retry/fix loops, Copilot detection windows, low-cost polling delegation, and restart conditions after later pushes
 - [ ] [depends on: workflow contract] Update `skills/review-task/SKILL.md` with the post-PR monitoring and triage flow
 - [ ] [depends on: workflow contract] Update `AI_WORKFLOW.md` and `AGENTS.md` so the top-level workflow matches the skill behavior
 - [ ] [depends on: review-task update] Update any calling skills whose wording now understates `review-task` responsibilities
@@ -110,9 +117,11 @@ No ADR update is expected unless execution reveals a broader policy for third-pa
 - Confirm the documented Copilot flow stops at analysis/options and does not authorize automatic suggestion application.
 - Confirm the waiting behavior is bounded so the agent does not block indefinitely on absent Copilot review.
 - Confirm polling guidance prefers a low-cost delegated worker when available instead of burning the main model on repeated status checks.
+- Confirm the monitoring cycle clearly restarts after later pushes to the PR branch, including larger scope changes made in response to review.
 
 ## Expected Outcome
 
 - Agents treat PR creation as the start of initial review monitoring, not the terminal step.
+- Agents treat later PR updates as reopening the same monitoring responsibility for the new branch head.
 - Mechanical CI failures are automatically driven toward resolution when feasible.
 - Copilot review comments are collected and summarized into actionable human-review options rather than being auto-applied.
