@@ -15,7 +15,7 @@ This captures the actual operator workflow already used after PR creation:
 
 ## Current State
 
-- `skills/review-task/SKILL.md` currently ends at "create or update the PR so it is ready for review".
+- `skills/review-task/SKILL.md` currently stops after the PR is created or updated and ready for review.
 - The workflow does not define who owns post-PR waiting, CI retry/fix loops, or AI-review triage after the PR exists.
 - In practice, this leaves repetitive manual follow-up work outside the documented skill contract.
 - Copilot review needs a different policy boundary from CI:
