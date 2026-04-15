@@ -64,6 +64,11 @@ Recent discussion also settled these product directions for the spike:
   in the operator's browser.
 - Define `pj url` as the command that prints the canonical GitHub Project URL to
   stdout without opening it.
+- Define `pj update --body-file <path>` as a supported way to load longer body
+  text from disk instead of inline flag text.
+- Define the `pj update` body-input conflict rule:
+  - reject `--body` and `--body-file` when both are provided
+  - fail clearly when the `--body-file` path cannot be read
 - Define value-resolution rules for enum-like inputs:
   - for `repo`, canonical slug exact match using the full source identity
   - recognized alias exact match
@@ -96,6 +101,9 @@ Recent discussion also settled these product directions for the spike:
 - Clarify that the skill may correct existing items through `pj update` instead
   of forcing manual GitHub edits or item recreation for `Repo`, `Kind`, and
   `Priority`.
+- Update any `Workspace Repo` contract that currently hardcodes a fixed repo
+  option list so it instead points to `setup.sh`-derived provisioning plus
+  cached enriched repo metadata.
 - Optionally reference `pj url` / `pj open` as the preferred Project URL path
   once the commands exist, instead of hand-building the URL from cache metadata.
 
@@ -141,6 +149,7 @@ Recent discussion also settled these product directions for the spike:
   parser.
 - Add `--body-file` to `pj update` so longer handoff text can avoid shell-
   expansion hazards and awkward inline quoting.
+- Reject `--body` and `--body-file` when both are provided, with a clear error.
 - Ensure errors for ambiguous prefix matches name the conflicting candidates.
 
 ## Design Decisions
