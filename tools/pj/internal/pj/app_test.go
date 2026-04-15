@@ -9,8 +9,6 @@ import (
 )
 
 func TestRunInitProvisionsFieldsAndRefreshesCache(t *testing.T) {
-	t.Parallel()
-
 	configPath := filepath.Join(t.TempDir(), "config.json")
 	cachePath := filepath.Join(t.TempDir(), "cache.json")
 	client := &stubProjectClient{
@@ -86,8 +84,6 @@ func TestRunInitProvisionsFieldsAndRefreshesCache(t *testing.T) {
 }
 
 func TestRunInitDoesNotWriteStaleCacheWhenProvisioningMutatesAndRefreshFails(t *testing.T) {
-	t.Parallel()
-
 	configPath := filepath.Join(t.TempDir(), "config.json")
 	cachePath := filepath.Join(t.TempDir(), "cache.json")
 	client := &stubProjectClient{
@@ -139,8 +135,6 @@ func TestRunInitDoesNotWriteStaleCacheWhenProvisioningMutatesAndRefreshFails(t *
 }
 
 func TestRunInitRejectsOwnerMismatchWithStoredConfig(t *testing.T) {
-	t.Parallel()
-
 	dir := t.TempDir()
 	configPath := filepath.Join(dir, "config.json")
 	if err := writeOwnerConfig(configPath, &OwnerConfig{Owner: "yoskeoka", OwnerType: "user"}); err != nil {
@@ -162,8 +156,6 @@ func TestRunInitRejectsOwnerMismatchWithStoredConfig(t *testing.T) {
 }
 
 func TestRunSyncUsesStoredOwnerConfigAndCachedProjectNumber(t *testing.T) {
-	t.Parallel()
-
 	dir := t.TempDir()
 	configPath := filepath.Join(dir, "config.json")
 	cachePath := filepath.Join(dir, "cache.json")
@@ -220,8 +212,6 @@ func TestRunSyncUsesStoredOwnerConfigAndCachedProjectNumber(t *testing.T) {
 }
 
 func TestRunConfigSetClearsMismatchedCache(t *testing.T) {
-	t.Parallel()
-
 	dir := t.TempDir()
 	configPath := filepath.Join(dir, "config.json")
 	cachePath := filepath.Join(dir, "cache.json")
@@ -257,8 +247,6 @@ func TestRunConfigSetClearsMismatchedCache(t *testing.T) {
 }
 
 func TestRunConfigClearRemovesConfigAndCache(t *testing.T) {
-	t.Parallel()
-
 	dir := t.TempDir()
 	configPath := filepath.Join(dir, "config.json")
 	cachePath := filepath.Join(dir, "cache.json")
@@ -281,6 +269,40 @@ func TestRunConfigClearRemovesConfigAndCache(t *testing.T) {
 	}
 	if _, err := os.Stat(cachePath); !os.IsNotExist(err) {
 		t.Fatalf("cache should be removed, stat error = %v", err)
+	}
+}
+
+func TestLoadOwnerConfigRejectsInvalidConfig(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(t.TempDir(), "config.json")
+	if err := os.WriteFile(path, []byte("{\n  \"owner\": \"yoskeoka\"\n}\n"), 0o644); err != nil {
+		t.Fatalf("WriteFile(): %v", err)
+	}
+
+	_, err := loadOwnerConfig(path)
+	if err == nil {
+		t.Fatal("loadOwnerConfig() error = nil, want invalid config error")
+	}
+	if !strings.Contains(err.Error(), "invalid owner config") {
+		t.Fatalf("loadOwnerConfig() error = %q", err)
+	}
+}
+
+func TestRunConfigShowRejectsInvalidConfig(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(t.TempDir(), "config.json")
+	if err := os.WriteFile(path, []byte("{\n  \"owner\": \"yoskeoka\",\n  \"owner_type\": \"\"\n}\n"), 0o644); err != nil {
+		t.Fatalf("WriteFile(): %v", err)
+	}
+
+	err := runConfigShow([]string{"--config", path}, io.Discard)
+	if err == nil {
+		t.Fatal("runConfigShow() error = nil, want invalid config error")
+	}
+	if !strings.Contains(err.Error(), "invalid owner config") {
+		t.Fatalf("runConfigShow() error = %q", err)
 	}
 }
 

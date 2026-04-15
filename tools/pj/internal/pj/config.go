@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func loadOwnerConfig(path string) (*OwnerConfig, error) {
@@ -16,6 +17,9 @@ func loadOwnerConfig(path string) (*OwnerConfig, error) {
 	var cfg OwnerConfig
 	if err := json.Unmarshal(data, &cfg); err != nil {
 		return nil, fmt.Errorf("decode config: %w", err)
+	}
+	if err := validateOwnerConfig(cfg); err != nil {
+		return nil, fmt.Errorf("invalid owner config at %s: %w; run `pj config set` or `pj config clear` to repair it", path, err)
 	}
 	return &cfg, nil
 }
@@ -86,11 +90,29 @@ func ownerConfigFromFlags(owner, ownerType string) (*OwnerConfig, error) {
 	if owner == "" || ownerType == "" {
 		return nil, fmt.Errorf("owner flags require both --owner and --owner-type")
 	}
-	return &OwnerConfig{Owner: owner, OwnerType: ownerType}, nil
+	cfg := OwnerConfig{Owner: owner, OwnerType: ownerType}
+	if err := validateOwnerConfig(cfg); err != nil {
+		return nil, err
+	}
+	return &cfg, nil
 }
 
 func sameOwnerTarget(a, b OwnerConfig) bool {
 	return a.Owner == b.Owner && a.OwnerType == b.OwnerType
+}
+
+func validateOwnerConfig(cfg OwnerConfig) error {
+	if strings.TrimSpace(cfg.Owner) == "" {
+		return fmt.Errorf("missing owner")
+	}
+	switch cfg.OwnerType {
+	case "user", "org":
+		return nil
+	case "":
+		return fmt.Errorf("missing owner_type")
+	default:
+		return fmt.Errorf("unsupported owner_type %q: use user or org", cfg.OwnerType)
+	}
 }
 
 func removeFileIfExists(path string) error {
