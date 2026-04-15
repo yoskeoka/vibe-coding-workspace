@@ -6,7 +6,7 @@
 hardcoded workspace repo list with only basename-style display values.
 
 That is acceptable for the current spike, but it becomes a design problem if we
-later want either of these:
+later want any of these:
 
 - repo options injected during `pj init`
 - repo options managed through future `pj repo` add/remove operations
