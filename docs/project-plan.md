@@ -30,7 +30,7 @@ A personal vibe-coding workspace where AI agents do the heavy lifting to build g
 - [x] setup.sh clones and updates child project repos
 - [ ] Shared tooling (hooks, linter) is distributable to child repos
 - [ ] Triage skill aggregates status across all managed projects
-- [ ] Workspace task coordination uses a lightweight GitHub Projects-backed flow instead of Dolt-backed issue tracking
+- [ ] Workspace task coordination uses a lightweight GitHub Projects-backed flow instead of the previous local database-backed tracker
 - [ ] A local CLI spike can manage workspace tasks through GitHub Projects using `gh auth`-derived credentials
 - [ ] The task CLI design is reusable enough to evaluate later extraction into a standalone cross-environment tool
 - [ ] Repo-native knowledge base captures external references and publishes a browsable wiki
@@ -56,5 +56,5 @@ A personal vibe-coding workspace where AI agents do the heavy lifting to build g
 - [ ] Phase 4: Distribute shared tooling to child repos (hooks, linter, workspace setup)
 - [ ] Phase 5: Iterate on workflow based on child project feedback
 - [ ] Phase 6: Add workspace knowledge base with AI ingest and GitHub Pages publishing
-- [ ] Phase 7: Replace the beads-based workspace task flow with a GitHub Projects-based CLI spike
+- [ ] Phase 7: Replace the legacy workspace task flow with a GitHub Projects-based CLI spike
 - [ ] Phase 8: Evaluate whether the task CLI should graduate into a standalone tool for personal and work environments

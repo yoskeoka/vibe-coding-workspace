@@ -12,15 +12,3 @@ envdiff/
 .worktrees/
 __pycache__/
 *.py[cod]
-
-# Dolt database files (added by bd init)
-.dolt/
-*.db
-
-# beads runtime files
-.beads/dolt*
-!.beads/dolt/
-.beads/dolt/*
-!.beads/dolt/.dolt
-.beads/dolt/.dolt/*
-!.beads/dolt/.dolt/config.json
