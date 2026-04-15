@@ -124,10 +124,11 @@ Workspace-level triage uses a GitHub Project plus a local derived cache managed 
 ### Expected Commands
 
 - `go -C tools/pj run ./cmd/pj init --owner <owner> --owner-type user|org`
-- `go -C tools/pj run ./cmd/pj sync --owner <owner> --owner-type user|org --project <number>`
+- `go -C tools/pj run ./cmd/pj sync [--project <number>]`
 - `go -C tools/pj run ./cmd/pj list`
 - `go -C tools/pj run ./cmd/pj add --title "..." --status Todo`
 - `go -C tools/pj run ./cmd/pj move --item <item-id> --status "In Progress"`
+- `go -C tools/pj run ./cmd/pj config show|set|clear`
 
 ### Important Rules
 
@@ -135,6 +136,8 @@ Workspace-level triage uses a GitHub Project plus a local derived cache managed 
 - Do not treat `.local/pj/` as source-of-truth data; it can be regenerated
 - Do not create duplicate local task trackers for the same workspace board unless a spec explicitly adds one
 - Bootstrap the canonical board with `pj init` before relying on `sync`, `list`, `add`, or `move`
+- After bootstrap, reuse the stored owner scope instead of repeatedly restating `--owner` and `--owner-type`
+- If you need to switch from a user board to an org board, do it explicitly with `pj config set` or `pj config clear` before re-running `pj init`; do not mix one-off owner flags with an existing local config
 
 ## Landing the Plane (Session Completion)
 

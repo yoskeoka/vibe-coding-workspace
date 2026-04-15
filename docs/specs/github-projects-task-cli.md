@@ -17,27 +17,38 @@ This layout is preferred over `scripts/cmd/pj` because the spike is a compiled G
   - `read:project` for `sync` and remote-backed reads
 - The canonical workspace board is a dedicated ProjectV2 named `Workspace Task Triage`.
 - The CLI MUST provide an explicit bootstrap command, `pj init`, that resolves this board by name for the configured owner before creating a new board.
-- If `pj init` creates the canonical board, it MUST persist the resulting project identity into the local cache so later commands can reuse it without manual project-number lookup.
-- The target project is configured by command flags and/or cached metadata:
+- The CLI MUST treat the owner target as explicit local configuration, not as an incidental cache side effect.
+- The owner target configuration MUST live in `.local/pj/config.json`.
+- The target project is configured by explicit owner configuration plus cached project metadata:
   - `owner`
   - `owner_type` (`user` or `org`)
   - `project_number`
-- `pj init` or the first successful `sync` persists project identity in the local cache so later commands can reuse it.
+- `pj init` MUST persist the resolved owner target into `.local/pj/config.json`.
+- `pj init` or a successful `sync` MUST persist project identity in `.local/pj/cache.json` so later commands can reuse it without manual project-number lookup.
+- When `.local/pj/config.json` is missing but the cache already contains owner metadata from an older version, the CLI MAY seed config from that cache data as a compatibility migration.
+- Owner-target flags MUST NOT silently override stored owner configuration. Switching owner scope requires an explicit configuration action.
 
 ## Cache
 - Cache root: `.local/pj/`
+- Owner configuration file: `.local/pj/config.json`
 - Primary file: `.local/pj/cache.json`
 - The default cache path MUST resolve to the workspace-root `.local/pj/cache.json` even when the CLI is invoked from `tools/pj/`.
+- The default config path MUST resolve to the workspace-root `.local/pj/config.json` even when the CLI is invoked from `tools/pj/`.
 - The cache stores:
   - project identity and project ID
   - custom field IDs and single-select option IDs
   - a normalized item list suitable for AI inspection
   - the last sync timestamp
 
+The config stores:
+- the active owner target:
+  - `owner`
+  - `owner_type`
+
 ## Commands
 
 ### `pj init`
-- Requires `--owner` and `--owner-type` unless that metadata already exists in cache
+- Requires `--owner` and `--owner-type` unless that metadata already exists in config
 - Resolves the canonical `Workspace Task Triage` board by owner and title before creating a new board
 - Creates the canonical board when absent
 - Provisions missing custom `Workspace Repo`, `Kind`, and `Priority` fields as single-select workflow fields during bootstrap
@@ -47,17 +58,27 @@ This layout is preferred over `scripts/cmd/pj` because the spike is a compiled G
   - `Priority`: `High`, `Medium`, `Low`
 - Keeps `--repo` as the CLI flag, and stores the normalized item property as `repo`, even though the remote ProjectV2 field name and cached field-metadata map key remain `Workspace Repo`
 - Reuses existing compatible workflow fields when they already exist instead of creating duplicates
+- Writes `.local/pj/config.json` with the resolved owner target
 - Writes `.local/pj/cache.json` with the resolved project identity and current remote snapshot
 - Fails clearly if more than one board with the canonical title exists for the same owner
 - Fails clearly when required workflow fields are still missing or incompatible after bootstrap, naming the blocking fields and compatibility problem
+- Fails clearly when `--owner` and/or `--owner-type` conflict with stored config; the operator must use `pj config set` or `pj config clear` before switching owner scope
 
 ### `pj sync`
 - Resolves the target project through GitHub GraphQL
 - Loads project field metadata
 - Loads project items and normalized field values
 - Writes `.local/pj/cache.json`
-- MAY reuse cached project identity when `owner`, `owner_type`, or `project_number` flags are omitted
+- Reuses the stored owner target from `.local/pj/config.json` when owner flags are omitted
+- Reuses cached project identity when `--project` is omitted
 - MUST work after `pj init` without requiring manual project-number lookup
+- Fails clearly when owner flags conflict with stored config; the operator must switch config explicitly instead of mixing old and new owner metadata
+
+### `pj config`
+- `pj config show` prints the active owner target from `.local/pj/config.json`
+- `pj config set --owner <owner> --owner-type user|org` explicitly replaces the active owner target
+- `pj config clear` removes the active owner target and cached project snapshot so the next `pj init` or `pj sync` must establish them again
+- `pj config set` MUST also clear `.local/pj/cache.json` if the cached project belongs to a different owner target, so the workspace cannot accidentally reuse stale project identity after a scope switch
 
 ### `pj list`
 - Reads `.local/pj/cache.json`
@@ -87,6 +108,8 @@ Each cached item MUST expose enough normalized data for AI and human use:
 - If the token lacks GitHub Projects scopes, the CLI must surface the GraphQL scope error clearly.
 - If GitHub returns a non-success HTTP response, the CLI must include the HTTP status in the returned error even when the response body is not valid JSON.
 - If the cache is missing, local-cache commands must tell the operator to run `pj init` or `pj sync`.
+- If the owner config is missing, commands that require remote project resolution must tell the operator to run `pj init` or `pj config set`.
+- If provided owner flags conflict with stored owner config, the CLI must fail with a clear mismatch error instead of partially mixing values.
 - If a field is missing from the project, mutations must fail with a clear field-name error instead of silently skipping.
 - If `pj init` resolves or creates the canonical board but cannot provision or reconcile the required workflow fields, it must name the blocking fields in the returned error after writing the latest cache snapshot.
 - If a required field exists with an unsupported type or missing required single-select options, `pj init` must fail with a clear compatibility error instead of silently mutating an unknown schema.

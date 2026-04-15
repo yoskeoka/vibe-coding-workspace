@@ -72,23 +72,34 @@ func TestFindGitRoot(t *testing.T) {
 	}
 }
 
-func TestMergeProjectRef(t *testing.T) {
-	t.Parallel()
-
-	got := mergeProjectRef(ProjectRef{Owner: "yoskeoka"}, ProjectRef{
-		Owner:         "ignored",
-		OwnerType:     "user",
-		ProjectNumber: 7,
-	})
-
-	if got.Owner != "yoskeoka" {
-		t.Fatalf("owner = %q, want yoskeoka", got.Owner)
+func TestResolveDefaultLocalPath(t *testing.T) {
+	root := t.TempDir()
+	if err := os.Mkdir(filepath.Join(root, ".git"), 0o755); err != nil {
+		t.Fatalf("mkdir .git: %v", err)
 	}
-	if got.OwnerType != "user" {
-		t.Fatalf("owner type = %q, want user", got.OwnerType)
+
+	nested := filepath.Join(root, "tools", "pj")
+	if err := os.MkdirAll(nested, 0o755); err != nil {
+		t.Fatalf("mkdir nested: %v", err)
 	}
-	if got.ProjectNumber != 7 {
-		t.Fatalf("project number = %d, want 7", got.ProjectNumber)
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("Getwd(): %v", err)
+	}
+	defer func() {
+		if chdirErr := os.Chdir(cwd); chdirErr != nil {
+			t.Fatalf("restore cwd: %v", chdirErr)
+		}
+	}()
+	if err := os.Chdir(nested); err != nil {
+		t.Fatalf("Chdir(): %v", err)
+	}
+
+	got := resolveDefaultLocalPath(defaultConfigRelPath)
+	want := filepath.Join(root, defaultConfigRelPath)
+	if got != want {
+		t.Fatalf("resolveDefaultLocalPath() = %q, want %q", got, want)
 	}
 }
 
