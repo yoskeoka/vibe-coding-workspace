@@ -44,6 +44,7 @@ This captures the actual operator workflow already used after PR creation:
 - Expand the skill from a pure PR-creation gate into a PR-preparation-and-initial-follow-up gate.
 - Define a bounded post-PR monitoring loop:
   - create/update PR
+  - prefer delegating polling to a low-cost subagent when available so the main agent does not burn expensive tokens on wait loops
   - wait for CI checks
   - if the PR timeline shows Copilot auto-review starting, wait for review completion/comments
   - stop waiting after a short bounded timeout when no Copilot review appears
@@ -65,6 +66,7 @@ This captures the actual operator workflow already used after PR creation:
 ### Workflow skill updates
 
 - Update `skills/review-task/SKILL.md` to describe the new post-PR responsibilities, stop conditions, and policy boundaries.
+- Prefer a low-cost small subagent for polling-style wait loops when the platform supports delegation; on GPT-family models this should bias toward a `mini`-class worker instead of the main model.
 - Update any skill that routes into `review-task` if its wording assumes the skill ends at PR creation.
 
 ### Supporting workflow docs
@@ -82,13 +84,14 @@ Apply the same reasoning here:
 - keep one owner skill for PR readiness and initial post-PR follow-up
 - separate mechanical verification failures from advisory review feedback
 - preserve human judgment for review comments even when automation is available
+- use cheaper delegated polling for idle wait loops when available, while keeping final decisions and implementation in the main agent
 
 No ADR update is expected unless execution reveals a broader policy for third-party AI review handling.
 
 ## Sub-tasks
 
 - [ ] [parallel] Inventory the current `review-task` wording and identify exactly which steps stop at PR creation
-- [ ] [parallel] Decide the minimum workflow contract for CI waiting, retry/fix loops, and Copilot detection windows
+- [ ] [parallel] Decide the minimum workflow contract for CI waiting, retry/fix loops, Copilot detection windows, and low-cost polling delegation
 - [ ] [depends on: workflow contract] Update `skills/review-task/SKILL.md` with the post-PR monitoring and triage flow
 - [ ] [depends on: workflow contract] Update `AI_WORKFLOW.md` and `AGENTS.md` so the top-level workflow matches the skill behavior
 - [ ] [depends on: review-task update] Update any calling skills whose wording now understates `review-task` responsibilities
@@ -106,6 +109,7 @@ No ADR update is expected unless execution reveals a broader policy for third-pa
 - Confirm the new contract distinguishes CI auto-fix behavior from Copilot comment analysis.
 - Confirm the documented Copilot flow stops at analysis/options and does not authorize automatic suggestion application.
 - Confirm the waiting behavior is bounded so the agent does not block indefinitely on absent Copilot review.
+- Confirm polling guidance prefers a low-cost delegated worker when available instead of burning the main model on repeated status checks.
 
 ## Expected Outcome
 
