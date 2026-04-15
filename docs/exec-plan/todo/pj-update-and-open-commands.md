@@ -112,8 +112,8 @@ Recent discussion also settled these product directions for the spike:
 
 - Support both `--flag value` and `--flag=value` forms through the Go flag
   parser.
-- Add `--body-file` to `pj update` if needed to avoid shell-expansion hazards
-  for longer handoff text.
+- Add `--body-file` to `pj update` so longer handoff text can avoid shell-
+  expansion hazards and awkward inline quoting.
 - Ensure errors for ambiguous prefix matches name the conflicting candidates.
 
 ## Design Decisions
