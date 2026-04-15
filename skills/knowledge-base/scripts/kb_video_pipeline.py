@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import math
 import os
+import platform
 import re
 import shutil
 import subprocess
@@ -101,6 +102,19 @@ class DependencyStatus:
         return missing
 
 
+@dataclass
+class RuntimeProfile:
+    platform_system: str
+    platform_release: str
+    machine: str
+    is_wsl: bool
+    total_memory_gb: float | None
+    gpu_requested: bool
+    gpu_available: bool
+    recommended_ocr_batch_size: int
+    recommended_frame_interval_sec: int
+
+
 def utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
@@ -172,11 +186,105 @@ def dependency_help_text() -> str:
             "Missing video-ingest dependencies.",
             f"- Python packages: python3 -m pip install -r {requirements_path}",
             "- macOS/Homebrew: brew install yt-dlp ffmpeg",
-            "- Debian/Ubuntu/WSL2: sudo apt-get install ffmpeg",
-            "- If the distro yt-dlp package is too old, install the latest release binary or use Homebrew/Linuxbrew.",
-            "- This pipeline is CPU-first. Do not install GPU-only Paddle packages for WSL2/non-GPU setups.",
+            "- Debian/Ubuntu: sudo apt-get install ffmpeg",
+            "- If the distro yt-dlp package is too old, install a current standalone release or use Homebrew/Linuxbrew.",
+            "- Install the Paddle runtime that matches the actual environment. Use a CUDA build only when Paddle and the host both support GPU execution.",
         ]
     )
+
+
+def detect_runtime_profile() -> RuntimeProfile:
+    system = platform.system()
+    release = platform.release()
+    machine = platform.machine()
+    is_wsl = system == "Linux" and "microsoft" in release.lower()
+    total_memory_gb = detect_total_memory_gb()
+    gpu_available = detect_gpu_available()
+    recommended_ocr_batch_size = recommend_ocr_batch_size(
+        is_wsl=is_wsl,
+        total_memory_gb=total_memory_gb,
+        gpu_available=gpu_available,
+    )
+    recommended_frame_interval_sec = recommend_frame_interval_sec(
+        is_wsl=is_wsl,
+        total_memory_gb=total_memory_gb,
+        gpu_available=gpu_available,
+    )
+    return RuntimeProfile(
+        platform_system=system,
+        platform_release=release,
+        machine=machine,
+        is_wsl=is_wsl,
+        total_memory_gb=total_memory_gb,
+        gpu_requested=False,
+        gpu_available=gpu_available,
+        recommended_ocr_batch_size=recommended_ocr_batch_size,
+        recommended_frame_interval_sec=recommended_frame_interval_sec,
+    )
+
+
+def detect_total_memory_gb() -> float | None:
+    meminfo = Path("/proc/meminfo")
+    if meminfo.exists():
+        for line in meminfo.read_text(encoding="utf-8", errors="ignore").splitlines():
+            if line.startswith("MemTotal:"):
+                parts = line.split()
+                if len(parts) >= 2:
+                    kib = int(parts[1])
+                    return round(kib / (1024 * 1024), 1)
+    return None
+
+
+def detect_gpu_available() -> bool:
+    try:
+        import paddle
+
+        if hasattr(paddle, "device") and paddle.device.is_compiled_with_cuda():
+            return True
+    except Exception:
+        pass
+    if shutil.which("nvidia-smi"):
+        try:
+            proc = run_command(
+                ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+                check=False,
+            )
+            return proc.returncode == 0 and bool(proc.stdout.strip())
+        except Exception:
+            return False
+    return False
+
+
+def recommend_ocr_batch_size(
+    *,
+    is_wsl: bool,
+    total_memory_gb: float | None,
+    gpu_available: bool,
+) -> int:
+    if gpu_available:
+        return 4
+    if is_wsl:
+        return 1
+    if total_memory_gb is not None and total_memory_gb < 8:
+        return 1
+    if total_memory_gb is not None and total_memory_gb < 16:
+        return 2
+    return 2
+
+
+def recommend_frame_interval_sec(
+    *,
+    is_wsl: bool,
+    total_memory_gb: float | None,
+    gpu_available: bool,
+) -> int:
+    if gpu_available:
+        return 20
+    if is_wsl:
+        return 45
+    if total_memory_gb is not None and total_memory_gb < 8:
+        return 45
+    return DEFAULT_FRAME_INTERVAL_SEC
 
 
 def resolve_job_dir(
@@ -204,6 +312,7 @@ def resolve_job_dir(
 
 def build_job_metadata(args: Any, *, job_dir: Path) -> dict[str, Any]:
     source_slug = slugify(args.source_slug or args.video_url or args.source_url)
+    runtime_profile = detect_runtime_profile()
     return {
         "job_id": job_dir.name,
         "created_at": utc_now(),
@@ -226,6 +335,16 @@ def build_job_metadata(args: Any, *, job_dir: Path) -> dict[str, Any]:
             "ocr_batch_size": args.ocr_batch_size,
             "ocr_lang": args.ocr_lang,
             "transcribe_command": args.transcribe_command,
+        },
+        "runtime_profile": {
+            "platform_system": runtime_profile.platform_system,
+            "platform_release": runtime_profile.platform_release,
+            "machine": runtime_profile.machine,
+            "is_wsl": runtime_profile.is_wsl,
+            "total_memory_gb": runtime_profile.total_memory_gb,
+            "gpu_available": runtime_profile.gpu_available,
+            "recommended_ocr_batch_size": runtime_profile.recommended_ocr_batch_size,
+            "recommended_frame_interval_sec": runtime_profile.recommended_frame_interval_sec,
         },
         "workspace_relevance": args.workspace_relevance or "",
     }
@@ -519,7 +638,13 @@ def run_ocr(
     from paddleocr import PaddleOCR
 
     batch_size = max(1, min(ocr_batch_size, MAX_RECOMMENDED_OCR_BATCH_SIZE))
-    ocr = PaddleOCR(use_angle_cls=True, lang=ocr_lang, use_gpu=False, show_log=False)
+    runtime_profile = detect_runtime_profile()
+    ocr = PaddleOCR(
+        use_angle_cls=True,
+        lang=ocr_lang,
+        use_gpu=runtime_profile.gpu_available,
+        show_log=False,
+    )
     results: list[dict[str, Any]] = []
     for offset in range(0, len(frames), batch_size):
         chunk = frames[offset : offset + batch_size]

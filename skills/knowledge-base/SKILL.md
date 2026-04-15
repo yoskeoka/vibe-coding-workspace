@@ -42,11 +42,11 @@ Use the skill-local pipeline when the source is a direct video or a thin article
 
 - External binaries:
   - macOS/Homebrew: `brew install yt-dlp ffmpeg`
-  - Debian/Ubuntu/WSL2: `sudo apt-get install ffmpeg`
+  - Debian/Ubuntu: `sudo apt-get install ffmpeg`
   - If `yt-dlp` from the distro is too old, install a current standalone release or use Homebrew/Linuxbrew.
 - Python runtime:
   - `python3 -m pip install -r skills/knowledge-base/requirements-video.txt`
-  - This pipeline is CPU-first. On WSL2/non-GPU machines, keep the CPU `paddlepaddle` package and do not swap in a GPU-only build.
+  - Install the Paddle runtime that matches the actual environment. Use a CUDA build only when the host and Paddle installation both support GPU execution.
 
 ### Dependency check
 
@@ -57,6 +57,7 @@ python3 skills/knowledge-base/scripts/kb_video_ingest.py --check-deps
 ```
 
 The command fails fast with setup guidance if `yt-dlp`, `ffmpeg`, `paddleocr`, `paddlepaddle`, or `Pillow` is missing.
+It also reports the runtime profile that the pipeline will use to choose safe defaults.
 
 ### Skim first
 
@@ -74,8 +75,9 @@ python3 skills/knowledge-base/scripts/kb_video_ingest.py \
 Notes:
 - Omit `--video-url` when the source URL itself is the canonical video URL.
 - Use `--video-url` for video-backed articles so the durable note can keep both the wrapper article and the actual video.
-- The default frame interval is intentionally conservative for CPU-only machines.
-- Keep `--ocr-batch-size` low on WSL2. The script rejects values above 4.
+- If `--frame-interval-sec` or `--ocr-batch-size` is omitted, the CLI picks defaults from the detected runtime profile.
+- The current heuristics inspect OS/WSL shape, available memory, and GPU support to avoid overly aggressive settings on weaker machines.
+- `--ocr-batch-size` still has a hard ceiling of 4 unless the implementation is explicitly revised.
 
 `skim` produces:
 - `job.json` with job metadata

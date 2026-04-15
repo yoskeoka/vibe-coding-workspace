@@ -173,8 +173,18 @@ The pipeline MUST check for these dependencies at startup and exit with actionab
 
 The skill docs MUST include install guidance for:
 - macOS/Homebrew
-- Debian/Ubuntu or WSL2
-- CPU-only operation with no GPU requirement
+- Debian/Ubuntu
+- environment-matched Paddle runtime selection for CPU vs GPU hosts
+
+The CLI SHOULD inspect the runtime environment before heavy work starts and choose safe defaults for:
+- OCR batch size
+- frame extraction cadence
+- GPU enablement when supported by both the host and the installed Paddle runtime
+
+The initial tuning heuristics MAY use signals such as:
+- host OS or WSL detection
+- available system memory
+- CUDA / GPU availability
 
 ### AI checkpoints
 

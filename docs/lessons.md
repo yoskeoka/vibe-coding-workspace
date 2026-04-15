@@ -34,3 +34,10 @@
 - **Pattern**: When verification creates interpreter cache files in a new script directory, they can slip into the index if the repo does not already ignore them.
 - **Rule**: When adding Python files or running Python verification in a repo, ensure `.gitignore` covers `__pycache__/` and `*.py[cod]` before staging, and remove any generated cache files from the worktree before `git add`.
 - **Applied**: Any workspace or child-repo task that adds Python code or runs Python commands that emit bytecode caches.
+
+## Environment Constraints Must Not Become Product Constraints
+
+- **Mistake**: I documented the video pipeline as if `CPU/WSL2` were a product-level assumption, even though that was only true for the current execution environment.
+- **Pattern**: Temporary local constraints can leak into skills and specs if I optimize for the machine in front of me instead of defining environment-aware behavior.
+- **Rule**: When the user gives machine-specific constraints, reflect them as runtime detection or tuning logic unless the product intentionally targets only that environment.
+- **Applied**: Skill docs, CLI defaults, dependency guidance, and any implementation that chooses performance-sensitive options such as GPU usage, frame cadence, or batch sizing.
