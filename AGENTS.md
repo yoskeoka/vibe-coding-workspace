@@ -119,6 +119,7 @@ Workspace-level triage uses a GitHub Project plus a local derived cache managed 
 
 - GitHub Projects is the canonical remote state for workspace task triage
 - `.local/pj/cache.json` is derived data for fast local reads and AI access
+- `.local/pj/` is the only supported local workspace-triage state for the current workflow
 - `docs/exec-plan/todo/` remains the canonical implementation-plan tracker once work is selected
 
 ### Expected Commands
@@ -132,8 +133,9 @@ Workspace-level triage uses a GitHub Project plus a local derived cache managed 
 
 ### Important Rules
 
-- Use the GitHub Project flow for workspace-level task triage instead of `bd`
+- Use the GitHub Project flow for workspace-level task triage instead of any legacy local tracker flow
 - Do not treat `.local/pj/` as source-of-truth data; it can be regenerated
+- Do not depend on committed legacy tracker runtime artifacts or local database state for current task coordination
 - Do not create duplicate local task trackers for the same workspace board unless a spec explicitly adds one
 - Bootstrap the canonical board with `pj init` before relying on `sync`, `list`, `add`, or `move`
 - After bootstrap, reuse the stored owner scope instead of repeatedly restating `--owner` and `--owner-type`

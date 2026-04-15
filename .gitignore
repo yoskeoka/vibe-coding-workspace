@@ -10,15 +10,3 @@ envdiff/
 .uv-cache/
 .local/
 .worktrees/
-
-# Dolt database files (added by bd init)
-.dolt/
-*.db
-
-# beads runtime files
-.beads/dolt*
-!.beads/dolt/
-.beads/dolt/*
-!.beads/dolt/.dolt
-.beads/dolt/.dolt/*
-!.beads/dolt/.dolt/config.json

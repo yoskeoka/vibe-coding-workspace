@@ -23,6 +23,7 @@ This document outlines the workflow for developing projects with AI as the centr
 - `docs/lessons.md`: Accumulated lessons learned. Reviewed at session start.
 - `docs/issues/`: Local issue tracking. Avoids confusion with GitHub Issues during active "exec-plan" cycles.
     - `done/`: Resolved issues (moved here after fix is merged).
+- `.local/pj/`: Derived local cache for workspace-level GitHub Projects triage. This cache is non-canonical and must stay untracked.
 
 ## Workflow Cycle
 
@@ -115,3 +116,9 @@ The branch description and the exec-plan filename MUST share the same name:
     - Verification artifacts (test results, screenshots, logs) for human review.
 
 Repeat steps 1–3 until the Project Plan is complete.
+
+## Workspace Task Tracking
+
+- GitHub Projects is the canonical remote state for workspace task triage.
+- `.local/pj/` is the only supported local workspace-triage state in the current workflow.
+- Committed legacy tracker runtime artifacts and local database state are not part of the supported workflow contract.

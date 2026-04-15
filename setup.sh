@@ -2,21 +2,6 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# ---- Prerequisites ----
-
-# Ensure beads (bd) is installed
-if ! command -v bd &>/dev/null; then
-    if command -v brew &>/dev/null; then
-        echo "Installing beads..."
-        brew install beads
-    else
-        echo "Error: beads (bd) is not installed and Homebrew is not available."
-        echo "Please install Homebrew first (https://brew.sh) or install beads manually:"
-        echo "  https://github.com/steveyegge/beads"
-        exit 1
-    fi
-fi
-
 # ---- Child repositories ----
 
 # List of repositories to manage (use HTTPS URLs)
