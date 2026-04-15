@@ -121,8 +121,8 @@ If the plan involves architectural choices, review and update `docs/design-decis
 After the plan file is created:
 
 1. Commit the plan file and any related `docs/design-decisions/` updates on the branch.
-2. Push the branch and create a PR via `gh pr create`, using the **PR template** (project-level `.github/PULL_REQUEST_TEMPLATE.md` if present, otherwise the workspace-level one).
-3. Wait for GitHub PR review approval before merging into `main`.
+2. Invoke **`review-task`** before any PR creation work so the branch classification, branch name, PR title, scope, and template/body are checked through the shared PR gate.
+3. Create or update the planning PR through that `review-task` flow, then wait for GitHub PR review approval before merging into `main`.
 
 ## Next Step
 

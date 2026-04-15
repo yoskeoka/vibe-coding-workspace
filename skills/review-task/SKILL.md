@@ -6,24 +6,51 @@ metadata:
   version: '2.0.0'
 ---
 
-# Review Task (PR Workflow Reference)
+# Review Task (PR Preparation Gate)
 
-**Position in workflow**: PR review is **not a standalone step** — it is embedded into every step of the AI-Centered Development cycle. Steps 1 (Project Plan), 2 (Execution Plan), and 3 (Execution) each require their own branch and PR. This skill describes the shared PR requirements and verification standards.
+**Position in workflow**: PR review is **not a standalone step** — it is embedded into every step of the AI-Centered Development cycle. Steps 1 (Project Plan), 2 (Execution Plan), and 3 (Execution) each require their own branch and PR. This skill is the shared pre-PR gate that checks branch/type/title/scope discipline, verification evidence, and PR readiness before human review.
+
+## Step 1: Classify the Change
+
+Before any PR creation or PR update work, classify the current branch into one of the workflow change types from `AI_WORKFLOW.md`:
+
+- `plan`: Project-plan or execution-plan authoring/update work
+- `feat`: Implementation work executing an approved plan
+- `fix`: Bug-fix work executing an approved plan
+- `chore`: Non-functional changes such as CI, tooling, or dependency updates
+- `docs`: Documentation-only changes that do not fit the plan/execute flow
+
+Use the classification to drive every later PR decision:
+
+- branch name
+- exec-plan requirement or exemption
+- PR title
+- PR template checkboxes
+- reviewer expectations
 
 ## Branch Rule
 
-Every PR must come from a fresh branch created from the latest `main`:
+Every PR must come from a fresh branch created from the latest `main` with the globally installed `ww` CLI:
+
+From the target repo root:
 
 ```sh
-git fetch origin
-git switch -c <branch-name> origin/main
+ww create <type>/<description>
+cd "$(ww cd <type>/<description>)"
 ```
 
-Branch naming conventions:
+From the workspace root when targeting a child repo:
 
-- Project plan changes: `plan/project-plan-<description>`
-- Execution plan changes: `plan/<NNN>-<description>`
-- Code execution: `feat/<NNN>-<description>` or `fix/<NNN>-<description>`
+```sh
+ww create --repo <repo> <type>/<description>
+cd "$(ww cd --repo <repo> <type>/<description>)"
+```
+
+Branch naming follows `AI_WORKFLOW.md`:
+
+- Project plan or execution plan changes: `plan/<name>`
+- Approved-plan implementation: `feat/<name>` or `fix/<name>`
+- Non-plan exempt work: `chore/<name>` or `docs/<name>`
 
 ## Pre-PR Gate (Verify)
 
@@ -33,7 +60,7 @@ Before creating any PR, run **all** applicable checks:
 2. **Fix failures**: If any check fails, fix in the same branch and re-run until all pass.
 3. **Doc-only PRs**: Skip lint/test when no tooling covers documentation, but still verify Markdown formatting.
 
-Do **NOT** create a PR until all checks are green.
+Do **NOT** create or update a PR for review until all required checks are green.
 
 ## PR Must Include
 
@@ -67,23 +94,40 @@ The PR contents depend on which workflow step produced it:
 
 ## Pre-PR Checklist
 
-Before creating the PR, verify:
+Before creating or updating the PR, verify:
 
+- [ ] The work has been classified as `plan`, `feat`, `fix`, `chore`, or `docs`.
 - [ ] Branch was created from the latest `origin/main`.
+- [ ] Branch name matches the classified change type and follows `<type>/<description>`.
+- [ ] Exec-plan requirement is satisfied (`feat/*` and `fix/*`) or explicitly exempt (`plan/*`, `chore/*`, `docs/*`).
+- [ ] PR title matches the classified change type and scope.
 - [ ] `docs/specs/` matches the implementation (Spec-Code Parity) — for Step 3 PRs.
 - [ ] Plan file has been moved from `docs/exec-plan/todo/` to `docs/exec-plan/done/` — for Step 3 PRs.
 - [ ] All lint and test checks pass (non-AI tooling).
 - [ ] Any visual or behavioral changes have screenshots/logs attached.
+- [ ] The diff is not obviously over-scoped for the branch/plan; any out-of-scope changes are removed or called out before proceeding.
 - [ ] No unresolved blockers remain (non-blockers should be in `docs/issues/`).
 
-## Creating the PR
+### PR Title Rule
 
-Use the **PR template** when creating pull requests. Template priority:
+The PR title should make the workflow classification obvious to reviewers.
+
+- `plan/*`: title describes the plan being added or updated
+- `feat/*`: title describes the implemented feature or workflow behavior
+- `fix/*`: title describes the bug being fixed
+- `chore/*`: title is clearly labeled as maintenance/tooling/CI work
+- `docs/*`: title is clearly labeled as documentation-only work
+
+Do not use a title that implies implementation when the branch is `docs/*` or `chore/*`, and do not use a generic docs/chore title for `feat/*` or `fix/*` execution work.
+
+## Completing the Gate
+
+Use the **PR template** when creating or repairing pull requests. Template priority:
 
 - If the child project has `.github/PULL_REQUEST_TEMPLATE.md`, use it.
 - Otherwise, use the workspace-level `.github/PULL_REQUEST_TEMPLATE.md`.
 
-Determine which template to use (project-level if present, otherwise workspace-level), then run:
+If no PR exists yet, determine which template to use (project-level if present, otherwise workspace-level), then run:
 
 ```sh
 git push origin <branch-name>
@@ -98,7 +142,13 @@ gh pr create --title "<descriptive title>" --body-file .github/PULL_REQUEST_TEMP
 
 > **Note**: `--fill` populates the title/body from commits, not from the PR template. Use `--body-file` to pre-populate with the correct template content.
 
-After creation, edit the PR body to complete all template sections:
+If a PR already exists, do **not** treat PR creation as the next mandatory step. Instead:
+
+1. Confirm the branch still matches the intended scope.
+2. Confirm the existing PR title/body/checklists still match the current classification and diff.
+3. Update the existing PR so it is review-ready rather than creating a duplicate PR.
+
+Whether the PR is new or existing, complete the template/body so these sections are correct:
 
 1. **Plan / Issues** — Link the exec-plan, issue, or project-plan that triggered this PR.
 2. **Type of Change** — Check the applicable box.
