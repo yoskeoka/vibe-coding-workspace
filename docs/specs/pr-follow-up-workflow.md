@@ -21,13 +21,22 @@ Each newer head SHA restarts the bounded follow-up cycle.
 For each PR head SHA, `review-task` must:
 
 1. Record the current PR number and head SHA.
-2. Wait for required CI/check runs to settle.
+2. Wait for required CI/check runs to settle, using the bounded wait cadence below.
 3. Inspect PR timeline/review data for GitHub Copilot auto-review activity.
-4. If Copilot activity is present, wait a short bounded interval for submitted review comments.
-5. If no Copilot activity appears within the bounded interval, stop waiting for Copilot and continue the handoff.
+4. If Copilot activity is present, wait for submitted review comments using the same bounded wait cadence.
+5. If no Copilot activity or submitted review appears within the bounded interval, stop waiting for Copilot and continue the handoff.
 6. Before handoff, verify the PR head SHA did not change during monitoring. If it changed, restart from step 1 for the new head SHA.
 
-Polling-style waiting should be delegated to a low-cost subagent when the platform supports delegation and the user has authorized subagent use. The main agent remains responsible for deciding what to fix, what to defer, and what to report.
+Bounded wait cadence:
+
+- First wait: 5 minutes.
+- Second wait: 1 minute.
+- Third wait: 1 minute.
+- Total wait budget: 7 minutes across 3 polling turns.
+
+If required checks are still pending, have not started, or Copilot has started but not submitted a review after the 7-minute budget, treat the wait as blocked or timed out and document the state in the handoff.
+
+Polling-style waiting should be delegated to a low-cost subagent only when the platform supports delegation and the current session explicitly authorizes subagent use. The main agent remains responsible for deciding what to fix, what to defer, and what to report.
 
 ## CI Failure Policy
 
@@ -59,9 +68,10 @@ Explicit implementation work may follow if the user asks for it or if the workfl
 
 The bounded follow-up cycle may stop when:
 
-- all required checks pass and no Copilot activity appears within the short wait window
+- all required checks pass and no Copilot activity appears within the 7-minute wait budget
 - checks pass and available Copilot comments have been summarized for human review
 - CI fails but cannot be fixed automatically within scope, and the blocker is documented
+- CI/checks or Copilot review remain pending after the 7-minute wait budget, and the timeout state is documented
 - the user explicitly asks to stop waiting
 
 The handoff must say which condition was reached.

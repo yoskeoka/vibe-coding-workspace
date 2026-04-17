@@ -89,8 +89,8 @@ PR creation is not the terminal workflow action. For every new PR, updated PR, o
 
 - CI failures are mechanical verification failures. Investigate failing checks and fix them in-branch when the logs are actionable and the fix stays within scope; then re-run verification, push, and restart monitoring for the new head SHA.
 - GitHub Copilot review comments are advisory review input. Read and summarize them for human review, including whether to ignore, apply as-is, adapt, or defer to a separate issue. Do not silently auto-apply Copilot suggestions.
-- Copilot waiting must be bounded. If no Copilot auto-review activity appears within a short wait window, stop waiting and say that no Copilot review was observed.
-- Polling-style wait loops should use a low-cost delegated worker when the platform and session allow it; final decisions, fixes, and handoff stay with the main agent.
+- CI/check and Copilot waiting must be bounded. Use 3 polling turns: wait 5 minutes once, then 1 minute twice, for a 7-minute total budget. If checks or Copilot review remain pending after that, stop waiting and document the timeout state.
+- Polling-style wait loops should use a low-cost subagent only when the platform supports delegation and the current session explicitly authorizes subagent use; final decisions, fixes, and handoff stay with the main agent.
 
 ---
 

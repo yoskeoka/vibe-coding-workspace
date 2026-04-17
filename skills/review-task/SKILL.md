@@ -170,13 +170,22 @@ After the PR is created or updated, continue into the post-PR follow-up loop bel
 For each new PR, updated PR, or later push to the PR branch, monitor the latest PR head SHA before handoff:
 
 1. Record the PR number and current head SHA.
-2. Wait for CI/check runs to settle for that SHA.
+2. Wait for CI/check runs to settle for that SHA, using the bounded wait cadence below.
 3. Inspect PR timeline/review data for GitHub Copilot auto-review activity.
-4. If Copilot activity is present, wait a short bounded interval for review completion and comments.
-5. If no Copilot activity appears within the bounded interval, stop waiting for Copilot and record that no Copilot review was observed.
+4. If Copilot activity is present, wait for review completion and comments using the same bounded wait cadence.
+5. If no Copilot activity or submitted review appears within the bounded interval, stop waiting for Copilot and record the observed state.
 6. Re-check the PR head SHA before handoff. If it changed, restart this loop for the new SHA.
 
-Prefer delegating polling-style waiting to a low-cost worker when the platform and session allow delegation. Keep final decisions, code changes, review-comment triage, and user handoff in the main agent.
+Bounded wait cadence:
+
+- First wait: 5 minutes.
+- Second wait: 1 minute.
+- Third wait: 1 minute.
+- Total wait budget: 7 minutes across 3 polling turns.
+
+If required checks are still pending, have not started, or Copilot has started but not submitted a review after the 7-minute budget, treat the wait as blocked or timed out and document the state in the handoff.
+
+Prefer delegating polling-style waiting to a low-cost subagent only when the platform supports delegation and the current session explicitly authorizes subagent use. Keep final decisions, code changes, review-comment triage, and user handoff in the main agent.
 
 ### CI Failure Loop
 
@@ -208,9 +217,10 @@ If later user-approved or workflow-authorized changes are pushed in response to 
 
 The follow-up loop can stop when one of these is true:
 
-- required checks pass and no Copilot auto-review activity appears within the bounded wait window
+- required checks pass and no Copilot auto-review activity appears within the 7-minute wait budget
 - required checks pass and available Copilot comments have been summarized
 - CI is blocked or not actionable, and the blocker is documented
+- CI/checks or Copilot review remain pending after the 7-minute wait budget, and the timeout state is documented
 - the user explicitly asks to stop waiting
 
 Wait for GitHub PR review approval before merging into `main`.
