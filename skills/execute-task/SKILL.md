@@ -109,14 +109,14 @@ Run **all** project lint and test commands using non-AI tooling (e.g., `make lin
 
 After all checks pass:
 
-1. Invoke **`review-task`** so the shared PR gate checks branch classification, exec-plan requirements, PR title alignment, scope, verification evidence, and PR template completeness before review.
-2. Through that `review-task` flow, create the PR if one does not exist yet, or update the existing PR so it is ready for review.
+1. Invoke **`review-task`** so the shared PR gate checks branch classification, exec-plan requirements, PR title alignment, scope, verification evidence, PR template completeness, and bounded post-PR follow-up before review.
+2. Through that `review-task` flow, create the PR if one does not exist yet, or update the existing PR so it is ready for review and monitored for the latest head SHA.
 3. The PR must include:
    - Code changes.
    - Spec updates (`docs/specs/`).
    - The plan file moved to `docs/exec-plan/done/`.
    - Verification artifacts (test results, screenshots, logs) for human review.
-4. Wait for GitHub PR review approval before merging into `main`.
+4. Complete the initial CI/Copilot follow-up cycle through `review-task`, then wait for GitHub PR review approval before merging into `main`.
 
 ### Verification Standards by Task Type
 

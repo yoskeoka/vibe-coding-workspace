@@ -1,14 +1,14 @@
 ---
 name: review-task
-description: When creating a pull request, preparing a PR for review, generating verification artifacts, collecting test results or screenshots for review, submitting changes for human review, or checking that all PR requirements (code, specs, plan, verification) are met.
+description: When creating or updating a pull request, preparing a PR for review, generating verification artifacts, collecting test results or screenshots for review, monitoring initial CI/Copilot follow-up, submitting changes for human review, or checking that all PR requirements (code, specs, plan, verification, follow-up) are met.
 metadata:
   author: yoskeoka
   version: '2.0.0'
 ---
 
-# Review Task (PR Preparation Gate)
+# Review Task (PR Preparation and Follow-up Gate)
 
-**Position in workflow**: PR review is **not a standalone step** — it is embedded into every step of the AI-Centered Development cycle. Steps 1 (Project Plan), 2 (Execution Plan), and 3 (Execution) can route PR preparation through this skill so branch/type/title/scope discipline, verification evidence, and PR readiness are checked before human review.
+**Position in workflow**: PR review is **not a standalone step** — it is embedded into every step of the AI-Centered Development cycle. Steps 1 (Project Plan), 2 (Execution Plan), and 3 (Execution) can route PR preparation through this skill so branch/type/title/scope discipline, verification evidence, PR readiness, and bounded post-PR follow-up are checked before human review.
 
 ## Step 1: Classify the Change
 
@@ -62,7 +62,7 @@ Before creating any PR, run **all** applicable checks:
 2. **Fix failures**: If any check fails, fix in the same branch and re-run until all pass.
 3. **Doc-only PRs**: Skip lint/test when no tooling covers documentation, but still verify Markdown formatting.
 
-Do **NOT** create or update a PR for review until all required checks are green.
+Do **NOT** create or update a PR for review until all required local checks are green.
 
 ## PR Must Include
 
@@ -162,6 +162,56 @@ Whether the PR is new or existing, complete the template/body so these sections 
 7. **Reviewer Notes** — Highlight areas for review focus, known trade-offs, or intentional oddities. N/A if none.
 8. **Links** — External references (library docs, design references, discussions). N/A if none.
 9. **Breaking Changes / Screenshots** — Fill or delete as applicable.
+
+After the PR is created or updated, continue into the post-PR follow-up loop below. Do not hand off immediately after PR creation unless the user explicitly asked to stop before monitoring.
+
+## Post-PR Follow-up Loop
+
+For each new PR, updated PR, or later push to the PR branch, monitor the latest PR head SHA before handoff:
+
+1. Record the PR number and current head SHA.
+2. Wait for CI/check runs to settle for that SHA.
+3. Inspect PR timeline/review data for GitHub Copilot auto-review activity.
+4. If Copilot activity is present, wait a short bounded interval for review completion and comments.
+5. If no Copilot activity appears within the bounded interval, stop waiting for Copilot and record that no Copilot review was observed.
+6. Re-check the PR head SHA before handoff. If it changed, restart this loop for the new SHA.
+
+Prefer delegating polling-style waiting to a low-cost worker when the platform and session allow delegation. Keep final decisions, code changes, review-comment triage, and user handoff in the main agent.
+
+### CI Failure Loop
+
+Treat CI failures as mechanical verification failures:
+
+1. Inspect failing check logs.
+2. If the failure is actionable from logs and the fix stays within branch scope, fix it in the same branch.
+3. Re-run the relevant local verification.
+4. Commit and push the fix.
+5. Restart the post-PR follow-up loop for the new PR head SHA.
+
+If the failure is not actionable, outside scope, or caused by external infrastructure, stop and document the blocker with the relevant check/log context.
+
+### Copilot Review Triage
+
+Treat GitHub Copilot comments as advisory review input, not automatic patch instructions. Do **not** silently auto-apply Copilot suggestions.
+
+For each substantive Copilot comment, prepare a concise human-review briefing:
+
+- comment summary
+- whether action is recommended
+- whether a GitHub suggestion can be applied as-is or needs adaptation
+- whether the item should be deferred into `docs/issues/` or a future plan
+- suggested response or implementation options
+
+If later user-approved or workflow-authorized changes are pushed in response to Copilot or human comments, restart the post-PR follow-up loop for the new head SHA.
+
+### Stop Conditions
+
+The follow-up loop can stop when one of these is true:
+
+- required checks pass and no Copilot auto-review activity appears within the bounded wait window
+- required checks pass and available Copilot comments have been summarized
+- CI is blocked or not actionable, and the blocker is documented
+- the user explicitly asks to stop waiting
 
 Wait for GitHub PR review approval before merging into `main`.
 

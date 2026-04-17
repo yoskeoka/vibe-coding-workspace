@@ -60,8 +60,8 @@ The project plan should contain:
 After making changes to `docs/project-plan.md`:
 
 1. Commit the changes on the branch.
-2. Invoke **`review-task`** before any PR creation work so the shared PR gate checks branch classification, branch name, PR title, scope, verification evidence, and PR template/body readiness for the project-plan PR.
-3. Create or update the project-plan PR through that `review-task` flow, then wait for GitHub PR review approval before merging into `main`.
+2. Invoke **`review-task`** before any PR creation work so the shared PR gate checks branch classification, branch name, PR title, scope, verification evidence, PR template/body readiness, and bounded post-PR follow-up for the project-plan PR.
+3. Create or update the project-plan PR through that `review-task` flow, complete the initial CI/Copilot follow-up cycle for the latest PR head SHA, then wait for GitHub PR review approval before merging into `main`.
 
 ## Next Step
 

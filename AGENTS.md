@@ -46,7 +46,9 @@ At the start of a new session, if the user has not given a specific task, sugges
     - Workflow-linter findings must not be ignored. Resolve all `fixable` warnings before push/PR unless an explicit human instruction conflicts or the warning is a clear false positive.
     - If a `fixable` workflow-linter warning is skipped, record the reason in the PR body.
     - Run all lint and test checks (non-AI tooling) before creating a PR. Fix failures before proceeding.
-    - Create PRs via `gh pr create` and wait for review approval before merging.
+    - Create PRs via `gh pr create`, complete the bounded post-PR follow-up cycle, and wait for review approval before merging.
+    - After PR creation or any later push to the PR branch, wait for CI/checks to finish for the latest head SHA. If CI fails and logs are actionable within scope, fix in-branch, re-run verification, push, and repeat the follow-up cycle for the new head SHA.
+    - If GitHub Copilot auto-review appears in the PR timeline, wait a short bounded interval for review completion/comments. Treat Copilot comments as human-review preparation: summarize whether to ignore, apply as-is, adapt, respond, or defer to a separate issue. Do not silently auto-apply Copilot suggestions.
 
 3.  **Context Management**:
     - Your "memory" is the `docs/` directory.
@@ -151,18 +153,20 @@ Workspace-level triage uses a GitHub Project plus a local derived cache managed 
 1. **File issues for remaining work** - Create issues for anything that needs follow-up
 2. **Run quality gates** (if code changed) - Tests, linters, builds
 3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
+4. **PUSH TO REMOTE AND FOLLOW UP** - This is MANDATORY:
    ```bash
    git pull --rebase
    git push
    git status  # MUST show "up to date with origin"
    ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
+5. **Post-PR follow-up** - For PR branches, confirm the PR is open, wait for CI/checks on the latest head SHA, perform actionable CI fixes when feasible, and summarize any Copilot review comments without silently applying them.
+6. **Clean up** - Clear stashes, prune remote branches
+7. **Verify** - All changes committed, pushed, and followed up for the latest PR head SHA
+8. **Hand off** - Provide context for next session
 
 **CRITICAL RULES:**
 - Work is NOT complete until `git push` succeeds
 - NEVER stop before pushing - that leaves work stranded locally
 - NEVER say "ready to push when you are" - YOU must push
 - If push fails, resolve and retry until it succeeds
+- A PR handoff is incomplete until the latest pushed head SHA has completed the bounded `review-task` follow-up loop or a blocker/timeout is documented.

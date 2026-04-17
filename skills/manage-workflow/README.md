@@ -14,7 +14,7 @@ The workflow is split into step-specific skills for precise triggering:
 | `skills/plan-project/` | Step 1 | Defining goals, requirements, project vision |
 | `skills/plan-execution/` | Step 2 | Planning features, bug fixes, creating task plans |
 | `skills/execute-task/` | Step 3 | Implementing code, updating specs, logging issues |
-| `skills/review-task/` | Step 4 | Creating PRs, preparing verification artifacts |
+| `skills/review-task/` | Step 4 | Creating/updating PRs, preparing verification artifacts, monitoring initial CI/Copilot follow-up |
 
 ## Structure
 
