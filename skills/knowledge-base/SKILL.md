@@ -22,6 +22,29 @@ This is a workspace-only skill for maintaining `docs/kb/`.
 2. `docs/kb/ingest.md`
 3. `docs/kb/wiki/index.md`
 
+## Preparation for file-changing work
+
+Knowledge-base ingest normally changes files, so use the same branch hygiene as other workspace work before editing `docs/kb/`, `docs/issues/`, renderer dependencies, or skill files.
+
+1. Check the current state:
+
+```sh
+git status --short --branch
+```
+
+2. If the working tree is dirty, do not start ingest on top of it. Preserve or hand off the existing work first.
+3. Start from the latest `main` and create a fresh worktree with the globally installed `ww` CLI:
+
+```sh
+git pull --ff-only
+ww create docs/<short-ingest-name>
+cd "$(ww cd docs/<short-ingest-name>)"
+```
+
+Use `docs/<short-ingest-name>` for KB-only content changes. Use `chore/<short-name>` when the work also changes tooling, dependencies, scripts, or skills.
+
+Read-only KB queries that do not write files may skip branch creation.
+
 ## Ingest workflow
 
 1. Read the provided URLs or source material.
