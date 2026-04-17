@@ -32,7 +32,7 @@ For each PR head SHA, `review-task` must:
 7. If no automatic reviewer activity is present, do not spend the bot-review wait budget; record that no automatic review start was observed.
 8. Before handoff, fetch review summaries and inline review comments with:
    - `gh pr view <pr-number> --json reviews,comments,statusCheckRollup`
-   - `gh api repos/<owner>/<repo>/pulls/<pr-number>/comments`
+   - `gh api repos/<owner>/<repo>/pulls/<pr-number>/comments --paginate`
 9. Treat actionable bot/agent review comments like normal review feedback: resolve them in scope or document why they are not being acted on before calling the PR ready for handoff.
 10. Before handoff, verify the PR head SHA did not change during monitoring. If it changed, restart from step 1 for the new head SHA.
 

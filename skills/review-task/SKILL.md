@@ -188,7 +188,7 @@ For each new PR, updated PR, or later push to the PR branch, monitor the latest 
 
    ```sh
    gh pr view <pr-number> --json reviews,comments,statusCheckRollup
-   gh api repos/<owner>/<repo>/pulls/<pr-number>/comments
+   gh api repos/<owner>/<repo>/pulls/<pr-number>/comments --paginate
    ```
 
 9. Treat actionable bot/agent review comments like normal review feedback: resolve them in scope or document why they are not being acted on before calling the PR ready.
