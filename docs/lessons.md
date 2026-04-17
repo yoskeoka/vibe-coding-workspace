@@ -42,11 +42,11 @@
 - **Rule**: When the user gives machine-specific constraints, reflect them as runtime detection or tuning logic unless the product intentionally targets only that environment.
 - **Applied**: Skill docs, CLI defaults, dependency guidance, and any implementation that chooses performance-sensitive options such as GPU usage, frame cadence, or batch sizing.
 
-## PR Creation Must Wait For Bot Review Comments
+## PR Creation Must Check Bot Review Timeline
 
-- **Mistake**: I created a PR, checked CI and `reviewDecision`, but did not wait for or inspect Copilot review comments before calling the PR ready.
-- **Pattern**: Bot reviews can arrive shortly after PR creation and may leave actionable inline comments without changing `reviewDecision` to a blocking state.
-- **Rule**: After creating or updating a PR, fetch both PR review summaries and pull request review comments before final handoff: `gh pr view <number> --json reviews,comments,statusCheckRollup` and `gh api repos/<owner>/<repo>/pulls/<number>/comments`.
+- **Mistake**: I created a PR, checked CI and `reviewDecision`, but did not check the GitHub timeline for a pending Copilot review before calling the PR ready.
+- **Pattern**: `gh pr view` can show `reviewRequests: []` before or after Copilot review activity, while the UI still shows Copilot review-requested / review-started timeline events. Bot reviews can later leave actionable inline comments without changing `reviewDecision` to a blocking state.
+- **Rule**: After creating or updating a PR, inspect the issue timeline for Copilot review activity, then wait until a Copilot review is submitted or no Copilot review activity is present. Use `gh api repos/<owner>/<repo>/issues/<number>/timeline --paginate` to check for `review_requested` with `requested_reviewer.login=Copilot`, `copilot_work_started`, and `reviewed` events. Then fetch review summaries and inline comments with `gh pr view <number> --json reviews,comments,statusCheckRollup` and `gh api repos/<owner>/<repo>/pulls/<number>/comments`.
 - **Applied**: All PR handoffs, especially after `review-task` or `execute-task` creates a new PR.
 
 ## Knowledge-Base Ingest Is File-Changing Workflow Work
