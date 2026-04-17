@@ -37,11 +37,17 @@ git status --short --branch
 
 ```sh
 git pull --ff-only
-ww create docs/<short-ingest-name>
-cd "$(ww cd docs/<short-ingest-name>)"
+ww create docs/kb-<short-ingest-name>
+cd "$(ww cd docs/kb-<short-ingest-name>)"
 ```
 
-Use `docs/<short-ingest-name>` for KB-only content changes. Use `chore/<short-name>` when the work also changes tooling, dependencies, scripts, or skills.
+Keep the existing workflow branch types and use `kb-` as the description prefix:
+
+- `docs/kb-<source-or-topic>` for source notes, wiki pages, and KB logs only.
+- `chore/kb-<short-name>` when changing `tools/kb`, `requirements-kb.txt`, `skills/knowledge-base`, video ingest tooling, or other KB infrastructure.
+- `feat/kb-<plan-name>` or `fix/kb-<plan-name>` only when executing an approved plan.
+
+PR titles should keep the workflow type visible and use KB as the scope, for example `docs: ingest KB source for <topic>` or `chore: update KB video ingest workflow`.
 
 Read-only KB queries that do not write files may skip branch creation.
 
