@@ -146,7 +146,7 @@ This project follows the AI-Centered Development workflow.
    - Create a fresh worktree from `main` for every task with global `ww`: `ww create <type>/<description>` from the target repo, or `ww create --repo <repo> <type>/<description>` from the workspace root
    - Never reuse an existing feature branch.
    - Run all lint and test checks (non-AI tooling) before creating a PR.
-   - Route PR preparation through `review-task` and use the **PR template** with this fallback order: project repo `.github/PULL_REQUEST_TEMPLATE.md` → child repo `.claude/vendor/workflow/.github/PULL_REQUEST_TEMPLATE.md` → workflow repo `.github/PULL_REQUEST_TEMPLATE.md`
+   - Route PR preparation and bounded post-PR follow-up through `review-task`; use the **PR template** with this fallback order: project repo `.github/PULL_REQUEST_TEMPLATE.md` → child repo `.claude/vendor/workflow/.github/PULL_REQUEST_TEMPLATE.md` → workflow repo `.github/PULL_REQUEST_TEMPLATE.md`
 
 3. **Context Management**:
    - Your "memory" is the `docs/` directory.
