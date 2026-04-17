@@ -85,9 +85,24 @@ func fallbackRepoOptions(cache *Cache) []RepoOption {
 }
 
 func workspaceRootForLocalPath(localPath string) string {
-	if root, ok := findGitRoot("."); ok {
-		return root
+	starts := make([]string, 0, 2)
+	if filepath.IsAbs(localPath) {
+		starts = append(starts, filepath.Dir(localPath))
+	} else if localPath != "" {
+		if absPath, err := filepath.Abs(localPath); err == nil {
+			starts = append(starts, filepath.Dir(absPath))
+		}
 	}
+	if wd, err := os.Getwd(); err == nil {
+		starts = append(starts, wd)
+	}
+
+	for _, start := range starts {
+		if root, ok := findGitRoot(start); ok {
+			return root
+		}
+	}
+
 	if filepath.IsAbs(localPath) {
 		return filepath.Dir(filepath.Dir(filepath.Dir(localPath)))
 	}

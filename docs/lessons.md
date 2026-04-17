@@ -42,6 +42,13 @@
 - **Rule**: When the user gives machine-specific constraints, reflect them as runtime detection or tuning logic unless the product intentionally targets only that environment.
 - **Applied**: Skill docs, CLI defaults, dependency guidance, and any implementation that chooses performance-sensitive options such as GPU usage, frame cadence, or batch sizing.
 
+## PR Creation Must Wait For Bot Review Comments
+
+- **Mistake**: I created a PR, checked CI and `reviewDecision`, but did not wait for or inspect Copilot review comments before calling the PR ready.
+- **Pattern**: Bot reviews can arrive shortly after PR creation and may leave actionable inline comments without changing `reviewDecision` to a blocking state.
+- **Rule**: After creating or updating a PR, fetch both PR review summaries and pull request review comments before final handoff: `gh pr view <number> --json reviews,comments,statusCheckRollup` and `gh api repos/<owner>/<repo>/pulls/<number>/comments`.
+- **Applied**: All PR handoffs, especially after `review-task` or `execute-task` creates a new PR.
+
 ## Knowledge-Base Ingest Is File-Changing Workflow Work
 
 - **Mistake**: I started a knowledge-base ingest directly on `main` even though ingest predictably modifies `docs/kb/` and often adds follow-up notes.

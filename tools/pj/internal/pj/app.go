@@ -753,6 +753,9 @@ func openURLInBrowser(url string) error {
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("open browser for %s: %w", url, err)
 	}
+	if err := cmd.Process.Release(); err != nil {
+		return fmt.Errorf("release browser opener process for %s: %w", url, err)
+	}
 	return nil
 }
 
