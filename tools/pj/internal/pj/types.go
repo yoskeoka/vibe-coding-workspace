@@ -40,24 +40,34 @@ type FieldCache struct {
 	Options map[string]string `json:"options,omitempty"`
 }
 
+type RepoOption struct {
+	DisplayValue  string   `json:"display_value"`
+	SourceType    string   `json:"source_type"`
+	SourceURL     string   `json:"source_url"`
+	CanonicalSlug string   `json:"canonical_slug"`
+	Aliases       []string `json:"aliases,omitempty"`
+}
+
 type Item struct {
-	ID          string `json:"id"`
-	ContentType string `json:"content_type"`
-	Title       string `json:"title"`
-	Body        string `json:"body,omitempty"`
-	URL         string `json:"url,omitempty"`
-	Repository  string `json:"repository,omitempty"`
-	Status      string `json:"status,omitempty"`
-	Repo        string `json:"repo,omitempty"`
-	Kind        string `json:"kind,omitempty"`
-	Priority    string `json:"priority,omitempty"`
+	ID           string `json:"id"`
+	DraftIssueID string `json:"draft_issue_id,omitempty"`
+	ContentType  string `json:"content_type"`
+	Title        string `json:"title"`
+	Body         string `json:"body,omitempty"`
+	URL          string `json:"url,omitempty"`
+	Repository   string `json:"repository,omitempty"`
+	Status       string `json:"status,omitempty"`
+	Repo         string `json:"repo,omitempty"`
+	Kind         string `json:"kind,omitempty"`
+	Priority     string `json:"priority,omitempty"`
 }
 
 type Cache struct {
-	SyncedAt time.Time             `json:"synced_at"`
-	Project  ProjectRef            `json:"project"`
-	Fields   map[string]FieldCache `json:"fields"`
-	Items    []Item                `json:"items"`
+	SyncedAt    time.Time             `json:"synced_at"`
+	Project     ProjectRef            `json:"project"`
+	Fields      map[string]FieldCache `json:"fields"`
+	RepoOptions []RepoOption          `json:"repo_options,omitempty"`
+	Items       []Item                `json:"items"`
 }
 
 type workflowFieldOption struct {
@@ -122,6 +132,25 @@ func makeWorkflowFieldSchemaByName() map[string]workflowFieldSchema {
 		byName[schema.Name] = schema
 	}
 	return byName
+}
+
+func workflowFieldSchemasForCache(cache *Cache) []workflowFieldSchema {
+	schemas := make([]workflowFieldSchema, 0, len(workflowFieldSchemas))
+	for _, schema := range workflowFieldSchemas {
+		if schema.Name == fieldRepo && len(cache.RepoOptions) > 0 {
+			options := make([]workflowFieldOption, 0, len(cache.RepoOptions))
+			for _, repo := range cache.RepoOptions {
+				options = append(options, workflowFieldOption{
+					Name:        repo.DisplayValue,
+					Description: repo.CanonicalSlug,
+					Color:       "BLUE",
+				})
+			}
+			schema.Options = options
+		}
+		schemas = append(schemas, schema)
+	}
+	return schemas
 }
 
 func resolveDefaultCachePath() string {

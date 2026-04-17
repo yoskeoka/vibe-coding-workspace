@@ -103,6 +103,36 @@ func TestResolveDefaultLocalPath(t *testing.T) {
 	}
 }
 
+func TestWorkspaceRootForLocalPathFindsRootFromNestedCwd(t *testing.T) {
+	root := t.TempDir()
+	if err := os.Mkdir(filepath.Join(root, ".git"), 0o755); err != nil {
+		t.Fatalf("mkdir .git: %v", err)
+	}
+
+	nested := filepath.Join(root, "tools", "pj")
+	if err := os.MkdirAll(nested, 0o755); err != nil {
+		t.Fatalf("mkdir nested: %v", err)
+	}
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("Getwd(): %v", err)
+	}
+	defer func() {
+		if chdirErr := os.Chdir(cwd); chdirErr != nil {
+			t.Fatalf("restore cwd: %v", chdirErr)
+		}
+	}()
+	if err := os.Chdir(nested); err != nil {
+		t.Fatalf("Chdir(): %v", err)
+	}
+
+	got := workspaceRootForLocalPath(".local/pj/cache.json")
+	if got != root {
+		t.Fatalf("workspaceRootForLocalPath() = %q, want %q", got, root)
+	}
+}
+
 func TestValidateRequiredFields(t *testing.T) {
 	t.Parallel()
 

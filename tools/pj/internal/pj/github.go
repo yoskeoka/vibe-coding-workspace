@@ -163,12 +163,13 @@ func (c *githubClient) syncProject(ref ProjectRef) (*Cache, error) {
 	items := make([]Item, 0, len(root.ProjectV2.Items.Nodes))
 	for _, node := range root.ProjectV2.Items.Nodes {
 		item := Item{
-			ID:          node.ID,
-			ContentType: node.Content.Typename,
-			Title:       firstNonEmpty(node.Content.Title, "(untitled)"),
-			Body:        node.Content.Body,
-			URL:         node.Content.URL,
-			Repository:  node.Content.Repository.NameWithOwner,
+			ID:           node.ID,
+			DraftIssueID: node.Content.ID,
+			ContentType:  node.Content.Typename,
+			Title:        firstNonEmpty(node.Content.Title, "(untitled)"),
+			Body:         node.Content.Body,
+			URL:          node.Content.URL,
+			Repository:   node.Content.Repository.NameWithOwner,
 		}
 		if item.ContentType == "" {
 			item.ContentType = "Unknown"
@@ -320,7 +321,7 @@ mutation($ownerId: ID!, $title: String!) {
 
 func (c *githubClient) provisionWorkflowFields(cache *Cache) (bool, error) {
 	createdAny := false
-	for _, schema := range workflowFieldSchemas {
+	for _, schema := range workflowFieldSchemasForCache(cache) {
 		field, ok := cache.Fields[schema.Name]
 		if ok && field.ID != "" {
 			if err := validateFieldCompatibility(schema, field); err != nil {
@@ -436,8 +437,60 @@ mutation($projectId: ID!, $title: String!, $body: String!) {
 	return nil
 }
 
-func (c *githubClient) moveItem(cache *Cache, itemID, status string) error {
-	return c.setSingleSelectField(cache, itemID, fieldStatus, status)
+func (c *githubClient) updateItem(cache *Cache, itemID string, update itemUpdate) error {
+	if update.TitleProvided || update.BodyProvided {
+		item, ok := findCacheItem(cache, itemID)
+		if !ok {
+			return fmt.Errorf("item %s not found in cache; run `pj sync` and retry", itemID)
+		}
+		if item.ContentType != "DraftIssue" || item.DraftIssueID == "" {
+			return fmt.Errorf("item %s is %s; title/body updates are only supported for DraftIssue items", itemID, item.ContentType)
+		}
+		if err := c.updateDraftIssue(item.DraftIssueID, update); err != nil {
+			return err
+		}
+	}
+
+	for fieldName, optionName := range update.FieldValues {
+		if optionName == "" {
+			continue
+		}
+		if err := c.setSingleSelectField(cache, itemID, fieldName, optionName); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *githubClient) updateDraftIssue(draftIssueID string, update itemUpdate) error {
+	input := map[string]any{"draftIssueId": draftIssueID}
+	if update.TitleProvided {
+		input["title"] = update.Title
+	}
+	if update.BodyProvided {
+		input["body"] = update.Body
+	}
+
+	return c.graphQL(`
+mutation($input: UpdateProjectV2DraftIssueInput!) {
+  updateProjectV2DraftIssue(input: $input) {
+    draftIssue {
+      id
+    }
+  }
+}
+`, map[string]any{
+		"input": input,
+	}, nil)
+}
+
+func findCacheItem(cache *Cache, itemID string) (Item, bool) {
+	for _, item := range cache.Items {
+		if item.ID == itemID {
+			return item, true
+		}
+	}
+	return Item{}, false
 }
 
 func (c *githubClient) setSingleSelectField(cache *Cache, itemID, fieldName, optionName string) error {
@@ -496,6 +549,7 @@ type projectNode struct {
 			ID      string `json:"id"`
 			Content struct {
 				Typename   string `json:"__typename"`
+				ID         string `json:"id"`
 				Title      string `json:"title"`
 				Body       string `json:"body"`
 				URL        string `json:"url"`
@@ -549,6 +603,7 @@ projectV2(number: $number) {
       content {
         __typename
         ... on DraftIssue {
+          id
           title
           body
         }

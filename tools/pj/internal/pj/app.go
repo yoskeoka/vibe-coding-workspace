@@ -6,6 +6,10 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
+	"runtime"
+	"sort"
+	"strconv"
 	"strings"
 	"text/tabwriter"
 )
@@ -15,7 +19,7 @@ type projectClient interface {
 	syncProject(ref ProjectRef) (*Cache, error)
 	provisionWorkflowFields(cache *Cache) (bool, error)
 	addDraftItem(cache *Cache, title, body string, fieldValues map[string]string) error
-	moveItem(cache *Cache, itemID, status string) error
+	updateItem(cache *Cache, itemID string, update itemUpdate) error
 }
 
 var newProjectClient = func() (projectClient, error) {
@@ -39,9 +43,20 @@ func Run(args []string, stdout, stderr io.Writer) error {
 		return runList(args[1:], stdout)
 	case "add":
 		return runAdd(args[1:], stdout)
-	case "move":
-		return runMove(args[1:], stdout)
-	case "-h", "--help", "help":
+	case "update":
+		return runUpdate(args[1:], stdout)
+	case "url":
+		return runURL(args[1:], stdout)
+	case "open":
+		return runOpen(args[1:], stdout)
+	case "help":
+		if len(args) > 1 {
+			printCommandUsage(stdout, args[1])
+			return nil
+		}
+		printUsage(stdout)
+		return nil
+	case "-h", "--help":
 		printUsage(stdout)
 		return nil
 	default:
@@ -81,6 +96,9 @@ func runInit(args []string, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
+	if err := enrichCacheRepoOptions(cache, *cachePath); err != nil {
+		return err
+	}
 
 	provisioned, provisionErr := client.provisionWorkflowFields(cache)
 	var refreshErr error
@@ -89,6 +107,9 @@ func runInit(args []string, stdout io.Writer) error {
 		refreshed, refreshErr = client.syncProject(cache.Project)
 		if refreshErr == nil {
 			cache = refreshed
+			if err := enrichCacheRepoOptions(cache, *cachePath); err != nil {
+				return err
+			}
 		} else if provisionErr == nil {
 			return refreshErr
 		}
@@ -170,6 +191,9 @@ func runSync(args []string, stdout io.Writer) error {
 	}
 	cache, err := client.syncProject(ref)
 	if err != nil {
+		return err
+	}
+	if err := enrichCacheRepoOptions(cache, *cachePath); err != nil {
 		return err
 	}
 	if err := writeOwnerConfigFromProject(*configPath, cache.Project); err != nil {
@@ -327,6 +351,7 @@ func runAdd(args []string, stdout io.Writer) error {
 	cachePath := fs.String("cache", defaultCachePath, "cache file path")
 	title := fs.String("title", "", "draft item title")
 	body := fs.String("body", "", "draft item body")
+	bodyFile := fs.String("body-file", "", "path to a file containing the draft item body")
 	status := fs.String("status", "", "Status field option")
 	repo := fs.String("repo", "", "Repo field option")
 	kind := fs.String("kind", "", "Kind field option")
@@ -338,6 +363,10 @@ func runAdd(args []string, stdout io.Writer) error {
 		return fmt.Errorf("add requires --title")
 	}
 
+	resolvedBody, err := resolveBodyInput("add", *body, *bodyFile, flagWasProvided(fs, "body"), flagWasProvided(fs, "body-file"))
+	if err != nil {
+		return err
+	}
 	cache, err := loadCacheRequired(*cachePath)
 	if err != nil {
 		return err
@@ -347,18 +376,24 @@ func runAdd(args []string, stdout io.Writer) error {
 		return err
 	}
 
-	fieldValues := map[string]string{
+	fieldValues, err := resolveFieldInputs(cache, map[string]string{
 		fieldStatus:   *status,
 		fieldRepo:     *repo,
 		fieldKind:     *kind,
 		fieldPriority: *priority,
+	})
+	if err != nil {
+		return err
 	}
-	if err := client.addDraftItem(cache, *title, *body, fieldValues); err != nil {
+	if err := client.addDraftItem(cache, *title, resolvedBody, fieldValues); err != nil {
 		return err
 	}
 
 	refreshed, err := client.syncProject(cache.Project)
 	if err != nil {
+		return err
+	}
+	if err := enrichCacheRepoOptions(refreshed, *cachePath); err != nil {
 		return err
 	}
 	if err := writeCache(*cachePath, refreshed); err != nil {
@@ -369,18 +404,32 @@ func runAdd(args []string, stdout io.Writer) error {
 	return nil
 }
 
-func runMove(args []string, stdout io.Writer) error {
-	fs := flag.NewFlagSet("move", flag.ContinueOnError)
+func runUpdate(args []string, stdout io.Writer) error {
+	fs := flag.NewFlagSet("update", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 
 	cachePath := fs.String("cache", defaultCachePath, "cache file path")
 	itemID := fs.String("item", "", "project item id")
-	status := fs.String("status", "", "target Status option")
+	title := fs.String("title", "", "draft item title")
+	body := fs.String("body", "", "draft item body")
+	bodyFile := fs.String("body-file", "", "path to a file containing the draft item body")
+	status := fs.String("status", "", "Status field option")
+	repo := fs.String("repo", "", "Repo field option")
+	kind := fs.String("kind", "", "Kind field option")
+	priority := fs.String("priority", "", "Priority field option")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
-	if *itemID == "" || *status == "" {
-		return fmt.Errorf("move requires --item and --status")
+	if *itemID == "" {
+		return fmt.Errorf("update requires --item")
+	}
+
+	inlineBodyProvided := flagWasProvided(fs, "body")
+	bodyFileProvided := flagWasProvided(fs, "body-file")
+	bodyProvided := inlineBodyProvided || bodyFileProvided
+	resolvedBody, err := resolveBodyInput("update", *body, *bodyFile, inlineBodyProvided, bodyFileProvided)
+	if err != nil {
+		return err
 	}
 
 	cache, err := loadCacheRequired(*cachePath)
@@ -391,7 +440,27 @@ func runMove(args []string, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
-	if err := client.moveItem(cache, *itemID, *status); err != nil {
+
+	fieldValues, err := resolveFieldInputs(cache, map[string]string{
+		fieldStatus:   *status,
+		fieldRepo:     *repo,
+		fieldKind:     *kind,
+		fieldPriority: *priority,
+	})
+	if err != nil {
+		return err
+	}
+	update := itemUpdate{
+		Title:         *title,
+		TitleProvided: flagWasProvided(fs, "title"),
+		Body:          resolvedBody,
+		BodyProvided:  bodyProvided,
+		FieldValues:   fieldValues,
+	}
+	if !update.TitleProvided && !update.BodyProvided && len(update.FieldValues) == 0 {
+		return fmt.Errorf("update requires at least one field: --title, --body, --body-file, --status, --repo, --kind, or --priority")
+	}
+	if err := client.updateItem(cache, *itemID, update); err != nil {
 		return err
 	}
 
@@ -399,11 +468,61 @@ func runMove(args []string, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
+	if err := enrichCacheRepoOptions(refreshed, *cachePath); err != nil {
+		return err
+	}
 	if err := writeCache(*cachePath, refreshed); err != nil {
 		return err
 	}
 
-	fmt.Fprintf(stdout, "moved item %s to status %q and refreshed cache\n", *itemID, *status)
+	fmt.Fprintf(stdout, "updated item %s and refreshed cache\n", *itemID)
+	return nil
+}
+
+func runURL(args []string, stdout io.Writer) error {
+	fs := flag.NewFlagSet("url", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+
+	cachePath := fs.String("cache", defaultCachePath, "cache file path")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	cache, err := loadCacheRequired(*cachePath)
+	if err != nil {
+		return err
+	}
+	url, err := projectURL(cache.Project)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintln(stdout, url)
+	return nil
+}
+
+var openProjectURL = openURLInBrowser
+
+func runOpen(args []string, stdout io.Writer) error {
+	fs := flag.NewFlagSet("open", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+
+	cachePath := fs.String("cache", defaultCachePath, "cache file path")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	cache, err := loadCacheRequired(*cachePath)
+	if err != nil {
+		return err
+	}
+	url, err := projectURL(cache.Project)
+	if err != nil {
+		return err
+	}
+	if err := openProjectURL(url); err != nil {
+		return err
+	}
+	fmt.Fprintf(stdout, "opened %s\n", url)
 	return nil
 }
 
@@ -417,10 +536,227 @@ Usage:
   go -C tools/pj run ./cmd/pj config set --owner <owner> --owner-type user|org
   go -C tools/pj run ./cmd/pj config clear
   go -C tools/pj run ./cmd/pj list [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]
-  go -C tools/pj run ./cmd/pj add --title <title> [--body <text>] [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]
-  go -C tools/pj run ./cmd/pj move --item <item-id> --status <value>
+  go -C tools/pj run ./cmd/pj add --title <title> [--body <text>|--body-file <path>] [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]
+  go -C tools/pj run ./cmd/pj update --item <item-id> [--title <title>] [--body <text>|--body-file <path>] [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]
+  go -C tools/pj run ./cmd/pj url
+  go -C tools/pj run ./cmd/pj open
 
 `)
+}
+
+func printCommandUsage(w io.Writer, command string) {
+	switch command {
+	case "add":
+		fmt.Fprintln(w, "Usage: pj add --title <title> [--body <text>|--body-file <path>] [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]")
+	case "update":
+		fmt.Fprintln(w, "Usage: pj update --item <item-id> [--title <title>] [--body <text>|--body-file <path>] [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]")
+	case "url":
+		fmt.Fprintln(w, "Usage: pj url")
+	case "open":
+		fmt.Fprintln(w, "Usage: pj open")
+	case "init":
+		fmt.Fprintln(w, "Usage: pj init --owner <owner> --owner-type user|org")
+	case "sync":
+		fmt.Fprintln(w, "Usage: pj sync [--project <number>]")
+	case "list":
+		fmt.Fprintln(w, "Usage: pj list [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]")
+	case "config":
+		fmt.Fprintln(w, "Usage: pj config show|set|clear")
+	default:
+		printUsage(w)
+	}
+}
+
+type itemUpdate struct {
+	Title         string
+	TitleProvided bool
+	Body          string
+	BodyProvided  bool
+	FieldValues   map[string]string
+}
+
+func resolveBodyInput(command, body, bodyFile string, bodyProvided, bodyFileProvided bool) (string, error) {
+	if bodyProvided && bodyFileProvided {
+		return "", fmt.Errorf("%s accepts either --body or --body-file, not both", command)
+	}
+	if !bodyFileProvided {
+		return body, nil
+	}
+	data, err := os.ReadFile(bodyFile)
+	if err != nil {
+		return "", fmt.Errorf("read --body-file %s: %w", bodyFile, err)
+	}
+	return string(data), nil
+}
+
+func flagWasProvided(fs *flag.FlagSet, name string) bool {
+	provided := false
+	fs.Visit(func(f *flag.Flag) {
+		if f.Name == name {
+			provided = true
+		}
+	})
+	return provided
+}
+
+func resolveFieldInputs(cache *Cache, inputs map[string]string) (map[string]string, error) {
+	resolved := map[string]string{}
+	for fieldName, value := range inputs {
+		if value == "" {
+			continue
+		}
+		var out string
+		var err error
+		if fieldName == fieldRepo {
+			out, err = resolveRepoValue(cache, value)
+		} else {
+			out, err = resolveSingleSelectValue(cache, fieldName, value)
+		}
+		if err != nil {
+			return nil, err
+		}
+		resolved[fieldName] = out
+	}
+	return resolved, nil
+}
+
+func resolveSingleSelectValue(cache *Cache, fieldName, input string) (string, error) {
+	field, ok := cache.Fields[fieldName]
+	if !ok || field.ID == "" {
+		return "", fmt.Errorf("project field %q is missing from cache; run `pj sync` against a board with that field", fieldName)
+	}
+	candidates := make([]valueCandidate, 0, len(field.Options))
+	for display := range field.Options {
+		candidates = append(candidates, valueCandidate{Display: display, Keys: []string{display}})
+	}
+	return resolveValue(fieldName, input, candidates)
+}
+
+func resolveRepoValue(cache *Cache, input string) (string, error) {
+	if len(cache.RepoOptions) == 0 {
+		return "", fmt.Errorf("repo metadata is missing from cache; run `pj init` or `pj sync`")
+	}
+	if index, err := strconv.Atoi(input); err == nil {
+		if index < 1 || index > len(cache.RepoOptions) {
+			return "", fmt.Errorf("repo index %d is out of range; valid range is 1-%d", index, len(cache.RepoOptions))
+		}
+		return cache.RepoOptions[index-1].DisplayValue, nil
+	}
+
+	candidates := make([]valueCandidate, 0, len(cache.RepoOptions))
+	for _, option := range cache.RepoOptions {
+		keys := []string{option.CanonicalSlug, option.DisplayValue}
+		keys = append(keys, option.Aliases...)
+		candidates = append(candidates, valueCandidate{
+			Display: option.DisplayValue,
+			Keys:    keys,
+		})
+	}
+	return resolveValue(fieldRepo, input, candidates)
+}
+
+type valueCandidate struct {
+	Display string
+	Keys    []string
+}
+
+func resolveValue(fieldName, input string, candidates []valueCandidate) (string, error) {
+	normalizedInput := normalizeValue(input)
+	exact := make(map[string]string)
+	for _, candidate := range candidates {
+		for _, key := range candidate.Keys {
+			if normalizeValue(key) == normalizedInput {
+				exact[candidate.Display] = candidate.Display
+			}
+		}
+	}
+	if len(exact) == 1 {
+		for display := range exact {
+			return display, nil
+		}
+	}
+	if len(exact) > 1 {
+		return "", fmt.Errorf("ambiguous %s value %q matches: %s", fieldName, input, sortedMapKeys(exact))
+	}
+
+	prefix := make(map[string]string)
+	for _, candidate := range candidates {
+		for _, key := range candidate.Keys {
+			if strings.HasPrefix(normalizeValue(key), normalizedInput) {
+				prefix[candidate.Display] = candidate.Display
+			}
+		}
+	}
+	if len(prefix) == 1 {
+		for display := range prefix {
+			return display, nil
+		}
+	}
+	if len(prefix) > 1 {
+		return "", fmt.Errorf("ambiguous %s value %q matches: %s", fieldName, input, sortedMapKeys(prefix))
+	}
+	return "", fmt.Errorf("unknown %s value %q", fieldName, input)
+}
+
+func normalizeValue(value string) string {
+	value = strings.ToLower(strings.TrimSpace(value))
+	var b strings.Builder
+	lastSep := false
+	for _, r := range value {
+		switch r {
+		case '-', '_', ' ', '\t', '\n', '\r':
+			if !lastSep {
+				b.WriteByte(' ')
+				lastSep = true
+			}
+		default:
+			b.WriteRune(r)
+			lastSep = false
+		}
+	}
+	return strings.TrimSpace(b.String())
+}
+
+func sortedMapKeys(values map[string]string) string {
+	keys := make([]string, 0, len(values))
+	for key := range values {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return strings.Join(keys, ", ")
+}
+
+func projectURL(ref ProjectRef) (string, error) {
+	if ref.Owner == "" || ref.ProjectNumber == 0 {
+		return "", fmt.Errorf("cache is missing project owner or number; run `pj init` or `pj sync`")
+	}
+	switch ref.OwnerType {
+	case "user":
+		return fmt.Sprintf("https://github.com/users/%s/projects/%d", ref.Owner, ref.ProjectNumber), nil
+	case "org":
+		return fmt.Sprintf("https://github.com/orgs/%s/projects/%d", ref.Owner, ref.ProjectNumber), nil
+	default:
+		return "", fmt.Errorf("unsupported owner type %q: use user or org", ref.OwnerType)
+	}
+}
+
+func openURLInBrowser(url string) error {
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "darwin":
+		cmd = exec.Command("open", url)
+	case "windows":
+		cmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", url)
+	default:
+		cmd = exec.Command("xdg-open", url)
+	}
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("open browser for %s: %w", url, err)
+	}
+	if err := cmd.Process.Release(); err != nil {
+		return fmt.Errorf("release browser opener process for %s: %w", url, err)
+	}
+	return nil
 }
 
 func valueOrDash(v string) string {
@@ -431,9 +767,10 @@ func valueOrDash(v string) string {
 }
 
 func validateRequiredFields(cache *Cache) error {
-	missing := make([]string, 0, len(workflowFieldSchemas))
+	schemas := workflowFieldSchemasForCache(cache)
+	missing := make([]string, 0, len(schemas))
 	incompatible := make([]string, 0)
-	for _, schema := range workflowFieldSchemas {
+	for _, schema := range schemas {
 		field, ok := cache.Fields[schema.Name]
 		if !ok || field.ID == "" {
 			missing = append(missing, schema.Name)

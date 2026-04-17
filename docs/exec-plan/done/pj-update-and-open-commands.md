@@ -13,6 +13,7 @@ This plan covers three operator-facing improvements that belong together:
 - replace `pj move` with `pj update`
 - add `pj open`
 - add `pj url`
+- add `pj add --body-file` for consistency with `pj update --body-file`
 
 It also updates option-value resolution so humans and agents can use shorter,
 more forgiving input forms without depending on GitHub's exact display labels.
@@ -66,7 +67,9 @@ Recent discussion also settled these product directions for the spike:
   stdout without opening it.
 - Define `pj update --body-file <path>` as a supported way to load longer body
   text from disk instead of inline flag text.
-- Define the `pj update` body-input conflict rule:
+- Define `pj add --body-file <path>` as the same supported body-input path for
+  creating draft items.
+- Define the `pj add` / `pj update` body-input conflict rule:
   - reject `--body` and `--body-file` when both are provided
   - fail clearly when the `--body-file` path cannot be read
 - Define value-resolution rules for enum-like inputs:
@@ -101,6 +104,8 @@ Recent discussion also settled these product directions for the spike:
 - Clarify that the skill may correct existing items through `pj update` instead
   of forcing manual GitHub edits or item recreation for `Repo`, `Kind`, and
   `Priority`.
+- Clarify that generated handoff bodies may use `pj add --body-file` when
+  inline shell quoting would be awkward.
 - Update any `Workspace Repo` contract that currently hardcodes a fixed repo
   option list so it instead points to `setup.sh`-derived provisioning plus
   cached enriched repo metadata.
@@ -149,6 +154,7 @@ Recent discussion also settled these product directions for the spike:
   parser.
 - Add `--body-file` to `pj update` so longer handoff text can avoid shell-
   expansion hazards and awkward inline quoting.
+- Add the same `--body-file` support to `pj add` for body-input consistency.
 - Reject `--body` and `--body-file` when both are provided, with a clear error.
 - Ensure errors for ambiguous prefix matches name the conflicting candidates.
 
@@ -173,23 +179,23 @@ Apply the same reasoning here:
 
 ## Sub-tasks
 
-- [ ] Update `docs/specs/github-projects-task-cli.md` for `pj update`, `pj open`,
-      `pj url`, and the new value-resolution rules
-- [ ] Update `docs/specs/triage-tasks.md` so the skill uses `pj update --status`
+- [x] Update `docs/specs/github-projects-task-cli.md` for `pj update`, `pj open`,
+      `pj url`, `pj add --body-file`, and the new value-resolution rules
+- [x] Update `docs/specs/triage-tasks.md` so the skill uses `pj update --status`
       instead of `pj move`, and can rely on `pj open` / `pj url`
-- [ ] [parallel] Design the normalized resolver behavior for `repo`, `status`,
+- [x] [parallel] Design the normalized resolver behavior for `repo`, `status`,
       `kind`, and `priority`, including ambiguous-input errors
-- [ ] [parallel] Define the ordered cache shape for enriched repo-option
+- [x] [parallel] Define the ordered cache shape for enriched repo-option
       metadata and how it is derived from `setup.sh`
-- [ ] [parallel] Design the operator-facing help text and command examples for
+- [x] [parallel] Design the operator-facing help text and command examples for
       `pj update`, `pj open`, and `pj url`
-- [ ] [depends on: spec updates, resolver design] Implement `pj update` and
+- [x] [depends on: spec updates, resolver design] Implement `pj update` and
       remove `pj move`
-- [ ] [depends on: URL helper design] Implement `pj open` and `pj url`
-- [ ] [depends on: update implementation] Add or update tests covering partial
+- [x] [depends on: URL helper design] Implement `pj open` and `pj url`
+- [x] [depends on: update implementation] Add or update tests covering partial
       field updates, alias resolution, prefix resolution, and repo integer
       selection
-- [ ] [depends on: all implementation tasks] Verify the CLI can:
+- [x] [depends on: all implementation tasks] Verify the CLI can:
       - update status through `pj update`
       - update title/body/custom fields on an existing item
       - print the canonical Project URL

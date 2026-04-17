@@ -52,3 +52,10 @@ Possible directions:
 
 Medium. This does not block the current spike, but it should be resolved before
 `Workspace Repo` options become operator-configurable.
+
+## Resolution
+
+Resolved by the `pj-update-and-open-commands` execution task. `pj init` now
+derives repo option metadata from `setup.sh` plus the workspace repository
+itself, stores ordered enriched repo metadata in cache, and uses that metadata
+for runtime `repo` value resolution.

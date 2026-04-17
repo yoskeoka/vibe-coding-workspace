@@ -23,9 +23,10 @@ metadata:
 | `go -C tools/pj run ./cmd/pj init --owner <owner> --owner-type user|org` | Resolve or create the canonical `Workspace Task Triage` board and write cache metadata |
 | `go -C tools/pj run ./cmd/pj sync` | Refresh `.local/pj/cache.json` from the configured GitHub Project |
 | `go -C tools/pj run ./cmd/pj list` | Show cached tasks with `Status`, `Repo`, `Kind`, and `Priority` |
-| `go -C tools/pj run ./cmd/pj add --title "..." --body "..." --status Todo --repo <repo> --kind <kind> --priority <priority>` | Create a new triage item |
-| `go -C tools/pj run ./cmd/pj move --item <item-id> --status "In Progress"` | Claim and start a task |
-| `go -C tools/pj run ./cmd/pj move --item <item-id> --status Done` | Close a completed task |
+| `go -C tools/pj run ./cmd/pj add --title "..." --body-file <path> --status Todo --repo <repo> --kind <kind> --priority <priority>` | Create a new triage item |
+| `go -C tools/pj run ./cmd/pj update --item <item-id> --status "In Progress"` | Claim and start a task |
+| `go -C tools/pj run ./cmd/pj update --item <item-id> --status Done` | Close a completed task |
+| `go -C tools/pj run ./cmd/pj url` | Print the canonical GitHub Project URL |
 
 ## What to Do
 
@@ -54,7 +55,7 @@ Run `go -C tools/pj run ./cmd/pj list` to inspect the current queue.
 - This spike does **not** have dependency-aware "ready queue" resolution; do not infer blockers unless the task title/body or repo context makes them explicit.
 
 - If tasks exist, present them to the user.
-- Include the GitHub Project URL when owner scope and project number are known.
+- Include the GitHub Project URL from `go -C tools/pj run ./cmd/pj url` when the cache is available.
 - Present a short prioritized top list before the full board dump when the board is large.
 - Present the next step as explicit numbered choices and wait for the user's answer:
   1. **Pick a task** — proceed to Step 4 (execution handoff).
@@ -68,10 +69,10 @@ If no tasks exist (empty board or all tasks are already `Done`), go directly to 
 Interactively update the task list based on user input:
 
 - Create new tasks with `go -C tools/pj run ./cmd/pj add`
-- Every new task created with `pj add` must include `--body` using the compact handoff format from Step 3.
-- Move a selected task to `In Progress` with `go -C tools/pj run ./cmd/pj move --item <id> --status "In Progress"`
-- Close completed tasks with `go -C tools/pj run ./cmd/pj move --item <id> --status Done`
-- If `Repo`, `Kind`, or `Priority` on an existing item are wrong, treat that as a manual GitHub Project edit followed by `pj sync`, because the current CLI only updates `Status`
+- Every new task created with `pj add` must include `--body` or `--body-file` using the compact handoff format from Step 3; prefer `--body-file` for generated multi-line bodies.
+- Move a selected task to `In Progress` with `go -C tools/pj run ./cmd/pj update --item <id> --status "In Progress"`
+- Close completed tasks with `go -C tools/pj run ./cmd/pj update --item <id> --status Done`
+- Correct `Repo`, `Kind`, or `Priority` on an existing item with `pj update` followed by `pj sync` or `pj list`
 
 After updates, run `go -C tools/pj run ./cmd/pj list` again and return to Step 1.
 
@@ -96,7 +97,7 @@ Read `setup.sh` in the workspace root to get the `REPOS` array. Launch one **rea
 **Subagent rules**: Do NOT modify any files. Do NOT inspect other repos. The main agent remains responsible for final prioritization, `pj` mutations, and the fresh-session handoff prompt.
 
 **Populate the Project**: For each discovered item:
-- Create a Project item with `go -C tools/pj run ./cmd/pj add --title "..." --body "..." --status Todo --repo <repo> --kind <kind> --priority <priority>`
+- Create a Project item with `go -C tools/pj run ./cmd/pj add --title "..." --body-file <path> --status Todo --repo <repo> --kind <kind> --priority <priority>`
 - Use the title and body to encode enough context for later triage; the current spike does not model dependency edges
 - Keep repo/category information normalized through the `Repo` and `Kind` fields whenever possible
 
@@ -136,7 +137,7 @@ For each confirmed task, propose one of:
 2. **Needs exec-plan**: If the task is non-trivial and has no execution plan yet, make the prompt target plan creation first.
 3. **Do now (exception)**: Only stay in the same session when the user explicitly wants immediate execution despite the broader triage context.
 
-Claim the chosen task: `go -C tools/pj run ./cmd/pj move --item <id> --status "In Progress"`
+Claim the chosen task: `go -C tools/pj run ./cmd/pj update --item <id> --status "In Progress"`
 
 #### Separate-session prompt template
 
