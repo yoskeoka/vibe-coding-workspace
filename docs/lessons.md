@@ -46,5 +46,5 @@
 
 - **Mistake**: I started a knowledge-base ingest directly on `main` even though ingest predictably modifies `docs/kb/` and often adds follow-up notes.
 - **Pattern**: Research-oriented tasks can look read-only at the start, but KB ingest is normally a documentation change that must follow the same branch and PR discipline as other workflow work.
-- **Rule**: Before a file-changing KB ingest, check the working tree, ensure local changes are preserved or absent, create a fresh branch/worktree from latest `main` with global `ww`, and only then write KB files.
+- **Rule**: Before a file-changing KB ingest, check the working tree, ensure local changes are preserved or absent, create a fresh branch/worktree from latest `origin/main` with global `ww`, and only then write KB files.
 - **Applied**: `knowledge-base` skill usage, especially URL/video ingest requests that will create or update source notes, wiki pages, logs, issues, or renderer/tooling files.

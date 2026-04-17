@@ -33,10 +33,9 @@ git status --short --branch
 ```
 
 2. If the working tree is dirty, do not start ingest on top of it. Preserve or hand off the existing work first.
-3. Start from the latest `main` and create a fresh worktree with the globally installed `ww` CLI:
+3. Create a fresh worktree from the latest `origin/main` with the globally installed `ww` CLI:
 
 ```sh
-git pull --ff-only
 ww create docs/kb-<short-ingest-name>
 cd "$(ww cd docs/kb-<short-ingest-name>)"
 ```
