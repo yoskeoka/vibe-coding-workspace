@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Install ShellCheck
         run: |
@@ -19,7 +21,7 @@ jobs:
         env:
           BASE_BRANCH: ${{ github.base_ref }}
         run: |
-          git fetch --no-tags --depth=1 origin \
+          git fetch --no-tags origin \
             "+refs/heads/${BASE_BRANCH}:refs/remotes/origin/${BASE_BRANCH}"
 
       - name: Run ShellCheck for changed Bash scripts

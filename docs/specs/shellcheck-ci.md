@@ -49,6 +49,7 @@ tools/list-changed-bash-scripts.sh [base-ref]
 ### Workflow Behavior
 
 - checks out the PR head
+- checks out with enough history to resolve the merge-base used by `<base-ref>...HEAD`
 - explicitly fetches the PR base branch before diffing
 - installs ShellCheck on the runner instead of assuming it is preinstalled
 - calls `tools/list-changed-bash-scripts.sh` with the fetched base ref
