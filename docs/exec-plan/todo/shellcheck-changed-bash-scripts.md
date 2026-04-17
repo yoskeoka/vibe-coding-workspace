@@ -19,14 +19,16 @@ Add a CI check that runs ShellCheck only against Bash script files changed by a 
 Create a GitHub Actions workflow that:
 
 - runs on `pull_request` targeting `main`
-- checks out full history so `origin/main...HEAD` diff detection works
+- checks out the PR head and explicitly fetches the PR base branch before diffing, rather than assuming `origin/main` already exists after checkout
 - installs ShellCheck explicitly on the runner instead of relying on runner image contents
-- computes changed candidate files with `git diff --name-only --diff-filter=AMR origin/main...HEAD`
+- computes changed candidate files with `git diff --name-only --diff-filter=AMR <fetched-base-ref>...HEAD`
 - filters to existing Bash script files:
-  - files ending in `.sh`
+  - files ending in `.sh`, treated as Bash for this workspace's automation scripts
+  - files ending in `.bash`
   - files with a Bash shebang, including `#!/bin/bash` and `#!/usr/bin/env bash`
 - exits successfully with a clear "no changed Bash scripts" message when no files match
 - runs ShellCheck against the matching files and fails CI on ShellCheck findings
+- invokes ShellCheck in Bash mode for extension-based matches that do not have their own shell directive or shebang
 
 ### `tools/list-changed-bash-scripts.sh`
 
@@ -51,6 +53,7 @@ Add `docs/specs/shellcheck-ci.md` documenting:
 
 - purpose and scope of the ShellCheck CI
 - exact definition of a "changed Bash script"
+- the rule that `.sh` files are considered Bash automation scripts in this workspace unless the implementation deliberately narrows the policy
 - skipped/no-op behavior when a PR changes no Bash scripts
 - relationship to `workflow-lint.yml` and why this is a separate project lint workflow
 - local verification command for the helper script and ShellCheck invocation
