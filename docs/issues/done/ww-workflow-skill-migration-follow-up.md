@@ -21,3 +21,12 @@ Create a follow-up execution plan that:
 ## Priority
 
 Medium. This does not block the current workflow migration because the primary startup docs and core execution/planning skills are aligned, but it leaves avoidable ambiguity in adjacent workflows and weakens the dogfooding contract over time.
+
+## Resolution
+
+Resolved in the `docs/ww-workflow-skill-migration-follow-up` branch:
+
+- Confirmed the remaining adjacent workflow skills now use the global `ww` startup path.
+- Extended `docs/specs/ww-dogfooding-workflow.md` so `plan-project`, `review-task`, and `manage-workflow` are part of the documented dogfooding touchpoint set.
+- Extended `tools/workflow-lint.sh` and `docs/specs/workflow-linter.md` so raw-git startup wording in those skills is covered by the fixable workflow-startup warning.
+- Replaced the temporary follow-up note in `AI_WORKFLOW.md` with steady-state wording that points to the spec-defined migrated touchpoints.

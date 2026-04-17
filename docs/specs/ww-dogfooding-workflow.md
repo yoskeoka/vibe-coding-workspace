@@ -31,6 +31,9 @@ This execution change defines the required operator-facing touchpoints to align 
 - `skills/plan-execution/SKILL.md`
 - `skills/execute-task/SKILL.md`
 - `skills/triage-tasks/SKILL.md`
+- `skills/plan-project/SKILL.md`
+- `skills/review-task/SKILL.md`
+- `skills/manage-workflow/SKILL.md`
 - `tools/workflow-lint.sh` guidance for workflow-facing raw-git startup wording
 
 ### 3. Parallel task operator experience
@@ -83,6 +86,9 @@ This execution change defines the required operator-facing touchpoints to align 
   - `skills/plan-execution/SKILL.md`
   - `skills/execute-task/SKILL.md`
   - `skills/triage-tasks/SKILL.md`
+  - `skills/plan-project/SKILL.md`
+  - `skills/review-task/SKILL.md`
+  - `skills/manage-workflow/SKILL.md`
 - This finding is a `fixable` workflow-linter warning because it is usually resolved by rewriting the changed doc or skill back to the standard `ww` startup wording.
 - Operators SHOULD resolve it before push/PR unless an explicit human instruction conflicts or the warning is a clear false positive.
 - The warning remains non-blocking; it does not need to fail the push.
