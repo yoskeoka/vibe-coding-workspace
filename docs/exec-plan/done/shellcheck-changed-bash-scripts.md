@@ -1,4 +1,5 @@
 # ShellCheck changed Bash scripts in CI
+
 **Execution**: Use `/execute-task` to implement this plan.
 
 ## Objective
@@ -66,11 +67,11 @@ No ADR update is required unless execution chooses a materially different archit
 
 ## Sub-tasks
 
-- [ ] [parallel] Add `docs/specs/shellcheck-ci.md`.
-- [ ] [parallel] Add `tools/list-changed-bash-scripts.sh`.
-- [ ] [depends on: helper script] Add `.github/workflows/shellcheck.yml`.
-- [ ] [depends on: spec, helper script, workflow] Run local verification for the helper script against representative changed files.
-- [ ] [depends on: workflow] Run ShellCheck locally on existing Bash scripts when ShellCheck is available, or document the missing local dependency and rely on CI installation for PR verification.
+- [x] [parallel] Add `docs/specs/shellcheck-ci.md`.
+- [x] [parallel] Add `tools/list-changed-bash-scripts.sh`.
+- [x] [depends on: helper script] Add `.github/workflows/shellcheck.yml`.
+- [x] [depends on: spec, helper script, workflow] Run local verification for the helper script against representative changed files.
+- [x] [depends on: workflow] Run ShellCheck locally on existing Bash scripts when ShellCheck is available, or document the missing local dependency and rely on CI installation for PR verification.
 
 ## Verification plan
 
@@ -78,6 +79,12 @@ No ADR update is required unless execution chooses a materially different archit
 - Create or modify one temporary Bash-script candidate during execution verification if needed, then remove it before commit, to confirm `.sh` and Bash shebang detection.
 - Run `shellcheck` against the helper and any changed Bash scripts when available locally.
 - Run the existing workflow linter in CI mode or pre-push mode to confirm the new plan and later implementation do not introduce fixable workflow warnings.
+
+## Verification results
+
+- `./tools/list-changed-bash-scripts.sh 75ac8f4b483b68dbf29a5f905efb4a3ad7ff6641` returned `tools/kb` and `tools/workflow-lint.sh`, confirming Bash-shebang and `.sh` detection on committed history.
+- `./tools/workflow-lint.sh --mode=pre-push` completed successfully. With no commits on the execution branch yet, it correctly reported no commit-range diff relative to `origin/main`.
+- Local `shellcheck` was not installed in the current environment, so direct ShellCheck execution was deferred to CI, which installs it explicitly in `.github/workflows/shellcheck.yml`.
 
 ## Non-goals
 

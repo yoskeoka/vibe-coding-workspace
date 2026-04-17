@@ -1,0 +1,77 @@
+name: ShellCheck
+
+"on":
+  pull_request:
+    branches: [main]
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install ShellCheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes shellcheck
+
+      - name: Fetch PR base branch
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
+        run: |
+          git fetch --no-tags --depth=1 origin \
+            "+refs/heads/${BASE_BRANCH}:refs/remotes/origin/${BASE_BRANCH}"
+
+      - name: Run ShellCheck for changed Bash scripts
+        env:
+          BASE_REF: origin/${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+
+          has_shellcheck_directive() {
+            local path="$1"
+            grep -Eq '^[[:space:]]*# shellcheck shell=' "$path"
+          }
+
+          has_shebang() {
+            local path="$1"
+            local first_line
+
+            if ! IFS= read -r first_line < "$path"; then
+              return 1
+            fi
+
+            case "$first_line" in
+              '#!'*)
+                return 0
+                ;;
+              *)
+                return 1
+                ;;
+            esac
+          }
+
+          mapfile -t files < <(./tools/list-changed-bash-scripts.sh "$BASE_REF")
+
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No changed Bash scripts found."
+            exit 0
+          fi
+
+          printf 'Changed Bash scripts:\n'
+          printf '  %s\n' "${files[@]}"
+
+          for path in "${files[@]}"; do
+            case "$path" in
+              *.sh|*.bash)
+                if has_shellcheck_directive "$path" || has_shebang "$path"; then
+                  shellcheck "$path"
+                else
+                  shellcheck --shell=bash "$path"
+                fi
+                ;;
+              *)
+                shellcheck "$path"
+                ;;
+            esac
+          done
