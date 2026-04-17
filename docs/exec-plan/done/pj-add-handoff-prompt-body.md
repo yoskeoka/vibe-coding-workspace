@@ -98,12 +98,18 @@ Open design choice to settle during execution:
 
 ## Sub-tasks
 
-- [ ] Update `docs/specs/triage-tasks.md` to require the richer `pj add` body structure and define its minimum fields
-- [ ] Update `skills/triage-tasks/SKILL.md` so full re-triage emits the richer body format for newly created Project items
-- [ ] [parallel] Decide and document the storage-language rule for Project item bodies
-- [ ] [parallel] Decide the minimal body variants for exec plans, local issues, PRs, and GitHub Issues
-- [ ] [depends on: spec and skill updates] Re-run `triage-tasks` against the workspace Project and inspect a sample of created item bodies in the cache and/or GitHub UI
-- [ ] [depends on: verification] Confirm the richer body still stays concise enough for Project scanning and does not make board maintenance noisy
+- [x] Update `docs/specs/triage-tasks.md` to require the richer `pj add` body structure and define its minimum fields
+- [x] Update `skills/triage-tasks/SKILL.md` so full re-triage emits the richer body format for newly created Project items
+- [x] [parallel] Decide and document the storage-language rule for Project item bodies
+- [x] [parallel] Decide the minimal body variants for exec plans, local issues, PRs, and GitHub Issues
+- [x] [depends on: spec and skill updates] Re-run `pj sync`/`pj list` against the workspace Project and inspect sample item bodies in the cache without creating duplicate Project items
+- [x] [depends on: verification] Confirm the richer body still stays concise enough for Project scanning and does not make board maintenance noisy
+
+## Execution Notes
+
+- `tools/pj` already supported `pj add --body`, so no CLI changes were needed.
+- Stored Project item bodies now use English as the stable board language; user-facing fresh-session handoff prompts still mirror the current chat language.
+- Verification used non-destructive `pj init`, `pj sync`, `pj list`, and cache inspection. A full re-triage was not run because it would create duplicate live Project items for an instruction-only workflow change.
 
 ## Verification
 

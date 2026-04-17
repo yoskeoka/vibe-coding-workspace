@@ -23,7 +23,7 @@ metadata:
 | `go -C tools/pj run ./cmd/pj init --owner <owner> --owner-type user|org` | Resolve or create the canonical `Workspace Task Triage` board and write cache metadata |
 | `go -C tools/pj run ./cmd/pj sync` | Refresh `.local/pj/cache.json` from the configured GitHub Project |
 | `go -C tools/pj run ./cmd/pj list` | Show cached tasks with `Status`, `Repo`, `Kind`, and `Priority` |
-| `go -C tools/pj run ./cmd/pj add --title "..." --status Todo --repo <repo> --kind <kind> --priority <priority>` | Create a new triage item |
+| `go -C tools/pj run ./cmd/pj add --title "..." --body "..." --status Todo --repo <repo> --kind <kind> --priority <priority>` | Create a new triage item |
 | `go -C tools/pj run ./cmd/pj move --item <item-id> --status "In Progress"` | Claim and start a task |
 | `go -C tools/pj run ./cmd/pj move --item <item-id> --status Done` | Close a completed task |
 
@@ -68,6 +68,7 @@ If no tasks exist (empty board or all tasks are already `Done`), go directly to 
 Interactively update the task list based on user input:
 
 - Create new tasks with `go -C tools/pj run ./cmd/pj add`
+- Every new task created with `pj add` must include `--body` using the compact handoff format from Step 3.
 - Move a selected task to `In Progress` with `go -C tools/pj run ./cmd/pj move --item <id> --status "In Progress"`
 - Close completed tasks with `go -C tools/pj run ./cmd/pj move --item <id> --status Done`
 - If `Repo`, `Kind`, or `Priority` on an existing item are wrong, treat that as a manual GitHub Project edit followed by `pj sync`, because the current CLI only updates `Status`
@@ -95,9 +96,35 @@ Read `setup.sh` in the workspace root to get the `REPOS` array. Launch one **rea
 **Subagent rules**: Do NOT modify any files. Do NOT inspect other repos. The main agent remains responsible for final prioritization, `pj` mutations, and the fresh-session handoff prompt.
 
 **Populate the Project**: For each discovered item:
-- Create a Project item with `go -C tools/pj run ./cmd/pj add --title "..." --status Todo --repo <repo> --kind <kind> --priority <priority>`
+- Create a Project item with `go -C tools/pj run ./cmd/pj add --title "..." --body "..." --status Todo --repo <repo> --kind <kind> --priority <priority>`
 - Use the title and body to encode enough context for later triage; the current spike does not model dependency edges
 - Keep repo/category information normalized through the `Repo` and `Kind` fields whenever possible
+
+#### Project item body format
+
+Stored Project item bodies are durable workspace-board data. Write them in English for consistency across sessions, even when the current chat is in another language. The separate user-facing handoff prompt in Step 4 still follows the user's current chat language.
+
+Keep bodies compact: the body should help a human or agent start from the GitHub Project item without becoming a full execution plan. Use this structure:
+
+```markdown
+Source: <local path, PR URL, issue URL, or discovery source>
+Repo: <workspace repo>
+Next: <plan-execution|execute-task|Manual triage>
+Start: <ww create ... then cd "$(ww cd ...)" | Not yet specified>
+Read: <short comma-separated list of first files/URLs to inspect>
+Goal: <one sentence outcome>
+```
+
+Use one `Read:` line unless the task truly needs multiple source references. Prefer exact local paths for workspace-local sources and URLs for GitHub-native sources.
+
+Tailor the body by item type:
+
+- Exec-plan item: use `Next: execute-task`; set `Source` and `Read` to `docs/exec-plan/todo/<name>.md`; set `Start` to the matching execution branch command based on the plan type: `ww create feat/<name>` then `cd "$(ww cd feat/<name>)"` or `ww create fix/<name>` then `cd "$(ww cd fix/<name>)"` from the target repo root, or the corresponding `--repo <repo>` form from the workspace root for child repos.
+- Local issue follow-up: use `Next: plan-execution` when the issue needs non-trivial work; set `Source` and `Read` to `docs/issues/<name>.md`; set `Start` to `ww create plan/<name>` then `cd "$(ww cd plan/<name>)"` from the target repo root, or the `--repo <repo>` form from the workspace root for child repos.
+- Open PR review/follow-up: use `Next: Manual triage` unless the needed skill is clear; set `Source` and `Read` to the PR URL plus any relevant local plan/spec path; set `Start: Not yet specified` for pure review, approval, or post-review response items.
+- Open GitHub Issue: use `Next: Manual triage` unless the issue clearly maps to planning or execution; set `Source` and `Read` to the issue URL; set `Start: Not yet specified` unless there is a concrete local workflow branch to create.
+
+Do not invent local plan paths, issue paths, blockers, or dependency relationships that are not present in the collected data. If the next workflow step is unclear, prefer `Manual triage` over a misleading skill recommendation.
 
 After populating, run `go -C tools/pj run ./cmd/pj list` and return to Step 1.
 
