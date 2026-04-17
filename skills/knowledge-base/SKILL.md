@@ -36,8 +36,8 @@ git status --short --branch
 3. Create a fresh worktree from the latest `origin/main` with the globally installed `ww` CLI:
 
 ```sh
-ww create docs/kb-<short-ingest-name>
-cd "$(ww cd docs/kb-<short-ingest-name>)"
+ww create <type>/kb-<short-name>
+cd "$(ww cd <type>/kb-<short-name>)"
 ```
 
 Keep the existing workflow branch types and use `kb-` as the description prefix:
