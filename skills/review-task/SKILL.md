@@ -172,10 +172,27 @@ For each new PR, updated PR, or later push to the PR branch, monitor the latest 
 1. Record the PR number and current head SHA.
 2. Wait 30 seconds after PR creation or a later push so CI/checks and review automation have time to start.
 3. Inspect CI/check status for that SHA and continue the CI failure loop below when checks fail or expose actionable logs.
-4. Inspect the PR timeline for bot review-start activity, such as `copilot_work_started`.
-5. If bot review-start activity is present, wait for review completion/comments using the bounded bot-review cadence below.
-6. If no bot review-start activity is present, do not spend the bot-review wait budget; record that no bot review start was observed.
-7. Re-check the PR head SHA before handoff. If it changed, restart this loop for the new SHA.
+4. Inspect the PR issue timeline with:
+
+   ```sh
+   gh api repos/<owner>/<repo>/issues/<pr-number>/timeline --paginate
+   ```
+
+5. Detect automatic reviewer activity from timeline events, including:
+   - `copilot_work_started`
+   - `review_requested` events where `requested_reviewer.login` or `requested_team.name` identifies Copilot, Claude, `gh aw`, agent workflow, or another configured bot/agent reviewer
+   - timeline events from bot or agent actors that indicate review work has started
+6. If automatic reviewer activity has started but no final review/comments are visible yet, wait for review completion/comments using the bounded bot-review cadence below.
+7. If no automatic reviewer activity is present, do not spend the bot-review wait budget; record that no automatic review start was observed.
+8. Before handoff, fetch review summaries and inline review comments with:
+
+   ```sh
+   gh pr view <pr-number> --json reviews,comments,statusCheckRollup
+   gh api repos/<owner>/<repo>/pulls/<pr-number>/comments --paginate
+   ```
+
+9. Treat actionable bot/agent review comments like normal review feedback: resolve them in scope or document why they are not being acted on before calling the PR ready.
+10. Re-check the PR head SHA before handoff. If it changed, restart this loop for the new SHA.
 
 Bounded bot-review wait cadence:
 
@@ -183,7 +200,7 @@ Bounded bot-review wait cadence:
 - Second wait: 1 minute.
 - Third wait: 1 minute.
 - Total wait budget: 7 minutes across 3 polling turns.
-- After each wait turn, fetch PR reviews and inline comments. If review/comments were submitted, stop waiting and triage them.
+- After each wait turn, fetch PR reviews and inline comments using the review-summary and pull-comment commands above. If review/comments were submitted, stop waiting and triage them.
 
 If bot review has started but no review/comments have been submitted after the 7-minute budget, treat the bot-review wait as timed out and document the state in the handoff.
 
