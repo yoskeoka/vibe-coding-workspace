@@ -41,3 +41,10 @@
 - **Pattern**: Temporary local constraints can leak into skills and specs if I optimize for the machine in front of me instead of defining environment-aware behavior.
 - **Rule**: When the user gives machine-specific constraints, reflect them as runtime detection or tuning logic unless the product intentionally targets only that environment.
 - **Applied**: Skill docs, CLI defaults, dependency guidance, and any implementation that chooses performance-sensitive options such as GPU usage, frame cadence, or batch sizing.
+
+## Knowledge-Base Ingest Is File-Changing Workflow Work
+
+- **Mistake**: I started a knowledge-base ingest directly on `main` even though ingest predictably modifies `docs/kb/` and often adds follow-up notes.
+- **Pattern**: Research-oriented tasks can look read-only at the start, but KB ingest is normally a documentation change that must follow the same branch and PR discipline as other workflow work.
+- **Rule**: Before a file-changing KB ingest, check the working tree, ensure local changes are preserved or absent, create a fresh branch/worktree from latest `origin/main` with global `ww`, and only then write KB files.
+- **Applied**: `knowledge-base` skill usage, especially URL/video ingest requests that will create or update source notes, wiki pages, logs, issues, or renderer/tooling files.

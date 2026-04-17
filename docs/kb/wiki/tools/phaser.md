@@ -1,6 +1,6 @@
 ---
 title: Phaser
-last_reviewed: 2026-04-11
+last_reviewed: 2026-04-16
 status: seed
 sources:
   - ../../sources/2026/2026-04-11-phaser-pixui.md
@@ -17,6 +17,7 @@ Phaser remains relevant both as a rapid browser-game engine and as a target for 
 
 - PixUI suggests the Phaser ecosystem is gaining more specialized pixel-art tooling.
 - The tactical RPG example suggests Phaser is viable for richer turn-based prototypes, not only tiny toy demos.
+- The most useful concrete anchor in that RPG reference is the workflow tuple `GPT-5.4 + Codex + Playwright Interactive + image generation + Phaser`, even though the wrapper article itself is thin.
 
 ## Workspace relevance
 
