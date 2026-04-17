@@ -334,6 +334,70 @@ func TestProvisionWorkflowFieldsFailsForMissingRequiredOption(t *testing.T) {
 	}
 }
 
+func TestUpdateItemUpdatesDraftIssueAndFields(t *testing.T) {
+	var requests []map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode request body: %v", err)
+		}
+		requests = append(requests, payload)
+		writeGraphQLResponse(t, w, map[string]any{
+			"data": map[string]any{
+				"ok": true,
+			},
+		})
+	}))
+	defer server.Close()
+
+	client := &githubClient{
+		httpClient: server.Client(),
+		endpoint:   server.URL,
+		token:      "token",
+	}
+	cache := &Cache{
+		Project: ProjectRef{ProjectID: "proj-1"},
+		Fields: map[string]FieldCache{
+			fieldStatus: {
+				ID:      "status",
+				Type:    fieldTypeSingleSelect,
+				Options: map[string]string{"Done": "done-id"},
+			},
+		},
+		Items: []Item{{ID: "item-1", DraftIssueID: "draft-1", ContentType: "DraftIssue"}},
+	}
+
+	err := client.updateItem(cache, "item-1", itemUpdate{
+		Title:         "New title",
+		TitleProvided: true,
+		Body:          "New body",
+		BodyProvided:  true,
+		FieldValues:   map[string]string{fieldStatus: "Done"},
+	})
+	if err != nil {
+		t.Fatalf("updateItem() error = %v", err)
+	}
+	if len(requests) != 2 {
+		t.Fatalf("request count = %d, want 2", len(requests))
+	}
+	if !strings.Contains(requests[0]["query"].(string), "updateProjectV2DraftIssue") {
+		t.Fatalf("first query = %s", requests[0]["query"].(string))
+	}
+	input := requests[0]["variables"].(map[string]any)["input"].(map[string]any)
+	if input["draftIssueId"] != "draft-1" || input["title"] != "New title" || input["body"] != "New body" {
+		t.Fatalf("draft update input = %#v", input)
+	}
+	if !strings.Contains(requests[1]["query"].(string), "updateProjectV2ItemFieldValue") {
+		t.Fatalf("second query = %s", requests[1]["query"].(string))
+	}
+	vars := requests[1]["variables"].(map[string]any)
+	if vars["itemId"] != "item-1" || vars["optionId"] != "done-id" {
+		t.Fatalf("field update variables = %#v", vars)
+	}
+}
+
 func compatibleWorkflowFields() map[string]FieldCache {
 	return map[string]FieldCache{
 		fieldStatus: {

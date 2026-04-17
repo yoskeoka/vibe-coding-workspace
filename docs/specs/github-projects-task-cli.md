@@ -1,7 +1,7 @@
 # Spec: GitHub Projects Task CLI Spike
 
 ## Goal
-Provide a small Go CLI that lets this workspace sync, inspect, create, and move GitHub Project tasks while keeping a local JSON cache optimized for AI reads.
+Provide a small Go CLI that lets this workspace sync, inspect, create, update, and navigate GitHub Project tasks while keeping a local JSON cache optimized for AI reads.
 
 ## Location
 - The CLI lives under `tools/pj/`.
@@ -13,7 +13,7 @@ This layout is preferred over `scripts/cmd/pj` because the spike is a compiled G
 ## Configuration
 - Authentication MUST use `gh auth token`.
 - The GitHub token needs ProjectV2 scopes:
-  - write project scope for `init`, `add`, and `move`
+  - write project scope for `init`, `add`, and `update`
   - `read:project` for `sync` and remote-backed reads
 - The canonical workspace board is a dedicated ProjectV2 named `Workspace Task Triage`.
 - The CLI MUST provide an explicit bootstrap command, `pj init`, that resolves this board by name for the configured owner before creating a new board.
@@ -37,6 +37,7 @@ This layout is preferred over `scripts/cmd/pj` because the spike is a compiled G
 - The cache stores:
   - project identity and project ID
   - custom field IDs and single-select option IDs
+  - ordered enriched repo-option metadata for runtime `repo` resolution
   - a normalized item list suitable for AI inspection
   - the last sync timestamp
 
@@ -52,8 +53,16 @@ The config stores:
 - Resolves the canonical `Workspace Task Triage` board by owner and title before creating a new board
 - Creates the canonical board when absent
 - Provisions missing custom `Workspace Repo`, `Kind`, and `Priority` fields as single-select workflow fields during bootstrap
-- Uses these canonical option sets for provisioned fields:
-  - `Workspace Repo`: `vibe-coding-workspace`, `ww`, `ai-arena`, `reversi-adventure`, `vim-learning-game`, `envdiff`
+- Provisions `Workspace Repo` display values from workspace repo metadata derived from `setup.sh` plus the workspace repository itself
+- Derives enriched repo metadata from the same source:
+  - `source_type`
+  - `source_url`
+  - `canonical_slug`
+  - alias values such as basename and `owner/repo`
+- Uses `github-repo` as the initial `source_type`
+- Defines a `github-repo` canonical slug as `github.com/<owner>/<repo>`, derived from the repo option's `source_url`
+- Keeps GitHub Project display values as repo basenames (`ww`, `ai-arena`, etc.) even though runtime resolution may use richer identity
+- Uses these canonical option sets for provisioned non-repo fields:
   - `Kind`: `Feature`, `Bug`, `Chore`, `Research`
   - `Priority`: `High`, `Medium`, `Low`
 - Keeps `--repo` as the CLI flag, and stores the normalized item property as `repo`, even though the remote ProjectV2 field name and cached field-metadata map key remain `Workspace Repo`
@@ -88,20 +97,65 @@ The config stores:
 ### `pj add`
 - Creates a draft item with a title and optional body
 - Optionally sets `Status`, `Repo`, `Kind`, and `Priority`
+- Supports `--body <text>` and `--body-file <path>` for draft item body input
+- Rejects `--body` and `--body-file` when both are provided
+- Fails clearly when the `--body-file` path cannot be read
 - Refreshes the local cache after successful mutation
 
-### `pj move`
-- Updates the `Status` field for a given project item ID
+### `pj update`
+- Updates an existing project item by Project item ID
+- Requires `--item <id>`
+- Supports partial updates: only explicitly provided fields are changed
+- Supports these fields:
+  - `title`
+  - `body`
+  - `status`
+  - `repo`
+  - `kind`
+  - `priority`
+- Supports `--body <text>` and `--body-file <path>` for body input
+- Rejects `--body` and `--body-file` when both are provided
+- Fails clearly when the `--body-file` path cannot be read
+- Updates draft item title/body when GitHub supports it for the selected item
 - Refreshes the local cache after successful mutation
+- Replaces the former `pj move` command; `pj move` is not a supported command
+
+### `pj url`
+- Reads `.local/pj/cache.json`
+- Prints the canonical GitHub Project URL to stdout without opening a browser
+
+### `pj open`
+- Reads `.local/pj/cache.json`
+- Opens the canonical GitHub Project URL in the operator's browser
+- Fails clearly when browser opening is unavailable in the current environment
 
 ## Data model
 Each cached item MUST expose enough normalized data for AI and human use:
 - project item ID
+- draft issue ID when available and different from the Project item ID
 - content type (`DraftIssue`, `Issue`, `PullRequest`, or unknown)
 - title
 - repository hint when available
 - current values for `Status`, `Repo`, `Kind`, and `Priority`
 - optional URL for non-draft content
+
+The cache MUST also expose ordered repo-option metadata:
+- The order is ascending by `canonical_slug`.
+- The remote display value remains the basename used by the `Workspace Repo` field.
+- Runtime resolution uses this enriched cache data instead of a hardcoded repo list.
+- Cache refresh derives metadata from `setup.sh` plus the workspace repository itself; field mutation still requires the resolved display value to exist in the cached remote `Workspace Repo` field options.
+
+## Value resolution
+- `status`, `kind`, and `priority` values resolve against the current cached remote field options.
+- `repo` values resolve against ordered enriched repo-option metadata from cache.
+- Enum-like inputs are case-insensitive and normalize `-`, `_`, and whitespace together.
+- Resolution order is:
+  - exact canonical slug match for `repo`
+  - exact alias match
+  - integer index for `repo`, using the ordered metadata stored in cache
+  - unique normalized prefix match against canonical values and aliases
+- Ambiguous or unknown inputs must fail clearly.
+- Ambiguous prefix errors must name the conflicting candidates.
 
 ## Error handling
 - If `gh auth token` fails, commands that contact GitHub must fail with a clear authentication message.

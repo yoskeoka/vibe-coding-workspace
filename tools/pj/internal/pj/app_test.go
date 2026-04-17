@@ -306,6 +306,241 @@ func TestRunConfigShowRejectsInvalidConfig(t *testing.T) {
 	}
 }
 
+func TestRunAddReadsBodyFileAndResolvesFieldValues(t *testing.T) {
+	dir := t.TempDir()
+	cachePath := filepath.Join(dir, "cache.json")
+	bodyPath := filepath.Join(dir, "body.md")
+	if err := os.WriteFile(bodyPath, []byte("handoff body\n"), 0o644); err != nil {
+		t.Fatalf("WriteFile(): %v", err)
+	}
+	if err := writeCache(cachePath, testProjectCache()); err != nil {
+		t.Fatalf("writeCache(): %v", err)
+	}
+
+	client := &stubProjectClient{
+		syncResults: []*Cache{testProjectCache()},
+	}
+	orig := newProjectClient
+	newProjectClient = func() (projectClient, error) { return client, nil }
+	defer func() { newProjectClient = orig }()
+
+	err := runAdd([]string{
+		"--cache", cachePath,
+		"--title", "Task",
+		"--body-file", bodyPath,
+		"--status", "in-progress",
+		"--repo", "ww",
+		"--kind", "feature",
+		"--priority", "hi",
+	}, io.Discard)
+	if err != nil {
+		t.Fatalf("runAdd() error = %v", err)
+	}
+	if client.addBody != "handoff body\n" {
+		t.Fatalf("add body = %q", client.addBody)
+	}
+	want := map[string]string{
+		fieldStatus:   "In Progress",
+		fieldRepo:     "ww",
+		fieldKind:     "Feature",
+		fieldPriority: "High",
+	}
+	for field, value := range want {
+		if client.addFieldValues[field] != value {
+			t.Fatalf("field %q = %q, want %q", field, client.addFieldValues[field], value)
+		}
+	}
+}
+
+func TestRunAddRejectsBodyAndBodyFileTogether(t *testing.T) {
+	err := runAdd([]string{
+		"--cache", filepath.Join(t.TempDir(), "cache.json"),
+		"--title", "Task",
+		"--body", "inline",
+		"--body-file", "body.md",
+	}, io.Discard)
+	if err == nil {
+		t.Fatal("runAdd() error = nil, want conflict error")
+	}
+	if !strings.Contains(err.Error(), "either --body or --body-file") {
+		t.Fatalf("runAdd() error = %q", err)
+	}
+}
+
+func TestRunUpdatePartialFieldsAndRepoIndex(t *testing.T) {
+	dir := t.TempDir()
+	cachePath := filepath.Join(dir, "cache.json")
+	bodyPath := filepath.Join(dir, "body.md")
+	if err := os.WriteFile(bodyPath, []byte("updated body"), 0o644); err != nil {
+		t.Fatalf("WriteFile(): %v", err)
+	}
+	if err := writeCache(cachePath, testProjectCache()); err != nil {
+		t.Fatalf("writeCache(): %v", err)
+	}
+
+	client := &stubProjectClient{
+		syncResults: []*Cache{testProjectCache()},
+	}
+	orig := newProjectClient
+	newProjectClient = func() (projectClient, error) { return client, nil }
+	defer func() { newProjectClient = orig }()
+
+	err := runUpdate([]string{
+		"--cache", cachePath,
+		"--item", "item-1",
+		"--title", "New title",
+		"--body-file", bodyPath,
+		"--status", "todo",
+		"--repo", "2",
+	}, io.Discard)
+	if err != nil {
+		t.Fatalf("runUpdate() error = %v", err)
+	}
+	if client.updateItemID != "item-1" {
+		t.Fatalf("update item = %q", client.updateItemID)
+	}
+	if !client.update.TitleProvided || client.update.Title != "New title" {
+		t.Fatalf("update title = provided %v value %q", client.update.TitleProvided, client.update.Title)
+	}
+	if !client.update.BodyProvided || client.update.Body != "updated body" {
+		t.Fatalf("update body = provided %v value %q", client.update.BodyProvided, client.update.Body)
+	}
+	if client.update.FieldValues[fieldStatus] != "Todo" {
+		t.Fatalf("status = %q", client.update.FieldValues[fieldStatus])
+	}
+	if client.update.FieldValues[fieldRepo] != "ww" {
+		t.Fatalf("repo = %q, want ww", client.update.FieldValues[fieldRepo])
+	}
+}
+
+func TestRunUpdateRejectsAmbiguousPrefix(t *testing.T) {
+	cache := testProjectCache()
+	cache.RepoOptions = append(cache.RepoOptions, RepoOption{
+		DisplayValue:  "ww-tools",
+		SourceType:    repoSourceGitHub,
+		SourceURL:     "https://github.com/yoskeoka/ww-tools",
+		CanonicalSlug: "github.com/yoskeoka/ww-tools",
+		Aliases:       []string{"ww-tools", "yoskeoka/ww-tools"},
+	})
+	cache.Fields[fieldRepo].Options["ww-tools"] = "ww-tools"
+
+	cachePath := filepath.Join(t.TempDir(), "cache.json")
+	if err := writeCache(cachePath, cache); err != nil {
+		t.Fatalf("writeCache(): %v", err)
+	}
+
+	err := runUpdate([]string{"--cache", cachePath, "--item", "item-1", "--repo", "github.com/yoskeoka/w"}, io.Discard)
+	if err == nil {
+		t.Fatal("runUpdate() error = nil, want ambiguity error")
+	}
+	if !strings.Contains(err.Error(), "ambiguous Workspace Repo value") || !strings.Contains(err.Error(), "ww-tools") {
+		t.Fatalf("runUpdate() error = %q", err)
+	}
+}
+
+func TestResolveRepoValueSupportsSlugAliasAndPrefix(t *testing.T) {
+	cache := testProjectCache()
+	cases := map[string]string{
+		"github.com/yoskeoka/ww": "ww",
+		"yoskeoka/ww":            "ww",
+		"ai_ar":                  "ai-arena",
+	}
+	for input, want := range cases {
+		got, err := resolveRepoValue(cache, input)
+		if err != nil {
+			t.Fatalf("resolveRepoValue(%q) error = %v", input, err)
+		}
+		if got != want {
+			t.Fatalf("resolveRepoValue(%q) = %q, want %q", input, got, want)
+		}
+	}
+}
+
+func TestRunURLAndOpenUseCanonicalProjectURL(t *testing.T) {
+	cachePath := filepath.Join(t.TempDir(), "cache.json")
+	if err := writeCache(cachePath, testProjectCache()); err != nil {
+		t.Fatalf("writeCache(): %v", err)
+	}
+
+	var stdout strings.Builder
+	if err := runURL([]string{"--cache", cachePath}, &stdout); err != nil {
+		t.Fatalf("runURL() error = %v", err)
+	}
+	wantURL := "https://github.com/users/yoskeoka/projects/7"
+	if strings.TrimSpace(stdout.String()) != wantURL {
+		t.Fatalf("url output = %q, want %q", strings.TrimSpace(stdout.String()), wantURL)
+	}
+
+	orig := openProjectURL
+	var opened string
+	openProjectURL = func(url string) error {
+		opened = url
+		return nil
+	}
+	defer func() { openProjectURL = orig }()
+
+	stdout.Reset()
+	if err := runOpen([]string{"--cache", cachePath}, &stdout); err != nil {
+		t.Fatalf("runOpen() error = %v", err)
+	}
+	if opened != wantURL {
+		t.Fatalf("opened URL = %q, want %q", opened, wantURL)
+	}
+}
+
+func testProjectCache() *Cache {
+	return &Cache{
+		Project: ProjectRef{
+			Owner:         "yoskeoka",
+			OwnerType:     "user",
+			ProjectNumber: 7,
+			ProjectID:     "proj-1",
+			Title:         canonicalProjectTitle,
+		},
+		Fields: map[string]FieldCache{
+			fieldStatus: {
+				ID:      "status",
+				Type:    fieldTypeSingleSelect,
+				Options: map[string]string{"Todo": "todo", "In Progress": "in-progress", "Done": "done"},
+			},
+			fieldRepo: {
+				ID:      "repo",
+				Type:    fieldTypeSingleSelect,
+				Options: map[string]string{"ai-arena": "ai-arena", "ww": "ww"},
+			},
+			fieldKind: {
+				ID:      "kind",
+				Type:    fieldTypeSingleSelect,
+				Options: map[string]string{"Feature": "feature", "Bug": "bug"},
+			},
+			fieldPriority: {
+				ID:      "priority",
+				Type:    fieldTypeSingleSelect,
+				Options: map[string]string{"High": "high", "Medium": "medium"},
+			},
+		},
+		RepoOptions: []RepoOption{
+			{
+				DisplayValue:  "ai-arena",
+				SourceType:    repoSourceGitHub,
+				SourceURL:     "https://github.com/yoskeoka/ai-arena",
+				CanonicalSlug: "github.com/yoskeoka/ai-arena",
+				Aliases:       []string{"ai-arena", "yoskeoka/ai-arena"},
+			},
+			{
+				DisplayValue:  "ww",
+				SourceType:    repoSourceGitHub,
+				SourceURL:     "https://github.com/yoskeoka/ww",
+				CanonicalSlug: "github.com/yoskeoka/ww",
+				Aliases:       []string{"ww", "yoskeoka/ww"},
+			},
+		},
+		Items: []Item{
+			{ID: "item-1", DraftIssueID: "draft-1", ContentType: "DraftIssue", Title: "Task"},
+		},
+	}
+}
+
 type stubProjectClient struct {
 	ensureProjectRef  ProjectRef
 	ensureProjectMade bool
@@ -315,6 +550,10 @@ type stubProjectClient struct {
 	provisionCreated  bool
 	provisionErr      error
 	provisionCalls    int
+	addBody           string
+	addFieldValues    map[string]string
+	updateItemID      string
+	update            itemUpdate
 }
 
 func (s *stubProjectClient) ensureProject(owner, ownerType, title string) (ProjectRef, bool, error) {
@@ -340,10 +579,14 @@ func (s *stubProjectClient) provisionWorkflowFields(cache *Cache) (bool, error) 
 }
 
 func (s *stubProjectClient) addDraftItem(cache *Cache, title, body string, fieldValues map[string]string) error {
+	s.addBody = body
+	s.addFieldValues = fieldValues
 	return nil
 }
 
-func (s *stubProjectClient) moveItem(cache *Cache, itemID, status string) error {
+func (s *stubProjectClient) updateItem(cache *Cache, itemID string, update itemUpdate) error {
+	s.updateItemID = itemID
+	s.update = update
 	return nil
 }
 

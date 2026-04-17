@@ -87,7 +87,8 @@ That first `pj init` establishes the local owner scope in `.local/pj/config.json
 go -C tools/pj run ./cmd/pj sync
 go -C tools/pj run ./cmd/pj list
 go -C tools/pj run ./cmd/pj add --title "..."
-go -C tools/pj run ./cmd/pj move --item <item-id> --status "In Progress"
+go -C tools/pj run ./cmd/pj update --item <item-id> --status "In Progress"
+go -C tools/pj run ./cmd/pj url
 ```
 
 Inspect the stored owner target with:
@@ -110,7 +111,7 @@ go -C tools/pj run ./cmd/pj config clear
 ```
 
 Notes:
-- `read:project` is enough for read-only sync, but `pj init`, `pj add`, and `pj move` require the `project` scope.
+- `read:project` is enough for read-only sync, but `pj init`, `pj add`, and `pj update` require the `project` scope.
 - `pj init` can create the `Workspace Task Triage` board and provision the custom `Workspace Repo`, `Kind`, and `Priority` fields when they are missing.
 - Owner flags are for establishing or explicitly re-establishing the local owner scope. They do not silently override an existing `.local/pj/config.json`.
 
