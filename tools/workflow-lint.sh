@@ -253,6 +253,9 @@ check_workflow_doc_startup_commands() {
         "skills/plan-execution/SKILL.md"
         "skills/execute-task/SKILL.md"
         "skills/triage-tasks/SKILL.md"
+        "skills/plan-project/SKILL.md"
+        "skills/review-task/SKILL.md"
+        "skills/manage-workflow/SKILL.md"
     )
     local raw_git_pattern='^[[:space:]]*git fetch origin([[:space:]]|$)|^[[:space:]]*git switch -c[[:space:]]|`git fetch origin`|`git switch -c [^`]+`|`git fetch origin && git switch -c [^`]+`'
     local file

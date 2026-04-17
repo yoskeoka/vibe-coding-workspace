@@ -39,7 +39,7 @@ This document outlines the workflow for developing projects with AI as the centr
 > **Rule**: Every step that produces changes MUST go through a GitHub PR review — including doc-only changes like Project Plan and Execution Plan updates. AI Agents must always create a new clean branch from the latest `main` before starting any work.
 
 ### Branch Setup (applies to every step below)
-- **Default operator path**: use the globally installed `ww` CLI for normal plan/execution startup instead of raw `git switch -c`.
+- **Default operator path**: use the globally installed `ww` CLI for normal plan/execution startup instead of raw git branch creation.
 - From the target repo root:
     ```sh
     ww create <type>/<description>
@@ -53,7 +53,7 @@ This document outlines the workflow for developing projects with AI as the centr
 - Never reuse an existing feature branch or task worktree silently; each active task should get its own `ww` worktree.
 - Raw git branch creation is reserved for `ww` bootstrap/recovery cases and for developing or verifying unreleased `ww` behavior inside `ww/`. If `ww` fails unexpectedly, follow `docs/specs/ww-dogfooding-workflow.md` instead of bypassing it silently.
 - When capturing a `ww` failure, record the command, cwd, target repo, expected behavior, actual behavior, relevant output, fallback usage, and impact so the finding can feed back into `ww`.
-- This startup contract is fully migrated for the core planning/execution path covered by `AI_WORKFLOW.md`, `AGENTS.md`, `README.md`, `skills/plan-execution/SKILL.md`, `skills/execute-task/SKILL.md`, and `skills/triage-tasks/SKILL.md`. Remaining raw-git startup wording in other skills is tracked separately in `docs/issues/ww-workflow-skill-migration-follow-up.md`.
+- This startup contract is fully migrated for the workflow docs and skills covered by `docs/specs/ww-dogfooding-workflow.md`, including adjacent project planning, PR review, and workflow bootstrap skills.
 
 #### Branch Naming Convention
 
