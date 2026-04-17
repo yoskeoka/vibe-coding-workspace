@@ -254,6 +254,17 @@ The helper SHOULD prefer `uv` when available and fall back to `python3 -m mkdocs
 
 The helper MUST derive the rendered `Sources` nav from `docs/kb/sources/YYYY/*.md` so newly added source notes cannot be omitted accidentally.
 
+Generated MkDocs inputs MUST be safe for concurrent local invocations:
+- Each `tools/kb check`, `tools/kb build`, and `tools/kb serve` invocation MUST use an invocation-owned generated root under `.local/`.
+- `tools/kb check` and `tools/kb build` MUST clean up their invocation-owned generated root after a successful run.
+- `tools/kb serve` MUST keep its invocation-owned generated root for the lifetime of the MkDocs server process and clean it up when that process exits.
+- A KB invocation MUST NOT delete or mutate another live invocation's generated docs tree, generated config file, or generated source indexes.
+- The helper MAY keep shared dependency caches such as `UV_CACHE_DIR` stable across invocations, because generated docs/config inputs are the concurrency-sensitive workspace.
+- Any caller-provided generated root accepted by the generator MUST resolve inside the repo-local `.local/kb-generated/` parent and MUST NOT be the parent directory itself.
+- Empty caller-provided generated-root values MUST be treated as unset rather than as the current working directory.
+- If cleanup of an invocation-owned generated root fails, the helper MUST report the exact path and leave the local-only artifact under `.local/` for inspection without turning an otherwise successful command into a failure.
+- Failed KB invocations MAY leave their invocation-owned generated root under `.local/` for debugging.
+
 ## Rendering and Publishing
 
 - The git-tracked Markdown under `docs/kb/` MUST remain the source of truth for the rendered site, but the published site MAY be built from a derived docs tree that includes publish-only artifacts and sections derived from frontmatter.

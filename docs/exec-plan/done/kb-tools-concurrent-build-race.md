@@ -70,9 +70,9 @@ No new ADR is expected unless execution chooses a broader shared cache or lockin
 
 ## Sub-tasks
 
-- [ ] [parallel] Update `docs/specs/knowledge-base.md` with the KB command concurrency and cleanup contract
-- [ ] [parallel] Add or design a focused regression verification for concurrent `tools/kb` invocations
-- [ ] [depends on: spec] Update `tools/kb_generate.py` so the generated root is provided by the caller and only invocation-owned paths are replaced
-- [ ] [depends on: kb_generate] Update `tools/kb` to create, pass, retain, and clean invocation-scoped generated paths for `check`, `build`, and `serve`
-- [ ] [depends on: tools/kb, regression verification] Run sequential and concurrent KB verification
-- [ ] [depends on: verification] Move the resolved issue file to `docs/issues/done/`
+- [x] [parallel] Update `docs/specs/knowledge-base.md` with the KB command concurrency and cleanup contract
+- [x] [parallel] Add or design a focused regression verification for concurrent `tools/kb` invocations
+- [x] [depends on: spec] Update `tools/kb_generate.py` so the generated root is provided by the caller and only invocation-owned paths are replaced
+- [x] [depends on: kb_generate] Update `tools/kb` to create, pass, retain, and clean invocation-scoped generated paths for `check`, `build`, and `serve`
+- [x] [depends on: tools/kb, regression verification] Run sequential and concurrent KB verification
+- [x] [depends on: verification] Move the resolved issue file to `docs/issues/done/`

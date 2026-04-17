@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
+import os
 import posixpath
 import re
 import shutil
@@ -9,11 +11,51 @@ from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 SOURCE_DOCS_DIR = ROOT_DIR / "docs" / "kb"
-GENERATED_ROOT = ROOT_DIR / ".local" / "kb-generated"
+GENERATED_PARENT = ROOT_DIR / ".local" / "kb-generated"
+DEFAULT_GENERATED_ROOT = GENERATED_PARENT / "direct"
+GENERATED_ROOT = DEFAULT_GENERATED_ROOT
 GENERATED_DOCS_DIR = GENERATED_ROOT / "docs"
 GENERATED_CONFIG_FILE = GENERATED_ROOT / "mkdocs.kb.generated.yml"
 TEMPLATE_CONFIG_FILE = ROOT_DIR / "mkdocs.kb.template.yml"
 SITE_DIR = ROOT_DIR / ".site" / "kb"
+
+
+def configured_generated_root() -> str | None:
+    value = os.environ.get("KB_GENERATED_ROOT")
+    if value and value.strip():
+        return value
+    return None
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Generate MkDocs inputs for the workspace KB.")
+    parser.add_argument(
+        "--generated-root",
+        default=configured_generated_root(),
+        help="Invocation-owned directory for generated docs and config files.",
+    )
+    return parser.parse_args()
+
+
+def configure_generated_root(path: str | None) -> None:
+    global GENERATED_ROOT, GENERATED_DOCS_DIR, GENERATED_CONFIG_FILE
+
+    if path:
+        candidate = Path(path).expanduser().resolve()
+    else:
+        candidate = DEFAULT_GENERATED_ROOT.resolve()
+
+    generated_parent = GENERATED_PARENT.resolve()
+    try:
+        candidate.relative_to(generated_parent)
+    except ValueError as exc:
+        raise SystemExit(f"generated root must be inside {generated_parent}: {candidate}") from exc
+    if candidate == generated_parent:
+        raise SystemExit(f"generated root must not be the shared parent directory: {generated_parent}")
+
+    GENERATED_ROOT = candidate
+    GENERATED_DOCS_DIR = GENERATED_ROOT / "docs"
+    GENERATED_CONFIG_FILE = GENERATED_ROOT / "mkdocs.kb.generated.yml"
 
 
 def parse_frontmatter(text: str) -> tuple[dict[str, object], str]:
@@ -191,6 +233,9 @@ def write_generated_config(nav_block: str) -> None:
 
 
 def main() -> None:
+    args = parse_args()
+    configure_generated_root(args.generated_root)
+
     if GENERATED_ROOT.exists():
         shutil.rmtree(GENERATED_ROOT)
     GENERATED_DOCS_DIR.parent.mkdir(parents=True, exist_ok=True)
