@@ -103,6 +103,20 @@ The `triage-tasks` skill may use the local cache and/or the CLI output as its wo
 - The skill MUST treat `pj list` output plus the cached `Priority` field as the day-to-day "what next?" view; the current spike does not provide a separate `ready` command.
 - The canonical Project used by this workflow MUST include a `Priority` field; fallback ranking applies when an item's `Priority` value is empty, unset, or otherwise unknown, not when the field is absent from the Project schema.
 - The skill MUST create new triage items with `pj add` and claim or complete them by changing `Status` with `pj move`.
+- During full re-triage, every newly created `pj add` item MUST include a compact body that acts as a remote-facing startup handoff, not only a source note.
+- The Project item body MUST stay concise enough for GitHub Project scanning and SHOULD be a short Markdown block with these minimum fields:
+  - `Source`: the local plan, local issue, GitHub PR, GitHub Issue, or discovered source reference
+  - `Repo`: the target workspace repo
+  - `Next`: the recommended next-step skill when clear, such as `plan-execution` or `execute-task`; otherwise `Manual triage`
+  - `Start`: the suggested `ww create` and `ww cd` command when a concrete planning or execution branch is meaningful
+  - `Read`: initial files, docs, PRs, or issues to inspect first
+  - `Goal`: a one-sentence outcome for the task
+- Stored Project item bodies MUST use English as the stable workspace-board language so the remote board remains consistent across sessions. Chat handoff prompts remain user-facing output and MUST follow the current session language rule below.
+- For execution-plan items, the body SHOULD recommend `execute-task`, include the plan path, and suggest a `feat/<plan-name>` or `fix/<plan-name>` startup command that matches the plan's expected branch type.
+- For local issue follow-up items, the body SHOULD recommend `plan-execution` when the issue is non-trivial, include the issue path, and suggest a `plan/<issue-name>` startup command.
+- For open PR review or follow-up items, the body SHOULD avoid a misleading implementation startup when the action is review, approval, or post-review response; it SHOULD use `Manual triage` or a specific review skill only when clear, include the PR URL, and name the expected review/follow-up goal.
+- For open GitHub Issue items, the body SHOULD use `Manual triage` unless the issue clearly maps to planning or execution, include the issue URL, and avoid inventing local plan paths that do not exist yet.
+- If a concrete startup prompt is not meaningful, the body MUST still include source, repo, initial reading context, and a short goal, but SHOULD set `Next: Manual triage` and `Start: Not yet specified`.
 - After `pj init` or `pj sync`, the skill SHOULD include the canonical GitHub Project URL in the briefing when the owner scope and project number are known.
 - When an item's `Priority` value is empty, unset, incomplete, or displayed as unknown (for example `-` in `pj list`), the skill MUST still rank a small shortlist using explicit heuristics such as: active execution plans over vague future ideas, broken/failing workflow items over aspirational enhancements, and tasks in the currently active repo over distant backlog items.
 - The skill SHOULD present the top-priority shortlist before dumping the full board so the user can choose quickly, while still making the Project URL or full list available.
