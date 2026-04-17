@@ -6,7 +6,7 @@
 
 Make `tools/kb check`, `tools/kb build`, and `tools/kb serve` robust when more than one invocation runs at the same time.
 
-This resolves `docs/issues/kb-tools-concurrent-build-race-follow-up.md`, where parallel `check` and `build` runs both used `.local/kb-generated` and one invocation removed generated inputs while the other was still reading them. The fix supports the project-plan requirement for a repo-native knowledge base that can be built and verified reliably by automated and agentic workflows.
+This plan addresses `docs/issues/kb-tools-concurrent-build-race-follow-up.md`, where parallel `check` and `build` runs both used `.local/kb-generated` and one invocation removed generated inputs while the other was still reading them. Once executed, the fix will support the project-plan requirement for a repo-native knowledge base that can be built and verified reliably by automated and agentic workflows.
 
 ## Reproduction
 
