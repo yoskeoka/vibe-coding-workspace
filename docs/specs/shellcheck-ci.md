@@ -51,7 +51,8 @@ tools/list-changed-bash-scripts.sh [base-ref]
 - checks out the PR head
 - checks out with enough history to resolve the merge-base used by `<base-ref>...HEAD`
 - explicitly fetches the PR base branch before diffing
-- installs ShellCheck on the runner instead of assuming it is preinstalled
+- installs a pinned ShellCheck release binary instead of assuming it is preinstalled
+- verifies the downloaded ShellCheck archive against a pinned SHA-256 digest before install
 - calls `tools/list-changed-bash-scripts.sh` with the fetched base ref
 - exits successfully with a clear message when no changed Bash scripts are found
 - runs ShellCheck against every matching file
