@@ -170,20 +170,22 @@ After the PR is created or updated, continue into the post-PR follow-up loop bel
 For each new PR, updated PR, or later push to the PR branch, monitor the latest PR head SHA before handoff:
 
 1. Record the PR number and current head SHA.
-2. Wait for CI/check runs to settle for that SHA, using the bounded wait cadence below.
-3. Inspect PR timeline/review data for GitHub Copilot auto-review activity.
-4. If Copilot activity is present, wait for review completion and comments using the same bounded wait cadence.
-5. If no Copilot activity or submitted review appears within the bounded interval, stop waiting for Copilot and record the observed state.
-6. Re-check the PR head SHA before handoff. If it changed, restart this loop for the new SHA.
+2. Wait 30 seconds after PR creation or a later push so CI/checks and review automation have time to start.
+3. Inspect CI/check status for that SHA and continue the CI failure loop below when checks fail or expose actionable logs.
+4. Inspect the PR timeline for bot review-start activity, such as `copilot_work_started`.
+5. If bot review-start activity is present, wait for review completion/comments using the bounded bot-review cadence below.
+6. If no bot review-start activity is present, do not spend the bot-review wait budget; record that no bot review start was observed.
+7. Re-check the PR head SHA before handoff. If it changed, restart this loop for the new SHA.
 
-Bounded wait cadence:
+Bounded bot-review wait cadence:
 
 - First wait: 5 minutes.
 - Second wait: 1 minute.
 - Third wait: 1 minute.
 - Total wait budget: 7 minutes across 3 polling turns.
+- After each wait turn, fetch PR reviews and inline comments. If review/comments were submitted, stop waiting and triage them.
 
-If required checks are still pending, have not started, or Copilot has started but not submitted a review after the 7-minute budget, treat the wait as blocked or timed out and document the state in the handoff.
+If bot review has started but no review/comments have been submitted after the 7-minute budget, treat the bot-review wait as timed out and document the state in the handoff.
 
 Prefer delegating polling-style waiting to a low-cost subagent only when the platform supports delegation and the current session explicitly authorizes subagent use. Keep final decisions, code changes, review-comment triage, and user handoff in the main agent.
 
@@ -211,16 +213,18 @@ For each substantive Copilot comment, prepare a concise human-review briefing:
 - whether the item should be deferred into `docs/issues/` or a future plan
 - suggested response or implementation options
 
+After implementing changes, evaluate Copilot comments from the implementation context and present response options in the current session. Do not post that triage back to the PR unless the user explicitly asks for a PR comment.
+
 If later user-approved or workflow-authorized changes are pushed in response to Copilot or human comments, restart the post-PR follow-up loop for the new head SHA.
 
 ### Stop Conditions
 
 The follow-up loop can stop when one of these is true:
 
-- required checks pass and no Copilot auto-review activity appears within the 7-minute wait budget
+- required checks pass and no bot review-start activity appears after the 30-second startup wait
 - required checks pass and available Copilot comments have been summarized
 - CI is blocked or not actionable, and the blocker is documented
-- CI/checks or Copilot review remain pending after the 7-minute wait budget, and the timeout state is documented
+- Copilot review remains pending after bot review-start activity and the 7-minute wait budget, and the timeout state is documented
 - the user explicitly asks to stop waiting
 
 Wait for GitHub PR review approval before merging into `main`.

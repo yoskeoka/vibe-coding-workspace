@@ -47,8 +47,8 @@ At the start of a new session, if the user has not given a specific task, sugges
     - If a `fixable` workflow-linter warning is skipped, record the reason in the PR body.
     - Run all lint and test checks (non-AI tooling) before creating a PR. Fix failures before proceeding.
     - Create PRs via `gh pr create`, complete the bounded post-PR follow-up cycle, and wait for review approval before merging.
-    - After PR creation or any later push to the PR branch, wait for CI/checks to finish for the latest head SHA with the bounded 5-minute, 1-minute, 1-minute cadence. If CI fails and logs are actionable within scope, fix in-branch, re-run verification, push, and repeat the follow-up cycle for the new head SHA.
-    - If GitHub Copilot auto-review appears in the PR timeline, wait for review completion/comments with the bounded 3-turn cadence: 5 minutes, then 1 minute, then 1 minute, for a 7-minute total budget. Treat Copilot comments as human-review preparation: summarize whether to ignore, apply as-is, adapt, respond, or defer to a separate issue. Do not silently auto-apply Copilot suggestions.
+    - After PR creation or any later push to the PR branch, wait 30 seconds, then inspect CI/checks and the PR timeline for the latest head SHA. If CI fails and logs are actionable within scope, fix in-branch, re-run verification, push, and repeat the follow-up cycle for the new head SHA.
+    - If the PR timeline shows GitHub Copilot bot review-start activity, wait for review completion/comments with the bounded 3-turn cadence: 5 minutes, then 1 minute, then 1 minute, for a 7-minute total budget. After each wait, fetch PR reviews and inline comments. Treat Copilot comments as human-review preparation shown in the current session, not as PR comments, unless the user explicitly asks to post back to the PR. Do not silently auto-apply Copilot suggestions.
 
 3.  **Context Management**:
     - Your "memory" is the `docs/` directory.
@@ -159,7 +159,7 @@ Workspace-level triage uses a GitHub Project plus a local derived cache managed 
    git push
    git status  # MUST show "up to date with origin"
    ```
-5. **Post-PR follow-up** - For PR branches, confirm the PR is open, wait for CI/checks on the latest head SHA with the bounded 5-minute, 1-minute, 1-minute cadence, perform actionable CI fixes when feasible, and summarize any Copilot review comments without silently applying them.
+5. **Post-PR follow-up** - For PR branches, confirm the PR is open, wait 30 seconds, inspect CI/checks and timeline for the latest head SHA, perform actionable CI fixes when feasible, and summarize any Copilot review comments in the current session without silently applying them or posting triage to the PR unless explicitly asked.
 6. **Clean up** - Clear stashes, prune remote branches
 7. **Verify** - All changes committed, pushed, and followed up for the latest PR head SHA
 8. **Hand off** - Provide context for next session
