@@ -107,6 +107,9 @@ When compressing a source, prefer this order of preservation:
 - Store durable screenshots only when they materially improve comprehension and only under `docs/kb/assets/source-images/<year>/<source-slug>/`.
 - Durable screenshots should be referenced from the source note with enough context to explain why the image was kept.
 - Do not keep more than a small curated set of screenshots in git. Bulk candidate frames remain temporary job artifacts.
+- For video-backed sources, add a visible `## Source` section in the source note body with the source URL, video URL when present, subtitle/transcript availability, and enough retrieval guidance for a human to revisit the source from the rendered wiki page.
+- If subtitles or transcripts are retrieved, preserve the durable result by segmenting notes under the same time anchors used in frontmatter. Do not commit full third-party verbatim transcripts unless the source license or user-provided text makes that permitted; keep detailed segment notes and short retrieval anchors instead.
+- When screenshots are useful for human skim, keep at least one selected screenshot per important time anchor unless the frame is blank, duplicative, or legally/sensitively unsuitable.
 
 ## During query filing-back
 
