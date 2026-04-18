@@ -26,7 +26,7 @@ extra_javascript:
   - assets/javascripts/kb-nav-default-state.js
 
 nav:
-  - Index: wiki/index.md
+  - Index: index.md
   - Log: wiki/log.md
   - Topics:
       - LLM Knowledge Bases: wiki/topics/llm-knowledge-bases.md
@@ -45,6 +45,6 @@ nav:
   - Sources:
 __GENERATED_SOURCES_NAV__
   - KB Docs:
-      - Home: README.md
+      - Home: kb-docs/README.md
       - Schema: schema.md
       - Ingest: ingest.md
