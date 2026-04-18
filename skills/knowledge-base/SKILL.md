@@ -52,19 +52,11 @@ Read-only KB queries that do not write files may skip branch creation.
 
 ## Ingest workflow
 
-1. Read the provided URLs or source material.
-2. Create one source note per source under `docs/kb/sources/<year>/`.
-3. Update the most relevant pages under `docs/kb/wiki/`.
-4. Update `docs/kb/wiki/index.md` if navigation should change.
-5. Append a dated line to `docs/kb/wiki/log.md`.
-6. If the source suggests a concrete experiment, record it in the relevant page.
-
-Prefer updating existing wiki pages over creating new ones. Preserve provenance. Avoid copying long source text.
-Keep concrete retrieval anchors such as service names, library names, product names, and document names when they are part of the source's value. Do not collapse `Render vs Cloud Run` into `easy backend vs fast backend` if the original concrete options are useful later.
+Follow `docs/kb/ingest.md` for the ingest flow and `docs/kb/schema.md` for durable source-note and wiki-page formats. Do not duplicate or override those rules here.
 
 ## Video-backed workflow
 
-Use the skill-local pipeline when the source is a direct video or a thin article whose value lives in an embedded/linked video.
+Use the skill-local pipeline when `docs/kb/ingest.md` calls for video-backed processing. Treat the generated artifacts as drafts; final durable output must still follow `docs/kb/schema.md` and `docs/kb/ingest.md`.
 
 ### Setup
 
@@ -104,14 +96,7 @@ Notes:
 - Omit `--video-url` when the source URL itself is the canonical video URL.
 - Use `--video-url` for video-backed articles so the durable note can keep both the wrapper article and the actual video.
 - If `--frame-interval-sec` or `--ocr-batch-size` is omitted, the CLI picks defaults from the detected runtime profile.
-- The current heuristics inspect OS/WSL shape, available memory, and GPU support to avoid overly aggressive settings on weaker machines.
-- `--ocr-batch-size` still has a hard ceiling of 4 unless the implementation is explicitly revised.
-
-`skim` produces:
-- `job.json` with job metadata
-- normalized transcript, OCR, frame, and segment artifacts under the job directory
-- prompt payloads for segment summaries, representative frame selection, and KB compile/review
-- `outputs/skim.md` for human review
+- Review `outputs/skim.md` before deciding whether to ingest.
 
 ### Ingest after skim
 
@@ -130,28 +115,13 @@ python3 skills/knowledge-base/scripts/kb_video_ingest.py \
 - `outputs/wiki-update-draft.md`
 - `outputs/log-entry-draft.md`
 
-### Subtitle-first, transcription fallback
-
-- The pipeline prefers existing subtitles or auto-subs from `yt-dlp`.
-- If subtitles are missing, pass `--transcribe-command` with a backend that prints VTT to stdout.
-- Temporary artifacts stay in OS temp storage by default, or under `.local/kb-ingest/` when `--scratch-root` is set.
-- Raw transcripts, OCR dumps, and bulk candidate frames stay outside `docs/kb/`.
-
 ## Query filing-back workflow
 
-If a user asks a question and the answer is durable:
-- create or update a compact page under `docs/kb/wiki/`
-- link it from a relevant topic, pattern, tool, or project page
-- note the change in `docs/kb/wiki/log.md`
+Follow the query filing-back rules in `docs/kb/schema.md`.
 
 ## Lint workflow
 
-Review the knowledge base for:
-- orphan pages
-- duplicated topics
-- stale date-sensitive claims
-- weak cross-linking
-- source notes that are not reflected in the wiki
+Follow the lint rules in `docs/kb/schema.md`.
 
 ## Rendering
 
