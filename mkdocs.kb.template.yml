@@ -26,8 +26,6 @@ extra_javascript:
   - assets/javascripts/kb-nav-default-state.js
 
 nav:
-  - Index: index.md
-  - Log: wiki/log.md
   - Topics:
       - LLM Knowledge Bases: wiki/topics/llm-knowledge-bases.md
       - AI-Assisted Game Development: wiki/topics/ai-game-dev.md
@@ -42,6 +40,7 @@ nav:
       - ww: wiki/projects/ww.md
       - reversi-adventure: wiki/projects/reversi-adventure.md
       - vim-learning-game: wiki/projects/vim-learning-game.md
+  - Log: wiki/log.md
   - Sources:
 __GENERATED_SOURCES_NAV__
   - KB Docs:
