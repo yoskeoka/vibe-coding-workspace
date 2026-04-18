@@ -9,11 +9,11 @@ tags:
   - ai-game-dev
   - claude-code
   - browser-games
-video_url: https://youtu.be/247Z3jdw_hs
+video_url: https://www.youtube.com/watch?v=247Z3jdw_hs
 video_platform: youtube
 channel: Peter Yang
 published_on: 2026-02-04
-duration: 20m
+duration: 20m00s
 time_anchors:
   - "00:00: why Peter Yang likes building games with his child using Claude Code"
   - "01:19: project setup"
