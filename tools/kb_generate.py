@@ -211,9 +211,16 @@ def generate_sources_index(by_year: dict[str, list[Path]]) -> None:
     target.write_text("\n".join(lines), encoding="utf-8")
 
 
+def require_generated_file(path: Path, description: str) -> None:
+    if not path.is_file():
+        rel = path.relative_to(GENERATED_DOCS_DIR)
+        raise SystemExit(f"missing generated KB {description}: {rel}")
+
+
 def generate_root_index() -> None:
     source = GENERATED_DOCS_DIR / "wiki" / "index.md"
     target = GENERATED_DOCS_DIR / "index.md"
+    require_generated_file(source, "wiki index")
     text = source.read_text(encoding="utf-8")
     replacements = {
         "](projects/": "](wiki/projects/",
@@ -231,6 +238,7 @@ def generate_root_index() -> None:
 def relocate_readme() -> None:
     source = GENERATED_DOCS_DIR / "README.md"
     target = GENERATED_DOCS_DIR / "kb-docs" / "README.md"
+    require_generated_file(source, "README")
     text = source.read_text(encoding="utf-8")
     text = text.replace("(schema.md)", "(../schema.md)")
     text = text.replace("(ingest.md)", "(../ingest.md)")

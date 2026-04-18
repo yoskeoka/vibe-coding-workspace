@@ -100,6 +100,8 @@ The knowledge base MUST contain:
 - `docs/kb/wiki/index.md` as the primary human and AI entry point
 - `docs/kb/wiki/log.md` as an append-only-ish ingest and maintenance log
 
+The rendered site root MUST publish the contents of `docs/kb/wiki/index.md` as the home page. The rendered sidebar nav SHOULD start with topic/tool/project browsing sections rather than a separate `Index` entry when the site home already provides that entry point.
+
 The rendered site MUST expose a `Sources` navigation section grouped by year.
 
 Each year entry SHOULD use a compact label such as `2026 (6)` and point to a generated yearly landing page in the rendered site.
