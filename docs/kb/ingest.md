@@ -46,8 +46,8 @@ When the useful content lives in a video:
 
 For video-backed source notes, the durable body should also include:
 - a visible `## Source` section so rendered wiki browsing exposes the article URL, video URL, and subtitle/transcript retrieval status instead of hiding them only in YAML frontmatter
-- selected screenshots that help human skim, normally at least one per important time anchor
 - segment notes under the same time anchors used in frontmatter
+- selected screenshots placed with their matching anchor notes, normally at least one per important time anchor when the frame improves human skim
 
 Full third-party verbatim transcripts should not be copied into `docs/kb/` unless the source license or user-provided material permits it. When captions are available but full copying is not appropriate, keep detailed segment notes, concrete names, commands, UI labels, and source links so the original can be revisited without repeating the whole ingest process.
 

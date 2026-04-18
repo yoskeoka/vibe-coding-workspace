@@ -109,7 +109,7 @@ When compressing a source, prefer this order of preservation:
 - Do not keep more than a small curated set of screenshots in git. Bulk candidate frames remain temporary job artifacts.
 - For video-backed sources, add a visible `## Source` section in the source note body with the source URL, video URL when present, subtitle/transcript availability, and enough retrieval guidance for a human to revisit the source from the rendered wiki page.
 - If subtitles or transcripts are retrieved, preserve the durable result by segmenting notes under the same time anchors used in frontmatter. Do not commit full third-party verbatim transcripts unless the source license or user-provided text makes that permitted; keep detailed segment notes and short retrieval anchors instead.
-- When screenshots are useful for human skim, keep at least one selected screenshot per important time anchor unless the frame is blank, duplicative, or legally/sensitively unsuitable.
+- When screenshots are useful for human skim, keep at least one selected screenshot per important time anchor unless the frame is blank, duplicative, or legally/sensitively unsuitable. In the source-note body, place each screenshot with its matching anchor notes rather than collecting all screenshots in a separate section.
 
 ## During query filing-back
 
