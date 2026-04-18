@@ -50,7 +50,7 @@ tools/workflow-lint.sh --mode=ci [--pr-title=TITLE] [--pr-body=BODY]
 | 1 | Issue lifecycle | `fixable` | pre-push, ci | Files removed from `docs/issues/` must appear in `docs/issues/done/` (moved, not deleted) | AI_WORKFLOW.md Step 3: "Issue Resolution" |
 | 2 | Docs-change hint | `advisory` | ci only | If code files changed but no `docs/` files changed, and PR title/body does not contain `[trivial]`, emit warning | AI_WORKFLOW.md: "Spec-Code Parity" principle |
 | 3 | Branch naming | `fixable` | pre-push, ci | Branch name must match `<type>/<description>` where type is `plan\|feat\|fix\|chore\|docs` and description is non-empty kebab-case. `main` is exempt. | AI_WORKFLOW.md: "Branch Naming Convention" |
-| 4 | Exec-plan existence | `fixable` | pre-push, ci | For `feat/*` and `fix/*` branches, `docs/exec-plan/todo/<name>.md` or `docs/exec-plan/done/<name>.md` must exist. `plan/*`, `chore/*`, `docs/*` branches are exempt. | AI_WORKFLOW.md: "Exec-Plan Mapping" |
+| 4 | Exec-plan existence | `fixable` | pre-push, ci | For `feat/*` and `fix/*` branches, `docs/exec-plan/todo/<name>.md` or `docs/exec-plan/done/<name>.md` must exist, where `<name>` is the branch description. `plan/*`, `chore/*`, `docs/*` branches are exempt. | AI_WORKFLOW.md: "Exec-Plan Mapping" |
 | 5 | Workflow startup wording | `fixable` | pre-push, ci | If changed migrated workflow-facing docs or skills reintroduce raw startup snippets like `git fetch origin` or `git switch -c`, emit a warning to keep global `ww` as the default operator path. Covered skills include `plan-execution`, `execute-task`, `triage-tasks`, `plan-project`, `review-task`, and `manage-workflow`. | docs/specs/ww-dogfooding-workflow.md: "Workflow lint guard" |
 
 **Operating rule:**
@@ -59,6 +59,11 @@ tools/workflow-lint.sh --mode=ci [--pr-title=TITLE] [--pr-body=BODY]
 - skipped `fixable` warnings must be justified in the PR body
 - `advisory` warnings remain non-blocking judgment calls
 - exit behavior stays non-blocking (`exit 0`)
+
+**Exec-plan filename convention:**
+- Active exec-plan filenames use descriptive kebab-case without numeric prefixes.
+- For execution branches, the filename stem must match the branch description exactly. For example, `feat/workflow-linter` maps to `docs/exec-plan/todo/workflow-linter.md` during execution and `docs/exec-plan/done/workflow-linter.md` after completion.
+- Numeric examples may appear in historical completed artifacts when documenting prior workflow state, but live workflow docs, templates, and active todo plans must use the non-numeric convention.
 
 **Exit codes:**
 - Always 0 (warnings only)

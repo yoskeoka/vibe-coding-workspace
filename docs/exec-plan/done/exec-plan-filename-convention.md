@@ -58,7 +58,7 @@ Apply the same reasoning here rather than introducing a second convention.
 
 ## Sub-tasks
 
-- [ ] [parallel] Update live workflow-facing docs/templates to state the non-numeric exec-plan filename convention
-- [ ] [parallel] Rename active numeric exec-plan files in `docs/exec-plan/todo/`
-- [ ] [depends on: both above] Update any in-repo references affected by the renames and verify there are no remaining live numbered instructions
-- [ ] [depends on: all above] Run repo checks relevant to the touched files and prepare the execution PR
+- [x] [parallel] Update live workflow-facing docs/templates to state the non-numeric exec-plan filename convention
+- [x] [parallel] Rename active numeric exec-plan files in `docs/exec-plan/todo/`
+- [x] [depends on: both above] Update any in-repo references affected by the renames and verify there are no remaining live numbered instructions
+- [x] [depends on: all above] Run repo checks relevant to the touched files and prepare the execution PR
