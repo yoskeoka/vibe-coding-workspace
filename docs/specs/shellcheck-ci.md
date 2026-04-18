@@ -82,7 +82,13 @@ tools/list-changed-bash-scripts.sh origin/main | while IFS= read -r path; do
   [ -n "$path" ] || continue
   case "$path" in
     *.sh|*.bash)
-      shellcheck --shell=bash "$path"
+      if grep -Eq '^[[:space:]]*# shellcheck shell=' "$path"; then
+        shellcheck "$path"
+      elif IFS= read -r first_line < "$path" && [ "${first_line#\#!}" != "$first_line" ]; then
+        shellcheck "$path"
+      else
+        shellcheck --shell=bash "$path"
+      fi
       ;;
     *)
       shellcheck "$path"
