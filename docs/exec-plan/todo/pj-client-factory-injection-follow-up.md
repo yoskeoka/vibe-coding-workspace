@@ -28,7 +28,7 @@ This is minimal, but it spreads the same dependency parameter across every remot
 ### Option B: introduce an internal `app` dependency struct
 
 - Add an unexported struct, for example `type app struct { newProjectClient func() (projectClient, error) }`.
-- Make exported `Run` construct a default app with `newGitHubClient`.
+- Make exported `Run` construct a default app with a production factory that adapts `newGitHubClient` to the `func() (projectClient, error)` signature.
 - Move command dispatch and remote-backed runners onto methods such as `a.runInit`, `a.runSync`, `a.runAdd`, and `a.runUpdate`.
 - Tests instantiate an app with a local stub factory instead of mutating package globals.
 
