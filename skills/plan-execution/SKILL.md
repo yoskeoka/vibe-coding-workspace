@@ -56,10 +56,11 @@ Create a new plan file in `docs/exec-plan/todo/` that details the work to be don
 
 ### Rules
 
-1. **Read `docs/project-plan.md` first**: Understand the project's goals before planning tasks.
-2. **One plan per logical unit of work**: Each plan file corresponds to a coherent, reviewable chunk of changes.
-3. **Naming convention**: Name the plan file `<name>.md` so it matches the branch description, e.g., `initial-setup.md`, `feature-name.md`, `fix-bug-x.md`. If a plan is split into multiple files, continue using non-numeric, descriptive names derived from the same branch name, such as `feature-name-backend.md` and `feature-name-ui.md`; do not use numeric prefixes like `004a-feature-name.md`.
-4. **Check `docs/exec-plan/done/`** for completed plans to understand prior work and avoid duplication.
+1. **Read planning context before designing**: Read `docs/project-plan.md`, `docs/design-decisions/core-beliefs.md`, and `docs/design-decisions/adr.md` before drafting the plan or choosing an approach.
+2. **Discuss meaningful trade-offs before deciding**: If the plan has multiple viable approaches, list the options even when one option is common or conventional. Compare them against `docs/project-plan.md`, `docs/design-decisions/core-beliefs.md`, and `docs/design-decisions/adr.md`, identify the recommended option for the current project, then discuss that recommendation with the human before locking it into the plan.
+3. **One plan per logical unit of work**: Each plan file corresponds to a coherent, reviewable chunk of changes.
+4. **Naming convention**: Name the plan file `<name>.md` so it matches the branch description, e.g., `initial-setup.md`, `feature-name.md`, `fix-bug-x.md`. If a plan is split into multiple files, continue using non-numeric, descriptive names derived from the same branch name, such as `feature-name-backend.md` and `feature-name-ui.md`; do not use numeric prefixes like `004a-feature-name.md`.
+5. **Check `docs/exec-plan/done/`** for completed plans to understand prior work and avoid duplication.
 
 ### Plan File Content
 
@@ -115,6 +116,13 @@ If the plan involves architectural choices, review and update `docs/design-decis
 
 - `adr.md`: Append the decision with context and rationale.
 - `core-beliefs.md`: Verify the decision aligns with guiding principles.
+
+When trade-offs exist:
+
+1. List the viable options and the practical consequences of each.
+2. Explain how prior decisions in `docs/design-decisions/adr.md` and current goals in `docs/project-plan.md` affect the choice.
+3. Present a recommended option as a recommendation, not a final decision.
+4. Ask the human to confirm, reject, or refine the recommendation before recording it in the plan.
 
 ## PR Workflow
 
