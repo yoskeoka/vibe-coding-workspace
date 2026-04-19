@@ -84,13 +84,13 @@ Recommendation: update the existing PR follow-up contract in place. No ADR updat
 
 ## Sub-tasks
 
-- [ ] [parallel] Inventory current Copilot-specific wording in `docs/specs/pr-follow-up-workflow.md`, `skills/review-task/SKILL.md`, `AI_WORKFLOW.md`, and `AGENTS.md`.
-- [ ] [parallel] Define the exact advisory bot/agent triage output shape and later-push wait rules from the issue.
-- [ ] [depends on: advisory triage output shape] Update `docs/specs/pr-follow-up-workflow.md` with the generalized policy, source-grouped handoff requirements, and separated CI/advisory loops.
-- [ ] [depends on: spec update] Update `skills/review-task/SKILL.md` so the skill follows the spec and does not authorize silent advisory-comment edits.
-- [ ] [depends on: spec update] Update `AI_WORKFLOW.md` and `AGENTS.md` with the same policy boundary and later-push behavior.
-- [ ] [depends on: workflow docs and skill updates] Move the source issue to `docs/issues/done/`.
-- [ ] [depends on: all above] Run workflow lint and manually verify the policy is consistent across spec, skill, and top-level agent instructions.
+- [x] [parallel] Inventory current Copilot-specific wording in `docs/specs/pr-follow-up-workflow.md`, `skills/review-task/SKILL.md`, `AI_WORKFLOW.md`, and `AGENTS.md`.
+- [x] [parallel] Define the exact advisory bot/agent triage output shape and later-push wait rules from the issue.
+- [x] [depends on: advisory triage output shape] Update `docs/specs/pr-follow-up-workflow.md` with the generalized policy, source-grouped handoff requirements, and separated CI/advisory loops.
+- [x] [depends on: spec update] Update `skills/review-task/SKILL.md` so the skill follows the spec and does not authorize silent advisory-comment edits.
+- [x] [depends on: spec update] Update `AI_WORKFLOW.md` and `AGENTS.md` with the same policy boundary and later-push behavior.
+- [x] [depends on: workflow docs and skill updates] Move the source issue to `docs/issues/done/`.
+- [x] [depends on: all above] Run workflow lint and manually verify the policy is consistent across spec, skill, and top-level agent instructions.
 
 ## Parallelism
 

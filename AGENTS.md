@@ -47,8 +47,10 @@ At the start of a new session, if the user has not given a specific task, sugges
     - If a `fixable` workflow-linter warning is skipped, record the reason in the PR body.
     - Run all lint and test checks (non-AI tooling) before creating a PR. Fix failures before proceeding.
     - Create PRs via `gh pr create`, complete the bounded post-PR follow-up cycle, and wait for review approval before merging.
-    - After PR creation or any later push to the PR branch, wait 30 seconds, then inspect CI/checks and the PR timeline for the latest head SHA. If CI fails and logs are actionable within scope, fix in-branch, re-run verification, push, and repeat the follow-up cycle for the new head SHA.
-    - If the PR timeline shows GitHub Copilot bot review-start activity, wait for review completion/comments with the bounded 3-turn cadence: 5 minutes, then 1 minute, then 1 minute, for a 7-minute total budget. After each wait, fetch PR reviews and inline comments. Treat Copilot comments as human-review preparation shown in the current session, not as PR comments, unless the user explicitly asks to post back to the PR. Do not silently auto-apply Copilot suggestions.
+    - After PR creation or any later push to the PR branch, wait 30 seconds, then inspect CI/checks and the PR timeline for the latest head SHA. If CI fails and logs are actionable within scope, fix in-branch, re-run verification, push, and repeat the required CI/check follow-up cycle for the new head SHA.
+    - Treat Copilot, Claude, `gh aw`, agent workflow reviews, and other configured bot/agent review comments as advisory human-review input. Do not edit files, apply suggestions, commit, or push in response to those findings unless the human explicitly approves that specific follow-up or a prior human instruction already authorized implementing that exact review feedback.
+    - If the PR timeline shows advisory bot/agent review-start activity for the latest head SHA, wait for review completion/comments with the bounded 3-turn cadence: 5 minutes, then 1 minute, then 1 minute, for a 7-minute total budget. After each wait, fetch PR reviews and inline comments. Do not spend the longer advisory wait budget on later pushes unless new review-start activity appears for the latest SHA or the human asks to wait.
+    - Handoff substantive advisory bot/agent findings grouped by source reviewer/workflow. Include source, location/link, extracted summary, implementer's view, 1-2 line explanation, and recommendation: fix in this PR, defer, or no action. Passing or approving advisory checks can still contain substantive review-body observations, so inspect review summaries even when the status is not blocking. Treat this triage as current-session preparation, not as a PR comment, unless the user explicitly asks to post back to the PR.
 
 3.  **Context Management**:
     - Your "memory" is the `docs/` directory.
@@ -159,7 +161,7 @@ Workspace-level triage uses a GitHub Project plus a local derived cache managed 
    git push
    git status  # MUST show "up to date with origin"
    ```
-5. **Post-PR follow-up** - For PR branches, confirm the PR is open, wait 30 seconds, inspect CI/checks and timeline for the latest head SHA, perform actionable CI fixes when feasible, and summarize any Copilot review comments in the current session without silently applying them or posting triage to the PR unless explicitly asked.
+5. **Post-PR follow-up** - For PR branches, confirm the PR is open, wait 30 seconds, inspect CI/checks and timeline for the latest head SHA, perform actionable CI fixes when feasible, and summarize any advisory bot/agent review findings in the current session before mutation. Advisory bot/agent checks are reported by status but do not block handoff by default on second and later pushes unless required CI fails, review-start activity appears for the latest SHA, or the human requests more waiting. Do not silently apply findings or post triage to the PR unless explicitly asked.
 6. **Clean up** - Clear stashes, prune remote branches
 7. **Verify** - All changes committed, pushed, and followed up for the latest PR head SHA
 8. **Hand off** - Provide context for next session
