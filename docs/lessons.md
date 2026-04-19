@@ -1,5 +1,12 @@
 # Lessons Learned
 
+## Issue-to-Implementation Requires Planning First
+
+- **Mistake**: I treated a non-trivial `docs/issues/` item as ready for `execute-task` even though no execution plan existed yet.
+- **Pattern**: An issue file can describe a useful fix, but it is not the same artifact as `docs/exec-plan/todo/<name>.md`; jumping straight to execution skips the workflow's planning review gate.
+- **Rule**: When the user points at a non-trivial `docs/issues/<name>.md` item and no matching `docs/exec-plan/todo/<name>.md` exists, start with `plan-execution`, create `docs/exec-plan/todo/<name>.md`, and only use `execute-task` after that plan PR is merged.
+- **Applied**: Workflow issue follow-ups, especially issues that change specs, skills, scripts, or multiple files.
+
 ## Skipped Detecting target project
 
 - **Mistake**: I started investigating from the workspace root instead of the target child repository.
