@@ -118,13 +118,13 @@ No ADR update is expected unless execution reveals that skill-local helper scrip
 
 ## Sub-tasks
 
-- [ ] [parallel] Update `docs/specs/pr-follow-up-workflow.md` with the compact polling helper contract, state behavior, fallback rule, and output requirements.
-- [ ] [parallel] Design the `gh-pr-followup poll` shell interface and local state filename/keying scheme.
-- [ ] [depends on: helper design] Implement `skills/review-task/scripts/gh-pr-followup` with compact `gh --jq` reads and marker updates.
-- [ ] [depends on: helper implementation] Update `skills/review-task/SKILL.md` to prefer the helper in the post-PR follow-up loop.
-- [ ] [depends on: helper implementation] Add focused verification for script syntax and, if practical, a fake-`gh` smoke test for marker reset/new-comment filtering.
-- [ ] [depends on: docs and helper] Move `docs/issues/gh-pr-followup-token-trimming.md` to `docs/issues/done/`.
-- [ ] [depends on: all above] Run workflow lint and relevant shell/script checks, then prepare the execution PR through `review-task`.
+- [x] [parallel] Update `docs/specs/pr-follow-up-workflow.md` with the compact polling helper contract, state behavior, fallback rule, and output requirements.
+- [x] [parallel] Design the `gh-pr-followup poll` shell interface and local state filename/keying scheme.
+- [x] [depends on: helper design] Implement `skills/review-task/scripts/gh-pr-followup` with compact `gh --jq` reads and marker updates.
+- [x] [depends on: helper implementation] Update `skills/review-task/SKILL.md` to prefer the helper in the post-PR follow-up loop.
+- [x] [depends on: helper implementation] Add focused verification for script syntax and, if practical, a fake-`gh` smoke test for marker reset/new-comment filtering.
+- [x] [depends on: docs and helper] Move `docs/issues/gh-pr-followup-token-trimming.md` to `docs/issues/done/`.
+- [x] [depends on: all above] Run workflow lint and relevant shell/script checks, then prepare the execution PR through `review-task`.
 
 ## Parallelism
 
