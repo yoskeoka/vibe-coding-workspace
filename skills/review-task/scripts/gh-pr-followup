@@ -1,0 +1,244 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+    cat >&2 <<'USAGE'
+Usage:
+  gh-pr-followup poll <owner/repo> <pr-number>
+
+Environment:
+  GH_BIN                    GitHub CLI executable to use. Defaults to gh.
+  GH_PR_FOLLOWUP_STATE_DIR  State directory. Defaults to <repo>/.local/gh-pr-followup.
+USAGE
+    exit 2
+}
+
+die() {
+    echo "gh-pr-followup: $*" >&2
+    exit 1
+}
+
+require_command() {
+    if ! command -v "$1" >/dev/null 2>&1; then
+        die "required command not found: $1"
+    fi
+}
+
+safe_state_key() {
+    printf '%s-%s' "${1//\//-}" "$2" | tr -cs 'A-Za-z0-9._-' '-'
+}
+
+state_value() {
+    local state_json="$1"
+    local jq_filter="$2"
+
+    jq -r "$jq_filter // empty" <<<"$state_json"
+}
+
+compact_pr() {
+    jq '{
+        head_sha: (.headRefOid // ""),
+        review_decision: (.reviewDecision // null),
+        checks: [(.statusCheckRollup // [])[] | {
+            name: (.name // .context // null),
+            workflow: (.workflowName // .workflow.name // .workflow // null),
+            status: (.status // null),
+            conclusion: (.conclusion // null),
+            details_url: (.detailsUrl // .details_url // .targetUrl // .url // null)
+        }],
+        reviews: [(.reviews // [])[] | {
+            id: (.id // null),
+            state: (.state // null),
+            user: (.author.login // .user.login // null),
+            body: (.body // null),
+            submitted_at: (.submittedAt // .submitted_at // null),
+            commit_id: (.commit.oid // .commitId // .commit_id // null),
+            html_url: (.url // .htmlUrl // .html_url // null)
+        }]
+    }'
+}
+
+compact_timeline() {
+    jq -s '[.[] | {
+        id: (.id // 0),
+        event: (.event // null),
+        created_at: (.created_at // null),
+        actor: (.actor.login // .actor.name // null),
+        reviewer: (.requested_reviewer.login // .reviewer.login // .user.login // null),
+        team: (.requested_team.name // .team.name // null),
+        app: (.performed_via_github_app.slug // .performed_via_github_app.name // null),
+        commit_id: (.commit_id // .commit_oid // null),
+        review_state: (.review.state // .state // null)
+    }]'
+}
+
+compact_inline_comments() {
+    jq -s '[.[] | {
+        id: (.id // 0),
+        path: (.path // null),
+        line: (.line // .original_line // null),
+        user: (.user.login // null),
+        body: (.body // null),
+        created_at: (.created_at // null),
+        updated_at: (.updated_at // null),
+        commit_id: (.commit_id // null),
+        html_url: (.html_url // null)
+    }]'
+}
+
+max_id() {
+    jq 'map(.id // 0) | max // 0' <<<"$1"
+}
+
+poll() {
+    local repo="$1"
+    local pr="$2"
+    local gh_bin="${GH_BIN:-gh}"
+    local root state_dir state_file state_json previous_head last_timeline_id last_comment_id
+    local pr_json compact_pr_json head_sha timeline_json inline_comments_json
+    local filtered_timeline_json filtered_inline_comments_json
+    local new_last_timeline_id new_last_comment_id checked_at changed_head output_json tmp_state
+
+    [[ "$repo" == */* ]] || die "repo must be in owner/repo form"
+    [[ "$pr" =~ ^[0-9]+$ ]] || die "pr-number must be numeric"
+
+    require_command jq
+    require_command "$gh_bin"
+
+    root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+    state_dir="${GH_PR_FOLLOWUP_STATE_DIR:-${root}/.local/gh-pr-followup}"
+    mkdir -p "$state_dir"
+    state_file="${state_dir}/$(safe_state_key "$repo" "$pr").json"
+
+    if [ -f "$state_file" ]; then
+        state_json=$(jq -c '.' "$state_file" 2>/dev/null || printf '{}')
+    else
+        state_json='{}'
+    fi
+
+    pr_json=$("$gh_bin" pr view "$pr" --repo "$repo" --json headRefOid,statusCheckRollup,reviewDecision,reviews)
+    compact_pr_json=$(compact_pr <<<"$pr_json")
+    head_sha=$(state_value "$compact_pr_json" '.head_sha')
+    [ -n "$head_sha" ] || die "gh pr view did not return headRefOid"
+
+    previous_head=$(state_value "$state_json" '.head_sha')
+    if [ "$previous_head" = "$head_sha" ]; then
+        changed_head=false
+        last_timeline_id=$(state_value "$state_json" '.last_timeline_event_id')
+        last_comment_id=$(state_value "$state_json" '.last_review_comment_id')
+    else
+        changed_head=true
+        last_timeline_id=0
+        last_comment_id=0
+    fi
+
+    last_timeline_id="${last_timeline_id:-0}"
+    last_comment_id="${last_comment_id:-0}"
+
+    timeline_json=$(
+        "$gh_bin" api "repos/${repo}/issues/${pr}/timeline" --paginate \
+            --jq '.[] | {
+                id,
+                event,
+                created_at,
+                actor,
+                requested_reviewer,
+                requested_team,
+                reviewer,
+                user,
+                team,
+                performed_via_github_app,
+                commit_id,
+                commit_oid,
+                review,
+                state
+            }' | compact_timeline
+    )
+
+    inline_comments_json=$(
+        "$gh_bin" api "repos/${repo}/pulls/${pr}/comments" --paginate \
+            --jq '.[] | {
+                id,
+                path,
+                line,
+                original_line,
+                user,
+                body,
+                created_at,
+                updated_at,
+                commit_id,
+                html_url
+            }' | compact_inline_comments
+    )
+
+    filtered_timeline_json=$(jq --argjson last "$last_timeline_id" '[.[] | select((.id // 0) > $last)]' <<<"$timeline_json")
+    filtered_inline_comments_json=$(jq --argjson last "$last_comment_id" '[.[] | select((.id // 0) > $last)]' <<<"$inline_comments_json")
+    new_last_timeline_id=$(max_id "$timeline_json")
+    new_last_comment_id=$(max_id "$inline_comments_json")
+    checked_at=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+
+    output_json=$(
+        jq -n \
+            --arg repo "$repo" \
+            --argjson pr "$pr" \
+            --arg head_sha "$head_sha" \
+            --arg state_file "$state_file" \
+            --arg checked_at "$checked_at" \
+            --argjson changed_head "$changed_head" \
+            --argjson last_timeline_event_id "$new_last_timeline_id" \
+            --argjson last_review_comment_id "$new_last_comment_id" \
+            --slurpfile pr_data <(printf '%s\n' "$compact_pr_json") \
+            --slurpfile timeline_events <(printf '%s\n' "$filtered_timeline_json") \
+            --slurpfile inline_comments <(printf '%s\n' "$filtered_inline_comments_json") \
+            '{
+                repo: $repo,
+                pr: $pr,
+                head_sha: $head_sha,
+                review_decision: ($pr_data[0].review_decision // null),
+                checks: ($pr_data[0].checks // []),
+                reviews: ($pr_data[0].reviews // []),
+                timeline_events: ($timeline_events[0] // []),
+                inline_comments: ($inline_comments[0] // []),
+                state: {
+                    file: $state_file,
+                    changed_head: $changed_head,
+                    last_timeline_event_id: $last_timeline_event_id,
+                    last_review_comment_id: $last_review_comment_id,
+                    last_checked_at: $checked_at
+                }
+            }'
+    )
+
+    tmp_state=$(mktemp "${state_file}.tmp.XXXXXX")
+    jq -n \
+        --arg repo "$repo" \
+        --argjson pr "$pr" \
+        --arg head_sha "$head_sha" \
+        --arg checked_at "$checked_at" \
+        --argjson last_timeline_event_id "$new_last_timeline_id" \
+        --argjson last_review_comment_id "$new_last_comment_id" \
+        '{
+            repo: $repo,
+            pr: $pr,
+            head_sha: $head_sha,
+            last_timeline_event_id: $last_timeline_event_id,
+            last_review_comment_id: $last_review_comment_id,
+            last_checked_at: $checked_at
+        }' >"$tmp_state"
+    mv "$tmp_state" "$state_file"
+
+    jq -c '.' <<<"$output_json"
+}
+
+if [ "$#" -ne 3 ]; then
+    usage
+fi
+
+case "$1" in
+    poll)
+        poll "$2" "$3"
+        ;;
+    *)
+        usage
+        ;;
+esac

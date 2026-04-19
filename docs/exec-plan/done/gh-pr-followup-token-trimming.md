@@ -22,7 +22,7 @@ Addresses: `docs/issues/gh-pr-followup-token-trimming.md`
 ### `docs/specs/pr-follow-up-workflow.md`
 
 - Add a compact polling helper contract for post-PR follow-up.
-- State that `review-task` should prefer the helper when present and fall back to raw `gh` commands only when the helper is missing or fails.
+- State that `review-task` should prefer the helper and stop automatic follow-up with a reported failure reason if the helper is missing or fails.
 - Define local non-canonical polling state under `.local/gh-pr-followup/`.
 - Require state to be keyed by owner, repo, and PR number.
 - Require state to record at least:
@@ -92,8 +92,8 @@ The compact check shape should include only:
 ### `skills/review-task/SKILL.md`
 
 - Update the Post-PR Follow-up Loop to use the wrapper as the preferred polling path.
-- Keep the existing raw `gh` commands as fallback guidance for missing/failing helper cases.
-- Clarify that repeated polling should inspect new helper output first, not repeatedly paste raw timeline/comment JSON into the main context.
+- Clarify that missing/failing helper cases should report the failure and stop automatic follow-up instead of falling back to raw `gh` polling.
+- Clarify that repeated polling should inspect new helper output only, not repeatedly paste raw timeline/comment JSON into the main context.
 
 ### `docs/issues/`
 
@@ -112,19 +112,19 @@ Apply the same reasoning here:
 
 - Keep `review-task` as the post-PR follow-up owner.
 - Add a small helper under the `review-task` skill boundary instead of introducing a separate skill.
-- Preserve raw `gh` fallback so the workflow remains usable if the helper is unavailable.
+- Avoid automatic raw `gh` fallback so helper failure does not turn routine PR monitoring into a large-token raw JSON inspection. Later raw inspection remains a separate, explicit human choice.
 
 No ADR update is expected unless execution reveals that skill-local helper scripts should become a broader workflow tooling convention.
 
 ## Sub-tasks
 
-- [ ] [parallel] Update `docs/specs/pr-follow-up-workflow.md` with the compact polling helper contract, state behavior, fallback rule, and output requirements.
-- [ ] [parallel] Design the `gh-pr-followup poll` shell interface and local state filename/keying scheme.
-- [ ] [depends on: helper design] Implement `skills/review-task/scripts/gh-pr-followup` with compact `gh --jq` reads and marker updates.
-- [ ] [depends on: helper implementation] Update `skills/review-task/SKILL.md` to prefer the helper in the post-PR follow-up loop.
-- [ ] [depends on: helper implementation] Add focused verification for script syntax and, if practical, a fake-`gh` smoke test for marker reset/new-comment filtering.
-- [ ] [depends on: docs and helper] Move `docs/issues/gh-pr-followup-token-trimming.md` to `docs/issues/done/`.
-- [ ] [depends on: all above] Run workflow lint and relevant shell/script checks, then prepare the execution PR through `review-task`.
+- [x] [parallel] Update `docs/specs/pr-follow-up-workflow.md` with the compact polling helper contract, state behavior, failure-stop rule, and output requirements.
+- [x] [parallel] Design the `gh-pr-followup poll` shell interface and local state filename/keying scheme.
+- [x] [depends on: helper design] Implement `skills/review-task/scripts/gh-pr-followup` with compact `gh --jq` reads and marker updates.
+- [x] [depends on: helper implementation] Update `skills/review-task/SKILL.md` to prefer the helper in the post-PR follow-up loop.
+- [x] [depends on: helper implementation] Add focused verification for script syntax and, if practical, a fake-`gh` smoke test for marker reset/new-comment filtering.
+- [x] [depends on: docs and helper] Move `docs/issues/gh-pr-followup-token-trimming.md` to `docs/issues/done/`.
+- [x] [depends on: all above] Run workflow lint and relevant shell/script checks, then prepare the execution PR through `review-task`.
 
 ## Parallelism
 
@@ -143,11 +143,11 @@ No ADR update is expected unless execution reveals that skill-local helper scrip
   - output contains compact fields and omits bulky fields such as `diff_hunk`
 - manual spec-code parity check:
   - `docs/specs/pr-follow-up-workflow.md` matches the helper behavior
-  - `skills/review-task/SKILL.md` names the helper and fallback behavior accurately
+  - `skills/review-task/SKILL.md` names the helper and failure-stop behavior accurately
 
 ## Expected Outcome
 
 - Agents still complete the bounded post-PR follow-up loop.
 - The main context receives compact, decision-oriented PR follow-up data.
 - Repeated CI/Copilot polling stops re-consuming old timeline and comment entries.
-- Raw `gh` commands remain available as a fallback, but they are no longer the default documented path for `review-task` follow-up.
+- Raw `gh` commands remain available only for explicit human-requested follow-up or targeted helper diagnosis; they are not the automatic fallback path for `review-task` follow-up.

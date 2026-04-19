@@ -69,3 +69,10 @@
 - **Pattern**: Treating advisory bot review like an already-approved implementation instruction turns PR follow-up into unreviewed scope changes; treating an approving/pass review state as "no comments to inspect" can also hide minor observations and notes in the review body.
 - **Rule**: When Copilot, `gh aw`, agent workflow, or another advisory bot leaves review comments or review-body observations, first present each item grouped by source with the implementer's view, a 1-2 line explanation, and a recommendation of whether it should be fixed in the current PR; do not edit or push changes for those comments unless the human explicitly approves.
 - **Applied**: `review-task` follow-up, `execute-task` PR monitoring, and any workflow that reads bot/agent PR review comments.
+
+## Token-Saving Helpers Should Fail Closed
+
+- **Mistake**: I documented raw `gh` API reads as an automatic fallback when the compact PR follow-up helper is missing or fails.
+- **Pattern**: A helper created to avoid large token usage can lose its value if its failure path silently returns to raw, high-volume JSON polling.
+- **Rule**: When a workflow helper exists specifically to limit context/token cost, its missing/failing path should report the failure reason and stop automatic monitoring unless the user explicitly asks for raw inspection or targeted helper diagnosis.
+- **Applied**: `skills/review-task/scripts/gh-pr-followup`, `skills/review-task/SKILL.md`, and `docs/specs/pr-follow-up-workflow.md`.

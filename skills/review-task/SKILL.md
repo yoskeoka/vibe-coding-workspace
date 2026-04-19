@@ -171,28 +171,25 @@ For each new PR, updated PR, or later push to the PR branch, monitor the latest 
 
 1. Record the PR number and current head SHA.
 2. Wait 30 seconds after PR creation or a later push so CI/checks and review automation have time to start.
-3. Inspect CI/check status for that SHA and continue the CI failure loop below when checks fail or expose actionable logs.
-4. Inspect the PR issue timeline with:
+3. Poll compact PR follow-up state with:
 
    ```sh
-   gh api repos/<owner>/<repo>/issues/<pr-number>/timeline --paginate
+   skills/review-task/scripts/gh-pr-followup poll <owner/repo> <pr-number>
    ```
 
-5. Detect automatic reviewer activity from timeline events, including:
+   The helper returns the current head SHA, review decision, compact check rollup, review summaries, new timeline events, and new inline review comments. Repeated polls use `.local/gh-pr-followup/` markers so old timeline events and inline comments are not pasted back into the main context.
+4. Inspect CI/check status for that SHA from the helper output and continue the CI failure loop below when checks fail or expose actionable logs.
+5. Inspect new timeline events from the helper output to detect automatic reviewer activity.
+6. If the helper is missing or fails, report the failure reason and stop automatic follow-up for this PR head SHA. Do **not** automatically fall back to raw GitHub reads; spending large context on raw timeline/comment JSON is not appropriate for routine hobby-project PR monitoring. Tell the user the PR can be checked later, or run a targeted raw `gh` command only if the user explicitly asks or the helper itself needs diagnosis.
+7. Detect automatic reviewer activity from timeline events, including:
    - `copilot_work_started`
    - `review_requested` events where `requested_reviewer.login` or `requested_team.name` identifies Copilot, Claude, `gh aw`, agent workflow, or another configured bot/agent reviewer
    - timeline events from bot or agent actors that indicate review work has started
-6. If automatic reviewer activity has started but no final review/comments are visible yet, wait for review completion/comments using the bounded bot-review cadence below.
-7. If no automatic reviewer activity is present, do not spend the bot-review wait budget; record that no automatic review start was observed.
-8. Before handoff, fetch review summaries and inline review comments with:
-
-   ```sh
-   gh pr view <pr-number> --json reviews,comments,statusCheckRollup
-   gh api repos/<owner>/<repo>/pulls/<pr-number>/comments --paginate
-   ```
-
-9. Treat actionable bot/agent review comments like normal review feedback: resolve them in scope or document why they are not being acted on before calling the PR ready.
-10. Re-check the PR head SHA before handoff. If it changed, restart this loop for the new SHA.
+8. If automatic reviewer activity has started but no final review/comments are visible yet, wait for review completion/comments using the bounded bot-review cadence below.
+9. If no automatic reviewer activity is present, do not spend the bot-review wait budget; record that no automatic review start was observed.
+10. Before handoff, use the latest helper output for review summaries and inline review comments. If the helper failed, hand off the failure reason instead of fetching raw review bodies or already-seen comments.
+11. Treat actionable bot/agent review comments like normal review feedback: resolve them in scope or document why they are not being acted on before calling the PR ready.
+12. Re-check the PR head SHA before handoff. If it changed, restart this loop for the new SHA.
 
 Bounded bot-review wait cadence:
 
@@ -200,7 +197,7 @@ Bounded bot-review wait cadence:
 - Second wait: 1 minute.
 - Third wait: 1 minute.
 - Total wait budget: 7 minutes across 3 polling turns.
-- After each wait turn, fetch PR reviews and inline comments using the review-summary and pull-comment commands above. If review/comments were submitted, stop waiting and triage them.
+- After each wait turn, poll with `skills/review-task/scripts/gh-pr-followup`. If review/comments were submitted, stop waiting and triage them. If the helper fails, stop the automatic wait loop and report the failure reason.
 
 If bot review has started but no review/comments have been submitted after the 7-minute budget, treat the bot-review wait as timed out and document the state in the handoff.
 
@@ -242,6 +239,7 @@ The follow-up loop can stop when one of these is true:
 - required checks pass and available Copilot comments have been summarized
 - CI is blocked or not actionable, and the blocker is documented
 - Copilot review remains pending after bot review-start activity and the 7-minute wait budget, and the timeout state is documented
+- the compact follow-up helper is missing or fails, and the failure reason is documented
 - the user explicitly asks to stop waiting
 
 Wait for GitHub PR review approval before merging into `main`.
