@@ -120,7 +120,7 @@ If the plan involves architectural choices, review and update `docs/design-decis
 When trade-offs exist:
 
 1. List the viable options and the practical consequences of each.
-2. Explain how prior decisions in `adr.md` and current goals in `project-plan.md` affect the choice.
+2. Explain how prior decisions in `docs/design-decisions/adr.md` and current goals in `docs/project-plan.md` affect the choice.
 3. Present a recommended option as a recommendation, not a final decision.
 4. Ask the human to confirm, reject, or refine the recommendation before recording it in the plan.
 
