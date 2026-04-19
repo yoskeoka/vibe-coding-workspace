@@ -56,9 +56,9 @@
 - **Rule**: Before a file-changing KB ingest, check the working tree, ensure local changes are preserved or absent, create a fresh branch/worktree from latest `origin/main` with global `ww`, and only then write KB files.
 - **Applied**: `knowledge-base` skill usage, especially URL/video ingest requests that will create or update source notes, wiki pages, logs, issues, or renderer/tooling files.
 
-## Copilot Review Comments Need Human Triage Before Edits
+## Bot/Agent Review Comments Need Human Triage Before Edits
 
-- **Mistake**: I applied a Copilot review suggestion during PR follow-up before first extracting the comments, adding the implementer's view, and asking whether the item should be fixed in the current PR.
-- **Pattern**: Treating advisory bot review like an already-approved implementation instruction turns PR follow-up into unreviewed scope changes.
-- **Rule**: When Copilot leaves review comments, first present each comment with the implementer's view, a 1-2 line explanation, and a recommendation of whether it should be fixed in the current PR; do not edit or push changes for those comments unless the human explicitly approves.
+- **Mistake**: I applied an advisory bot review suggestion during PR follow-up before first extracting the comments, adding the implementer's view, and asking whether the item should be fixed in the current PR.
+- **Pattern**: Treating advisory bot review like an already-approved implementation instruction turns PR follow-up into unreviewed scope changes; treating an approving/pass review state as "no comments to inspect" can also hide minor observations and notes in the review body.
+- **Rule**: When Copilot, `gh aw`, agent workflow, or another advisory bot leaves review comments or review-body observations, first present each item grouped by source with the implementer's view, a 1-2 line explanation, and a recommendation of whether it should be fixed in the current PR; do not edit or push changes for those comments unless the human explicitly approves.
 - **Applied**: `review-task` follow-up, `execute-task` PR monitoring, and any workflow that reads bot/agent PR review comments.
