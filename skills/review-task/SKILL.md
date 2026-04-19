@@ -1,6 +1,6 @@
 ---
 name: review-task
-description: When creating or updating a pull request, preparing a PR for review, generating verification artifacts, collecting test results or screenshots for review, monitoring initial CI/advisory bot-agent follow-up, submitting changes for human review, or checking that all PR requirements (code, specs, plan, verification, follow-up) are met.
+description: When creating or updating a pull request, preparing a PR for review, generating verification artifacts, collecting test results or screenshots for review, monitoring initial CI/advisory bot/agent follow-up, submitting changes for human review, or checking that all PR requirements (code, specs, plan, verification, follow-up) are met.
 metadata:
   author: yoskeoka
   version: '2.0.0'
