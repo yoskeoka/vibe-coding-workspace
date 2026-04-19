@@ -1,6 +1,6 @@
 ---
 name: review-task
-description: When creating or updating a pull request, preparing a PR for review, generating verification artifacts, collecting test results or screenshots for review, monitoring initial CI/Copilot follow-up, submitting changes for human review, or checking that all PR requirements (code, specs, plan, verification, follow-up) are met.
+description: When creating or updating a pull request, preparing a PR for review, generating verification artifacts, collecting test results or screenshots for review, monitoring initial CI/advisory bot-agent follow-up, submitting changes for human review, or checking that all PR requirements (code, specs, plan, verification, follow-up) are met.
 metadata:
   author: yoskeoka
   version: '2.0.0'
@@ -178,20 +178,20 @@ For each new PR, updated PR, or later push to the PR branch, monitor the latest 
    ```
 
    The helper returns the current head SHA, review decision, compact check rollup, review summaries, new timeline events, and new inline review comments. Repeated polls use `.local/gh-pr-followup/` markers so old timeline events and inline comments are not pasted back into the main context.
-4. Inspect CI/check status for that SHA from the helper output and continue the CI failure loop below when checks fail or expose actionable logs.
-5. Inspect new timeline events from the helper output to detect automatic reviewer activity.
+4. Inspect CI/check status for that SHA from the helper output and continue the CI failure loop below when checks fail or expose actionable logs. This check inspection happens for every pushed PR head SHA.
+5. Inspect new timeline events from the helper output to detect advisory bot/agent reviewer activity.
 6. If the helper is missing or fails, report the failure reason and stop automatic follow-up for this PR head SHA. Do **not** automatically fall back to raw GitHub reads; spending large context on raw timeline/comment JSON is not appropriate for routine hobby-project PR monitoring. Tell the user the PR can be checked later, or run a targeted raw `gh` command only if the user explicitly asks or the helper itself needs diagnosis.
-7. Detect automatic reviewer activity from timeline events, including:
+7. Detect advisory bot/agent reviewer activity from timeline events, including:
    - `copilot_work_started`
    - `review_requested` events where `requested_reviewer.login` or `requested_team.name` identifies Copilot, Claude, `gh aw`, agent workflow, or another configured bot/agent reviewer
    - timeline events from bot or agent actors that indicate review work has started
-8. If automatic reviewer activity has started but no final review/comments are visible yet, wait for review completion/comments using the bounded bot-review cadence below.
-9. If no automatic reviewer activity is present, do not spend the bot-review wait budget; record that no automatic review start was observed.
+8. If advisory reviewer activity has started for the latest head SHA but no final review/comments are visible yet, wait for review completion/comments using the bounded advisory-review cadence below.
+9. If no advisory reviewer activity is present, do not spend the advisory-review wait budget; record that no advisory review start was observed.
 10. Before handoff, use the latest helper output for review summaries and inline review comments. If the helper failed, hand off the failure reason instead of fetching raw review bodies or already-seen comments.
-11. Treat actionable bot/agent review comments like normal review feedback: resolve them in scope or document why they are not being acted on before calling the PR ready.
+11. Triage substantive advisory bot/agent findings for human review before any comment-driven branch mutation. Do **not** edit files, apply suggestions, commit, or push in response to advisory bot/agent findings unless the human explicitly approves that specific follow-up or a prior human instruction already authorized implementing that exact review feedback.
 12. Re-check the PR head SHA before handoff. If it changed, restart this loop for the new SHA.
 
-Bounded bot-review wait cadence:
+Bounded advisory-review wait cadence:
 
 - First wait: 5 minutes.
 - Second wait: 1 minute.
@@ -199,7 +199,7 @@ Bounded bot-review wait cadence:
 - Total wait budget: 7 minutes across 3 polling turns.
 - After each wait turn, poll with `skills/review-task/scripts/gh-pr-followup`. If review/comments were submitted, stop waiting and triage them. If the helper fails, stop the automatic wait loop and report the failure reason.
 
-If bot review has started but no review/comments have been submitted after the 7-minute budget, treat the bot-review wait as timed out and document the state in the handoff.
+If advisory bot/agent review has started but no review/comments have been submitted after the 7-minute budget, treat the advisory-review wait as timed out and document the state in the handoff.
 
 Prefer delegating polling-style waiting to a low-cost subagent only when the platform supports delegation and the current session explicitly authorizes subagent use. Keep final decisions, code changes, review-comment triage, and user handoff in the main agent.
 
@@ -215,30 +215,35 @@ Treat CI failures as mechanical verification failures:
 
 If the failure is not actionable, outside scope, or caused by external infrastructure, stop and document the blocker with the relevant check/log context.
 
-### Copilot Review Triage
+### Advisory Bot/Agent Review Triage
 
-Treat GitHub Copilot comments as advisory review input, not automatic patch instructions. Do **not** silently auto-apply Copilot suggestions.
+Treat Copilot, Claude, `gh aw`, agent workflow reviews, and other configured bot/agent comments as advisory review input, not automatic patch instructions. Do **not** silently auto-apply advisory bot/agent suggestions.
 
-For each substantive Copilot comment, prepare a concise human-review briefing:
+Passing or approving advisory bot/agent checks can still contain substantive observations in review bodies. Inspect review summaries and inline comments even when the overall state is not blocking.
 
-- comment summary
-- whether action is recommended
-- whether a GitHub suggestion can be applied as-is or needs adaptation
-- whether the item should be deferred into `docs/issues/` or a future plan
-- suggested response or implementation options
+For each substantive advisory finding, prepare a concise human-review briefing grouped by source reviewer/workflow:
 
-After implementing changes, evaluate Copilot comments from the implementation context and present response options in the current session. Do not post that triage back to the PR unless the user explicitly asks for a PR comment.
+- source reviewer/workflow
+- comment location or link
+- extracted comment summary
+- implementer's view
+- concise 1-2 line explanation
+- recommendation: fix in this PR, defer, or no action
 
-If later user-approved or workflow-authorized changes are pushed in response to Copilot or human comments, restart the post-PR follow-up loop for the new head SHA.
+After implementing changes, evaluate advisory bot/agent findings from the implementation context and present response options in the current session. Do not post that triage back to the PR unless the user explicitly asks for a PR comment.
+
+If the next action would mutate the branch because of advisory bot/agent feedback, ask for a human decision first. Explicit implementation work may follow only if the human asks for it or a prior human instruction already authorized that specific review-feedback implementation work.
+
+If later user-approved or workflow-authorized changes are pushed in response to advisory bot/agent or human comments, restart required CI/check inspection for the new head SHA. Skip the longer advisory-review wait unless new review-start activity appears for that SHA or the human asks to wait.
 
 ### Stop Conditions
 
 The follow-up loop can stop when one of these is true:
 
-- required checks pass and no bot review-start activity appears after the 30-second startup wait
-- required checks pass and available Copilot comments have been summarized
+- required checks pass and no advisory bot/agent review-start activity appears after the 30-second startup wait
+- required checks pass and available advisory bot/agent findings have been summarized
 - CI is blocked or not actionable, and the blocker is documented
-- Copilot review remains pending after bot review-start activity and the 7-minute wait budget, and the timeout state is documented
+- advisory bot/agent review remains pending after review-start activity and the 7-minute wait budget, and the timeout state is documented
 - the compact follow-up helper is missing or fails, and the failure reason is documented
 - the user explicitly asks to stop waiting
 
