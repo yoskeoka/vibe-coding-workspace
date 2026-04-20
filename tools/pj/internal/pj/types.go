@@ -34,6 +34,16 @@ type OwnerConfig struct {
 	OwnerType string `json:"owner_type"`
 }
 
+type repositoryTarget struct {
+	Owner string
+	Name  string
+}
+
+type RepositoryRef struct {
+	ID            string
+	NameWithOwner string
+}
+
 type FieldCache struct {
 	ID      string            `json:"id"`
 	Type    string            `json:"type"`

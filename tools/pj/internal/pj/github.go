@@ -319,6 +319,126 @@ mutation($ownerId: ID!, $title: String!) {
 	}, nil
 }
 
+func (c *githubClient) resolveRepository(owner, name string) (RepositoryRef, error) {
+	var resp struct {
+		Repository *struct {
+			ID            string `json:"id"`
+			NameWithOwner string `json:"nameWithOwner"`
+		} `json:"repository"`
+	}
+
+	err := c.graphQL(`
+query($owner: String!, $name: String!) {
+  repository(owner: $owner, name: $name) {
+    id
+    nameWithOwner
+  }
+}
+`, map[string]any{
+		"owner": owner,
+		"name":  name,
+	}, &resp)
+	if err != nil {
+		return RepositoryRef{}, err
+	}
+	if resp.Repository == nil || resp.Repository.ID == "" || resp.Repository.NameWithOwner == "" {
+		return RepositoryRef{}, fmt.Errorf("repository %s/%s not found", owner, name)
+	}
+	return RepositoryRef{
+		ID:            resp.Repository.ID,
+		NameWithOwner: resp.Repository.NameWithOwner,
+	}, nil
+}
+
+func (c *githubClient) projectLinkedRepositories(projectID string) ([]RepositoryRef, error) {
+	var resp struct {
+		Node *struct {
+			Typename     string `json:"__typename"`
+			Repositories struct {
+				PageInfo struct {
+					HasNextPage bool `json:"hasNextPage"`
+				} `json:"pageInfo"`
+				Nodes []struct {
+					ID            string `json:"id"`
+					NameWithOwner string `json:"nameWithOwner"`
+				} `json:"nodes"`
+			} `json:"repositories"`
+		} `json:"node"`
+	}
+
+	err := c.graphQL(`
+query($projectId: ID!) {
+  node(id: $projectId) {
+    __typename
+    ... on ProjectV2 {
+      repositories(first: 100) {
+        pageInfo {
+          hasNextPage
+        }
+        nodes {
+          id
+          nameWithOwner
+        }
+      }
+    }
+  }
+}
+`, map[string]any{
+		"projectId": projectID,
+	}, &resp)
+	if err != nil {
+		return nil, err
+	}
+	if resp.Node == nil || resp.Node.Typename != "ProjectV2" {
+		return nil, fmt.Errorf("project node %q was not found as ProjectV2", projectID)
+	}
+	if resp.Node.Repositories.PageInfo.HasNextPage {
+		return nil, fmt.Errorf("project linked repository list exceeds the current spike limit; pagination is not implemented yet")
+	}
+
+	repos := make([]RepositoryRef, 0, len(resp.Node.Repositories.Nodes))
+	for _, node := range resp.Node.Repositories.Nodes {
+		if node.ID == "" || node.NameWithOwner == "" {
+			continue
+		}
+		repos = append(repos, RepositoryRef{
+			ID:            node.ID,
+			NameWithOwner: node.NameWithOwner,
+		})
+	}
+	return repos, nil
+}
+
+func (c *githubClient) linkProjectToRepository(projectID string, repo RepositoryRef) error {
+	return c.graphQL(`
+mutation($projectId: ID!, $repositoryId: ID!) {
+  linkProjectV2ToRepository(input: {projectId: $projectId, repositoryId: $repositoryId}) {
+    repository {
+      id
+    }
+  }
+}
+`, map[string]any{
+		"projectId":    projectID,
+		"repositoryId": repo.ID,
+	}, nil)
+}
+
+func (c *githubClient) unlinkProjectFromRepository(projectID string, repo RepositoryRef) error {
+	return c.graphQL(`
+mutation($projectId: ID!, $repositoryId: ID!) {
+  unlinkProjectV2FromRepository(input: {projectId: $projectId, repositoryId: $repositoryId}) {
+    repository {
+      id
+    }
+  }
+}
+`, map[string]any{
+		"projectId":    projectID,
+		"repositoryId": repo.ID,
+	}, nil)
+}
+
 func (c *githubClient) provisionWorkflowFields(cache *Cache) (bool, error) {
 	createdAny := false
 	for _, schema := range workflowFieldSchemasForCache(cache) {

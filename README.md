@@ -91,6 +91,21 @@ go -C tools/pj run ./cmd/pj update --item <item-id> --status "In Progress"
 go -C tools/pj run ./cmd/pj url
 ```
 
+The canonical `Workspace Task Triage` board is owned by a user or organization, not by this repository. To make that owner-scoped Project visible from a repository's Projects tab, link it to a same-owner repository:
+
+```bash
+go -C tools/pj run ./cmd/pj repo-link status <owner>/<repo>
+go -C tools/pj run ./cmd/pj repo-link add <owner>/<repo>
+```
+
+For this workspace, the expected repository link target is:
+
+```bash
+go -C tools/pj run ./cmd/pj repo-link add yoskeoka/vibe-coding-workspace
+```
+
+GitHub only allows ProjectV2 repository links when the Project owner and repository owner are the same user or organization. Setting a default repository for the Project is not required for this workspace flow because `pj add` creates Project draft items directly.
+
 Inspect the stored owner target with:
 
 ```bash

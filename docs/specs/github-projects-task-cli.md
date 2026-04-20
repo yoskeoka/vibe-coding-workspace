@@ -16,6 +16,8 @@ This layout is preferred over `scripts/cmd/pj` because the spike is a compiled G
   - write project scope for `init`, `add`, and `update`
   - `read:project` for `sync` and remote-backed reads
 - The canonical workspace board is a dedicated ProjectV2 named `Workspace Task Triage`.
+- The canonical workspace board is owner-scoped (`user` or `org`), not repository-owned.
+- The owner-scoped board MAY be linked to repositories owned by the same user or organization so it appears in those repositories' Projects tabs.
 - The CLI MUST provide an explicit bootstrap command, `pj init`, that resolves this board by name for the configured owner before creating a new board.
 - The CLI MUST treat the owner target as explicit local configuration, not as an incidental cache side effect.
 - The owner target configuration MUST live in `.local/pj/config.json`.
@@ -88,6 +90,17 @@ The config stores:
 - `pj config set --owner <owner> --owner-type user|org` explicitly replaces the active owner target
 - `pj config clear` removes the active owner target and cached project snapshot so the next `pj init` or `pj sync` must establish them again
 - `pj config set` MUST also clear `.local/pj/cache.json` if the cached project belongs to a different owner target, so the workspace cannot accidentally reuse stale project identity after a scope switch
+
+### `pj repo-link`
+- `pj repo-link status <owner>/<repo>` reports whether the cached canonical ProjectV2 is linked to the target repository.
+- `pj repo-link add <owner>/<repo>` links the cached canonical ProjectV2 to the target repository.
+- `pj repo-link remove <owner>/<repo>` unlinks the cached canonical ProjectV2 from the target repository.
+- The target repository is explicit command input and is separate from the configured Project owner target.
+- The target repository owner MUST match the configured Project owner because GitHub only supports linking a ProjectV2 to repositories owned by the same user or organization.
+- The commands MUST use the cached project identity from `.local/pj/cache.json`; operators must run `pj init` or `pj sync` first if the cache is missing project metadata.
+- `status` MUST fail clearly if the linked repository list exceeds the current single-page limit instead of silently reporting a partial result.
+- `add` and `remove` SHOULD be idempotent from an operator perspective: adding an already-linked repository or removing an unlinked repository should report the current state without treating it as a failure.
+- Setting the linked repository as the Project's default repository is not required for the workspace workflow and is not part of the `pj repo-link` command set. The current workflow creates Project draft items directly, so repository-tab discoverability is the required behavior.
 
 ### `pj list`
 - Reads `.local/pj/cache.json`
