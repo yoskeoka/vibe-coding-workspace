@@ -26,11 +26,30 @@ type projectClient interface {
 	updateItem(cache *Cache, itemID string, update itemUpdate) error
 }
 
-var newProjectClient = func() (projectClient, error) {
-	return newGitHubClient()
+type app struct {
+	newProjectClient func() (projectClient, error)
+}
+
+func newApp() app {
+	return app{
+		newProjectClient: func() (projectClient, error) {
+			return newGitHubClient()
+		},
+	}
+}
+
+func (a app) newClient() (projectClient, error) {
+	if a.newProjectClient == nil {
+		return nil, errors.New("project client factory is not configured")
+	}
+	return a.newProjectClient()
 }
 
 func Run(args []string, stdout, stderr io.Writer) error {
+	return newApp().run(args, stdout, stderr)
+}
+
+func (a app) run(args []string, stdout, stderr io.Writer) error {
 	if len(args) == 0 {
 		printUsage(stderr)
 		return errors.New("missing command")
@@ -38,19 +57,19 @@ func Run(args []string, stdout, stderr io.Writer) error {
 
 	switch args[0] {
 	case "init":
-		return runInit(args[1:], stdout)
+		return a.runInit(args[1:], stdout)
 	case "sync":
-		return runSync(args[1:], stdout)
+		return a.runSync(args[1:], stdout)
 	case "config":
 		return runConfig(args[1:], stdout)
 	case "repo-link":
-		return runRepoLink(args[1:], stdout)
+		return a.runRepoLink(args[1:], stdout)
 	case "list":
 		return runList(args[1:], stdout)
 	case "add":
-		return runAdd(args[1:], stdout)
+		return a.runAdd(args[1:], stdout)
 	case "update":
-		return runUpdate(args[1:], stdout)
+		return a.runUpdate(args[1:], stdout)
 	case "url":
 		return runURL(args[1:], stdout)
 	case "open":
@@ -71,7 +90,7 @@ func Run(args []string, stdout, stderr io.Writer) error {
 	}
 }
 
-func runInit(args []string, stdout io.Writer) error {
+func (a app) runInit(args []string, stdout io.Writer) error {
 	fs := flag.NewFlagSet("init", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 
@@ -88,7 +107,7 @@ func runInit(args []string, stdout io.Writer) error {
 		return err
 	}
 
-	client, err := newProjectClient()
+	client, err := a.newClient()
 	if err != nil {
 		return err
 	}
@@ -160,7 +179,7 @@ func runInit(args []string, stdout io.Writer) error {
 	return nil
 }
 
-func runSync(args []string, stdout io.Writer) error {
+func (a app) runSync(args []string, stdout io.Writer) error {
 	fs := flag.NewFlagSet("sync", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 
@@ -191,7 +210,7 @@ func runSync(args []string, stdout io.Writer) error {
 		return fmt.Errorf("sync requires --project, or a cache with project metadata")
 	}
 
-	client, err := newProjectClient()
+	client, err := a.newClient()
 	if err != nil {
 		return err
 	}
@@ -310,25 +329,25 @@ func runConfigClear(args []string, stdout io.Writer) error {
 	return nil
 }
 
-func runRepoLink(args []string, stdout io.Writer) error {
+func (a app) runRepoLink(args []string, stdout io.Writer) error {
 	if len(args) == 0 {
 		return fmt.Errorf("repo-link requires a subcommand: status, add, or remove")
 	}
 
 	switch args[0] {
 	case "status":
-		return runRepoLinkStatus(args[1:], stdout)
+		return a.runRepoLinkStatus(args[1:], stdout)
 	case "add":
-		return runRepoLinkAdd(args[1:], stdout)
+		return a.runRepoLinkAdd(args[1:], stdout)
 	case "remove":
-		return runRepoLinkRemove(args[1:], stdout)
+		return a.runRepoLinkRemove(args[1:], stdout)
 	default:
 		return fmt.Errorf("unknown repo-link subcommand %q", args[0])
 	}
 }
 
-func runRepoLinkStatus(args []string, stdout io.Writer) error {
-	cache, repo, client, err := repoLinkInputs("repo-link status", args)
+func (a app) runRepoLinkStatus(args []string, stdout io.Writer) error {
+	cache, repo, client, err := a.repoLinkInputs("repo-link status", args)
 	if err != nil {
 		return err
 	}
@@ -345,8 +364,8 @@ func runRepoLinkStatus(args []string, stdout io.Writer) error {
 	return nil
 }
 
-func runRepoLinkAdd(args []string, stdout io.Writer) error {
-	cache, repo, client, err := repoLinkInputs("repo-link add", args)
+func (a app) runRepoLinkAdd(args []string, stdout io.Writer) error {
+	cache, repo, client, err := a.repoLinkInputs("repo-link add", args)
 	if err != nil {
 		return err
 	}
@@ -366,8 +385,8 @@ func runRepoLinkAdd(args []string, stdout io.Writer) error {
 	return nil
 }
 
-func runRepoLinkRemove(args []string, stdout io.Writer) error {
-	cache, repo, client, err := repoLinkInputs("repo-link remove", args)
+func (a app) runRepoLinkRemove(args []string, stdout io.Writer) error {
+	cache, repo, client, err := a.repoLinkInputs("repo-link remove", args)
 	if err != nil {
 		return err
 	}
@@ -387,7 +406,7 @@ func runRepoLinkRemove(args []string, stdout io.Writer) error {
 	return nil
 }
 
-func repoLinkInputs(command string, args []string) (*Cache, RepositoryRef, projectClient, error) {
+func (a app) repoLinkInputs(command string, args []string) (*Cache, RepositoryRef, projectClient, error) {
 	fs := flag.NewFlagSet(command, flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 
@@ -417,7 +436,7 @@ func repoLinkInputs(command string, args []string) (*Cache, RepositoryRef, proje
 		return nil, RepositoryRef{}, nil, fmt.Errorf("repository owner %q does not match project owner %q; ProjectV2 repository links require the same owner", target.Owner, cache.Project.Owner)
 	}
 
-	client, err := newProjectClient()
+	client, err := a.newClient()
 	if err != nil {
 		return nil, RepositoryRef{}, nil, err
 	}
@@ -489,7 +508,7 @@ func runList(args []string, stdout io.Writer) error {
 	return tw.Flush()
 }
 
-func runAdd(args []string, stdout io.Writer) error {
+func (a app) runAdd(args []string, stdout io.Writer) error {
 	fs := flag.NewFlagSet("add", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 
@@ -516,10 +535,6 @@ func runAdd(args []string, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
-	client, err := newProjectClient()
-	if err != nil {
-		return err
-	}
 
 	fieldValues, err := resolveFieldInputs(cache, map[string]string{
 		fieldStatus:   *status,
@@ -527,6 +542,10 @@ func runAdd(args []string, stdout io.Writer) error {
 		fieldKind:     *kind,
 		fieldPriority: *priority,
 	})
+	if err != nil {
+		return err
+	}
+	client, err := a.newClient()
 	if err != nil {
 		return err
 	}
@@ -549,7 +568,7 @@ func runAdd(args []string, stdout io.Writer) error {
 	return nil
 }
 
-func runUpdate(args []string, stdout io.Writer) error {
+func (a app) runUpdate(args []string, stdout io.Writer) error {
 	fs := flag.NewFlagSet("update", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 
@@ -581,10 +600,6 @@ func runUpdate(args []string, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
-	client, err := newProjectClient()
-	if err != nil {
-		return err
-	}
 
 	fieldValues, err := resolveFieldInputs(cache, map[string]string{
 		fieldStatus:   *status,
@@ -604,6 +619,10 @@ func runUpdate(args []string, stdout io.Writer) error {
 	}
 	if !update.TitleProvided && !update.BodyProvided && len(update.FieldValues) == 0 {
 		return fmt.Errorf("update requires at least one field: --title, --body, --body-file, --status, --repo, --kind, or --priority")
+	}
+	client, err := a.newClient()
+	if err != nil {
+		return err
 	}
 	if err := client.updateItem(cache, *itemID, update); err != nil {
 		return err
