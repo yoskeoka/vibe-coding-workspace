@@ -18,6 +18,10 @@ type projectClient interface {
 	ensureProject(owner, ownerType, title string) (ProjectRef, bool, error)
 	syncProject(ref ProjectRef) (*Cache, error)
 	provisionWorkflowFields(cache *Cache) (bool, error)
+	projectLinkedRepositories(projectID string) ([]RepositoryRef, error)
+	linkProjectToRepository(projectID string, repo RepositoryRef) error
+	unlinkProjectFromRepository(projectID string, repo RepositoryRef) error
+	resolveRepository(owner, name string) (RepositoryRef, error)
 	addDraftItem(cache *Cache, title, body string, fieldValues map[string]string) error
 	updateItem(cache *Cache, itemID string, update itemUpdate) error
 }
@@ -39,6 +43,8 @@ func Run(args []string, stdout, stderr io.Writer) error {
 		return runSync(args[1:], stdout)
 	case "config":
 		return runConfig(args[1:], stdout)
+	case "repo-link":
+		return runRepoLink(args[1:], stdout)
 	case "list":
 		return runList(args[1:], stdout)
 	case "add":
@@ -304,6 +310,145 @@ func runConfigClear(args []string, stdout io.Writer) error {
 	return nil
 }
 
+func runRepoLink(args []string, stdout io.Writer) error {
+	if len(args) == 0 {
+		return fmt.Errorf("repo-link requires a subcommand: status, add, or remove")
+	}
+
+	switch args[0] {
+	case "status":
+		return runRepoLinkStatus(args[1:], stdout)
+	case "add":
+		return runRepoLinkAdd(args[1:], stdout)
+	case "remove":
+		return runRepoLinkRemove(args[1:], stdout)
+	default:
+		return fmt.Errorf("unknown repo-link subcommand %q", args[0])
+	}
+}
+
+func runRepoLinkStatus(args []string, stdout io.Writer) error {
+	cache, repo, client, err := repoLinkInputs("repo-link status", args)
+	if err != nil {
+		return err
+	}
+
+	linked, err := projectHasRepositoryLink(client, cache.Project.ProjectID, repo.NameWithOwner)
+	if err != nil {
+		return err
+	}
+	if linked {
+		fmt.Fprintf(stdout, "%s is linked to project %q (#%d)\n", repo.NameWithOwner, cache.Project.Title, cache.Project.ProjectNumber)
+		return nil
+	}
+	fmt.Fprintf(stdout, "%s is not linked to project %q (#%d)\n", repo.NameWithOwner, cache.Project.Title, cache.Project.ProjectNumber)
+	return nil
+}
+
+func runRepoLinkAdd(args []string, stdout io.Writer) error {
+	cache, repo, client, err := repoLinkInputs("repo-link add", args)
+	if err != nil {
+		return err
+	}
+
+	linked, err := projectHasRepositoryLink(client, cache.Project.ProjectID, repo.NameWithOwner)
+	if err != nil {
+		return err
+	}
+	if linked {
+		fmt.Fprintf(stdout, "%s is already linked to project %q (#%d)\n", repo.NameWithOwner, cache.Project.Title, cache.Project.ProjectNumber)
+		return nil
+	}
+	if err := client.linkProjectToRepository(cache.Project.ProjectID, repo); err != nil {
+		return err
+	}
+	fmt.Fprintf(stdout, "linked %s to project %q (#%d)\n", repo.NameWithOwner, cache.Project.Title, cache.Project.ProjectNumber)
+	return nil
+}
+
+func runRepoLinkRemove(args []string, stdout io.Writer) error {
+	cache, repo, client, err := repoLinkInputs("repo-link remove", args)
+	if err != nil {
+		return err
+	}
+
+	linked, err := projectHasRepositoryLink(client, cache.Project.ProjectID, repo.NameWithOwner)
+	if err != nil {
+		return err
+	}
+	if !linked {
+		fmt.Fprintf(stdout, "%s is not linked to project %q (#%d)\n", repo.NameWithOwner, cache.Project.Title, cache.Project.ProjectNumber)
+		return nil
+	}
+	if err := client.unlinkProjectFromRepository(cache.Project.ProjectID, repo); err != nil {
+		return err
+	}
+	fmt.Fprintf(stdout, "unlinked %s from project %q (#%d)\n", repo.NameWithOwner, cache.Project.Title, cache.Project.ProjectNumber)
+	return nil
+}
+
+func repoLinkInputs(command string, args []string) (*Cache, RepositoryRef, projectClient, error) {
+	fs := flag.NewFlagSet(command, flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+
+	cachePath := fs.String("cache", defaultCachePath, "cache file path")
+	if err := fs.Parse(args); err != nil {
+		return nil, RepositoryRef{}, nil, err
+	}
+	if fs.NArg() != 1 {
+		return nil, RepositoryRef{}, nil, fmt.Errorf("%s requires exactly one <owner>/<repo> argument", command)
+	}
+
+	target, err := parseRepositoryTarget(fs.Arg(0))
+	if err != nil {
+		return nil, RepositoryRef{}, nil, err
+	}
+	cache, err := loadCacheRequired(*cachePath)
+	if err != nil {
+		return nil, RepositoryRef{}, nil, err
+	}
+	if cache.Project.ProjectID == "" {
+		return nil, RepositoryRef{}, nil, fmt.Errorf("cache is missing project id; run `pj init` or `pj sync`")
+	}
+	if cache.Project.Owner == "" {
+		return nil, RepositoryRef{}, nil, fmt.Errorf("cache is missing project owner; run `pj init` or `pj sync`")
+	}
+	if target.Owner != cache.Project.Owner {
+		return nil, RepositoryRef{}, nil, fmt.Errorf("repository owner %q does not match project owner %q; ProjectV2 repository links require the same owner", target.Owner, cache.Project.Owner)
+	}
+
+	client, err := newProjectClient()
+	if err != nil {
+		return nil, RepositoryRef{}, nil, err
+	}
+	repo, err := client.resolveRepository(target.Owner, target.Name)
+	if err != nil {
+		return nil, RepositoryRef{}, nil, err
+	}
+	return cache, repo, client, nil
+}
+
+func parseRepositoryTarget(value string) (repositoryTarget, error) {
+	parts := strings.Split(strings.TrimSpace(value), "/")
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return repositoryTarget{}, fmt.Errorf("repository target must be <owner>/<repo>")
+	}
+	return repositoryTarget{Owner: parts[0], Name: parts[1]}, nil
+}
+
+func projectHasRepositoryLink(client projectClient, projectID, nameWithOwner string) (bool, error) {
+	repos, err := client.projectLinkedRepositories(projectID)
+	if err != nil {
+		return false, err
+	}
+	for _, linkedRepo := range repos {
+		if linkedRepo.NameWithOwner == nameWithOwner {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 func runList(args []string, stdout io.Writer) error {
 	fs := flag.NewFlagSet("list", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
@@ -535,6 +680,9 @@ Usage:
   go -C tools/pj run ./cmd/pj config show
   go -C tools/pj run ./cmd/pj config set --owner <owner> --owner-type user|org
   go -C tools/pj run ./cmd/pj config clear
+  go -C tools/pj run ./cmd/pj repo-link status <owner>/<repo>
+  go -C tools/pj run ./cmd/pj repo-link add <owner>/<repo>
+  go -C tools/pj run ./cmd/pj repo-link remove <owner>/<repo>
   go -C tools/pj run ./cmd/pj list [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]
   go -C tools/pj run ./cmd/pj add --title <title> [--body <text>|--body-file <path>] [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]
   go -C tools/pj run ./cmd/pj update --item <item-id> [--title <title>] [--body <text>|--body-file <path>] [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]
@@ -562,6 +710,8 @@ func printCommandUsage(w io.Writer, command string) {
 		fmt.Fprintln(w, "Usage: pj list [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]")
 	case "config":
 		fmt.Fprintln(w, "Usage: pj config show|set|clear")
+	case "repo-link":
+		fmt.Fprintln(w, "Usage: pj repo-link status|add|remove <owner>/<repo>")
 	default:
 		printUsage(w)
 	}

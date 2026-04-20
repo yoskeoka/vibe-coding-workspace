@@ -1,5 +1,12 @@
 # Lessons Learned
 
+## Command Names Should Avoid Repeating the Same Noun
+
+- **Mistake**: I proposed `pj link-repo --repo <owner>/<repo>`, which repeated `repo` in both the command and flag and made the UX feel clumsy.
+- **Pattern**: When extending a small CLI, copying a flag-oriented shape from another command can produce redundant names instead of matching the command tree's natural noun/action structure.
+- **Rule**: For new `pj` command groups, sketch the command tree first and choose either `noun action <target>` or `verb <target>` so the target noun is not repeated in both the command and primary argument flag.
+- **Applied**: `tools/pj/internal/pj/app.go` command additions and `docs/specs/github-projects-task-cli.md` CLI UX specs.
+
 ## Issue-to-Implementation Requires Planning First
 
 - **Mistake**: I treated a non-trivial `docs/issues/` item as ready for `execute-task` even though no execution plan existed yet.

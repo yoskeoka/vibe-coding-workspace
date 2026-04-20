@@ -398,6 +398,196 @@ func TestUpdateItemUpdatesDraftIssueAndFields(t *testing.T) {
 	}
 }
 
+func TestProjectLinkedRepositoriesQueriesProjectRepositories(t *testing.T) {
+	t.Parallel()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Fatalf("read request body: %v", err)
+		}
+		if !strings.Contains(string(body), "repositories(first: 100)") {
+			t.Fatalf("unexpected graphql query: %s", string(body))
+		}
+		writeGraphQLResponse(t, w, map[string]any{
+			"data": map[string]any{
+				"node": map[string]any{
+					"__typename": "ProjectV2",
+					"repositories": map[string]any{
+						"pageInfo": map[string]any{"hasNextPage": false},
+						"nodes": []map[string]any{
+							{"id": "repo-1", "nameWithOwner": "yoskeoka/vibe-coding-workspace"},
+						},
+					},
+				},
+			},
+		})
+	}))
+	defer server.Close()
+
+	client := &githubClient{
+		httpClient: server.Client(),
+		endpoint:   server.URL,
+		token:      "token",
+	}
+	repos, err := client.projectLinkedRepositories("proj-1")
+	if err != nil {
+		t.Fatalf("projectLinkedRepositories() error = %v", err)
+	}
+	if !slices.Equal(repos, []RepositoryRef{{ID: "repo-1", NameWithOwner: "yoskeoka/vibe-coding-workspace"}}) {
+		t.Fatalf("repos = %+v", repos)
+	}
+}
+
+func TestResolveRepositoryQueriesRepository(t *testing.T) {
+	t.Parallel()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode request body: %v", err)
+		}
+		if !strings.Contains(payload["query"].(string), "repository(owner: $owner, name: $name)") {
+			t.Fatalf("unexpected graphql query: %s", payload["query"].(string))
+		}
+		vars := payload["variables"].(map[string]any)
+		if vars["owner"] != "yoskeoka" || vars["name"] != "vibe-coding-workspace" {
+			t.Fatalf("variables = %#v", vars)
+		}
+		writeGraphQLResponse(t, w, map[string]any{
+			"data": map[string]any{
+				"repository": map[string]any{
+					"id":            "repo-1",
+					"nameWithOwner": "yoskeoka/vibe-coding-workspace",
+				},
+			},
+		})
+	}))
+	defer server.Close()
+
+	client := &githubClient{
+		httpClient: server.Client(),
+		endpoint:   server.URL,
+		token:      "token",
+	}
+	repo, err := client.resolveRepository("yoskeoka", "vibe-coding-workspace")
+	if err != nil {
+		t.Fatalf("resolveRepository() error = %v", err)
+	}
+	if repo != (RepositoryRef{ID: "repo-1", NameWithOwner: "yoskeoka/vibe-coding-workspace"}) {
+		t.Fatalf("repo = %+v", repo)
+	}
+}
+
+func TestResolveRepositoryFailsOnIncompleteRepository(t *testing.T) {
+	t.Parallel()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		writeGraphQLResponse(t, w, map[string]any{
+			"data": map[string]any{
+				"repository": map[string]any{
+					"id": "repo-1",
+				},
+			},
+		})
+	}))
+	defer server.Close()
+
+	client := &githubClient{
+		httpClient: server.Client(),
+		endpoint:   server.URL,
+		token:      "token",
+	}
+	_, err := client.resolveRepository("yoskeoka", "vibe-coding-workspace")
+	if err == nil {
+		t.Fatal("resolveRepository() error = nil, want incomplete repository error")
+	}
+	if !strings.Contains(err.Error(), "repository yoskeoka/vibe-coding-workspace not found") {
+		t.Fatalf("error = %q", err)
+	}
+}
+
+func TestProjectLinkedRepositoriesFailsOnIncompleteRepositoryNode(t *testing.T) {
+	t.Parallel()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		writeGraphQLResponse(t, w, map[string]any{
+			"data": map[string]any{
+				"node": map[string]any{
+					"__typename": "ProjectV2",
+					"repositories": map[string]any{
+						"pageInfo": map[string]any{"hasNextPage": false},
+						"nodes": []map[string]any{
+							{"id": "repo-1"},
+						},
+					},
+				},
+			},
+		})
+	}))
+	defer server.Close()
+
+	client := &githubClient{
+		httpClient: server.Client(),
+		endpoint:   server.URL,
+		token:      "token",
+	}
+	_, err := client.projectLinkedRepositories("proj-1")
+	if err == nil {
+		t.Fatal("projectLinkedRepositories() error = nil, want incomplete node error")
+	}
+	if !strings.Contains(err.Error(), "linked repository node 0 is incomplete") {
+		t.Fatalf("error = %q", err)
+	}
+}
+
+func TestLinkAndUnlinkProjectToRepositoryUseProjectV2Mutations(t *testing.T) {
+	t.Parallel()
+
+	var queries []string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode request body: %v", err)
+		}
+		queries = append(queries, payload["query"].(string))
+		vars := payload["variables"].(map[string]any)
+		if vars["projectId"] != "proj-1" || vars["repositoryId"] != "repo-1" {
+			t.Fatalf("variables = %#v", vars)
+		}
+		writeGraphQLResponse(t, w, map[string]any{"data": map[string]any{}})
+	}))
+	defer server.Close()
+
+	client := &githubClient{
+		httpClient: server.Client(),
+		endpoint:   server.URL,
+		token:      "token",
+	}
+	repo := RepositoryRef{ID: "repo-1", NameWithOwner: "yoskeoka/vibe-coding-workspace"}
+	if err := client.linkProjectToRepository("proj-1", repo); err != nil {
+		t.Fatalf("linkProjectToRepository() error = %v", err)
+	}
+	if err := client.unlinkProjectFromRepository("proj-1", repo); err != nil {
+		t.Fatalf("unlinkProjectFromRepository() error = %v", err)
+	}
+	if len(queries) != 2 {
+		t.Fatalf("query count = %d, want 2", len(queries))
+	}
+	if !strings.Contains(queries[0], "linkProjectV2ToRepository") {
+		t.Fatalf("link query = %s", queries[0])
+	}
+	if !strings.Contains(queries[1], "unlinkProjectV2FromRepository") {
+		t.Fatalf("unlink query = %s", queries[1])
+	}
+}
+
 func compatibleWorkflowFields() map[string]FieldCache {
 	return map[string]FieldCache{
 		fieldStatus: {

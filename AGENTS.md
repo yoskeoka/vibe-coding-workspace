@@ -125,11 +125,15 @@ Workspace-level triage uses a GitHub Project plus a local derived cache managed 
 - `.local/pj/cache.json` is derived data for fast local reads and AI access
 - `.local/pj/` is the only supported local workspace-triage state for the current workflow
 - `docs/exec-plan/todo/` remains the canonical implementation-plan tracker once work is selected
+- The workspace board is an owner-scoped GitHub ProjectV2; repository visibility is provided by linking that board to a same-owner repository's Projects tab
 
 ### Expected Commands
 
 - `go -C tools/pj run ./cmd/pj init --owner <owner> --owner-type user|org`
 - `go -C tools/pj run ./cmd/pj sync [--project <number>]`
+- `go -C tools/pj run ./cmd/pj repo-link status <owner>/<repo>`
+- `go -C tools/pj run ./cmd/pj repo-link add <owner>/<repo>`
+- `go -C tools/pj run ./cmd/pj repo-link remove <owner>/<repo>`
 - `go -C tools/pj run ./cmd/pj list`
 - `go -C tools/pj run ./cmd/pj add --title "..." --status Todo`
 - `go -C tools/pj run ./cmd/pj update --item <item-id> --status "In Progress"`
@@ -143,6 +147,7 @@ Workspace-level triage uses a GitHub Project plus a local derived cache managed 
 - Do not depend on committed legacy tracker runtime artifacts or local database state for current task coordination
 - Do not create duplicate local task trackers for the same workspace board unless a spec explicitly adds one
 - Bootstrap the canonical board with `pj init` before relying on `sync`, `list`, `add`, `update`, `url`, or `open`
+- Link the canonical board to the workspace repository with `pj repo-link add <owner>/<repo>` when repository Projects-tab discoverability is needed
 - After bootstrap, reuse the stored owner scope instead of repeatedly restating `--owner` and `--owner-type`
 - If you need to switch from a user board to an org board, do it explicitly with `pj config set` or `pj config clear` before re-running `pj init`; do not mix one-off owner flags with an existing local config
 
