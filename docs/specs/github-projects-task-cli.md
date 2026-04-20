@@ -75,8 +75,9 @@ The config stores:
 
 ### `pj sync`
 - Resolves the target project through GitHub GraphQL
-- Loads project field metadata
-- Loads project items and normalized field values
+- Loads complete project field metadata with cursor-based pagination
+- Loads complete project items with cursor-based pagination
+- Loads complete normalized item field values with cursor-based pagination when GitHub reports more field values for an item
 - Writes `.local/pj/cache.json`
 - Reuses the stored owner target from `.local/pj/config.json` when owner flags are omitted
 - Reuses cached project identity when `--project` is omitted
@@ -167,7 +168,8 @@ The cache MUST also expose ordered repo-option metadata:
 - If a field is missing from the project, mutations must fail with a clear field-name error instead of silently skipping.
 - If `pj init` resolves or creates the canonical board but cannot provision or reconcile the required workflow fields, it must name the blocking fields in the returned error after writing the latest cache snapshot.
 - If a required field exists with an unsupported type or missing required single-select options, `pj init` must fail with a clear compatibility error instead of silently mutating an unknown schema.
-- If a query result exceeds the current single-page limits, the CLI must fail clearly instead of silently truncating the cache.
+- If GitHub returns a paginated project field, project item, or item field-value response, the CLI must follow cursors until the full connection is loaded instead of silently truncating the cache.
+- If a paginated response is malformed and cannot provide the next cursor while reporting more pages, the CLI must fail clearly instead of writing an incomplete cache.
 
 ## Non-Goals
 - Full parity with `gh project`

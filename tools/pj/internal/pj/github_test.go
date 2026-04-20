@@ -122,6 +122,277 @@ func TestEnsureProjectCreatesMissingProject(t *testing.T) {
 	}
 }
 
+func TestSyncProjectPaginatesFields(t *testing.T) {
+	var requests []map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode request body: %v", err)
+		}
+		requests = append(requests, payload)
+
+		switch len(requests) {
+		case 1:
+			if !strings.Contains(payload["query"].(string), "projectV2(number: $number)") {
+				t.Fatalf("unexpected project shell query: %s", payload["query"].(string))
+			}
+			writeGraphQLResponse(t, w, map[string]any{
+				"data": map[string]any{
+					"user": map[string]any{
+						"projectV2": map[string]any{
+							"id":    "proj-1",
+							"title": canonicalProjectTitle,
+						},
+					},
+				},
+			})
+		case 2:
+			vars := payload["variables"].(map[string]any)
+			if vars["after"] != nil {
+				t.Fatalf("first fields cursor = %#v, want nil", vars["after"])
+			}
+			writeGraphQLResponse(t, w, map[string]any{
+				"data": map[string]any{
+					"node": map[string]any{
+						"fields": map[string]any{
+							"pageInfo": map[string]any{"hasNextPage": true, "endCursor": "fields-1"},
+							"nodes": []map[string]any{
+								{
+									"__typename": "ProjectV2SingleSelectField",
+									"id":         "status",
+									"name":       fieldStatus,
+									"options": []map[string]any{
+										{"id": "todo", "name": "Todo"},
+									},
+								},
+							},
+						},
+					},
+				},
+			})
+		case 3:
+			vars := payload["variables"].(map[string]any)
+			if vars["after"] != "fields-1" {
+				t.Fatalf("second fields cursor = %#v, want fields-1", vars["after"])
+			}
+			writeGraphQLResponse(t, w, map[string]any{
+				"data": map[string]any{
+					"node": map[string]any{
+						"fields": map[string]any{
+							"pageInfo": map[string]any{"hasNextPage": false, "endCursor": "fields-2"},
+							"nodes": []map[string]any{
+								{
+									"__typename": "ProjectV2SingleSelectField",
+									"id":         "priority",
+									"name":       fieldPriority,
+									"options": []map[string]any{
+										{"id": "high", "name": "High"},
+									},
+								},
+							},
+						},
+					},
+				},
+			})
+		case 4:
+			writeGraphQLResponse(t, w, map[string]any{
+				"data": map[string]any{
+					"node": map[string]any{
+						"items": map[string]any{
+							"pageInfo": map[string]any{"hasNextPage": false, "endCursor": nil},
+							"nodes":    []map[string]any{},
+						},
+					},
+				},
+			})
+		default:
+			t.Fatalf("unexpected request count %d", len(requests))
+		}
+	}))
+	defer server.Close()
+
+	client := &githubClient{
+		httpClient: server.Client(),
+		endpoint:   server.URL,
+		token:      "token",
+	}
+
+	cache, err := client.syncProject(ProjectRef{Owner: "yoskeoka", OwnerType: "user", ProjectNumber: 42})
+	if err != nil {
+		t.Fatalf("syncProject() error = %v", err)
+	}
+	if len(requests) != 4 {
+		t.Fatalf("request count = %d, want 4", len(requests))
+	}
+	if cache.Fields[fieldStatus].Options["Todo"] != "todo" {
+		t.Fatalf("status field = %+v", cache.Fields[fieldStatus])
+	}
+	if cache.Fields[fieldPriority].Options["High"] != "high" {
+		t.Fatalf("priority field = %+v", cache.Fields[fieldPriority])
+	}
+}
+
+func TestSyncProjectPaginatesItems(t *testing.T) {
+	var requests []map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode request body: %v", err)
+		}
+		requests = append(requests, payload)
+
+		switch len(requests) {
+		case 1:
+			writeGraphQLResponse(t, w, syncProjectShellResponse())
+		case 2:
+			writeGraphQLResponse(t, w, emptyFieldsResponse())
+		case 3:
+			vars := payload["variables"].(map[string]any)
+			if vars["after"] != nil {
+				t.Fatalf("first items cursor = %#v, want nil", vars["after"])
+			}
+			writeGraphQLResponse(t, w, map[string]any{
+				"data": map[string]any{
+					"node": map[string]any{
+						"items": map[string]any{
+							"pageInfo": map[string]any{"hasNextPage": true, "endCursor": "items-1"},
+							"nodes": []map[string]any{
+								syncDraftItemNode("item-1", "First task", []map[string]any{
+									syncSingleSelectFieldValue(fieldStatus, "Todo"),
+								}, false, nil),
+							},
+						},
+					},
+				},
+			})
+		case 4:
+			vars := payload["variables"].(map[string]any)
+			if vars["after"] != "items-1" {
+				t.Fatalf("second items cursor = %#v, want items-1", vars["after"])
+			}
+			writeGraphQLResponse(t, w, map[string]any{
+				"data": map[string]any{
+					"node": map[string]any{
+						"items": map[string]any{
+							"pageInfo": map[string]any{"hasNextPage": false, "endCursor": "items-2"},
+							"nodes": []map[string]any{
+								syncDraftItemNode("item-2", "Second task", []map[string]any{
+									syncSingleSelectFieldValue(fieldPriority, "High"),
+								}, false, nil),
+							},
+						},
+					},
+				},
+			})
+		default:
+			t.Fatalf("unexpected request count %d", len(requests))
+		}
+	}))
+	defer server.Close()
+
+	client := &githubClient{
+		httpClient: server.Client(),
+		endpoint:   server.URL,
+		token:      "token",
+	}
+
+	cache, err := client.syncProject(ProjectRef{Owner: "yoskeoka", OwnerType: "user", ProjectNumber: 42})
+	if err != nil {
+		t.Fatalf("syncProject() error = %v", err)
+	}
+	if len(cache.Items) != 2 {
+		t.Fatalf("item count = %d, want 2", len(cache.Items))
+	}
+	if cache.Items[0].Title != "First task" || cache.Items[0].Status != "Todo" {
+		t.Fatalf("first item = %+v", cache.Items[0])
+	}
+	if cache.Items[1].Title != "Second task" || cache.Items[1].Priority != "High" {
+		t.Fatalf("second item = %+v", cache.Items[1])
+	}
+}
+
+func TestSyncProjectPaginatesItemFieldValues(t *testing.T) {
+	var requests []map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode request body: %v", err)
+		}
+		requests = append(requests, payload)
+
+		switch len(requests) {
+		case 1:
+			writeGraphQLResponse(t, w, syncProjectShellResponse())
+		case 2:
+			writeGraphQLResponse(t, w, emptyFieldsResponse())
+		case 3:
+			writeGraphQLResponse(t, w, map[string]any{
+				"data": map[string]any{
+					"node": map[string]any{
+						"items": map[string]any{
+							"pageInfo": map[string]any{"hasNextPage": false, "endCursor": nil},
+							"nodes": []map[string]any{
+								syncDraftItemNode("item-1", "Task", []map[string]any{
+									syncSingleSelectFieldValue(fieldStatus, "Todo"),
+								}, true, "values-1"),
+							},
+						},
+					},
+				},
+			})
+		case 4:
+			if !strings.Contains(payload["query"].(string), "fieldValues(first: 20, after: $after)") {
+				t.Fatalf("unexpected field values query: %s", payload["query"].(string))
+			}
+			vars := payload["variables"].(map[string]any)
+			if vars["itemId"] != "item-1" || vars["after"] != "values-1" {
+				t.Fatalf("field value variables = %#v", vars)
+			}
+			writeGraphQLResponse(t, w, map[string]any{
+				"data": map[string]any{
+					"node": map[string]any{
+						"fieldValues": map[string]any{
+							"pageInfo": map[string]any{"hasNextPage": false, "endCursor": "values-2"},
+							"nodes": []map[string]any{
+								syncSingleSelectFieldValue(fieldPriority, "High"),
+							},
+						},
+					},
+				},
+			})
+		default:
+			t.Fatalf("unexpected request count %d", len(requests))
+		}
+	}))
+	defer server.Close()
+
+	client := &githubClient{
+		httpClient: server.Client(),
+		endpoint:   server.URL,
+		token:      "token",
+	}
+
+	cache, err := client.syncProject(ProjectRef{Owner: "yoskeoka", OwnerType: "user", ProjectNumber: 42})
+	if err != nil {
+		t.Fatalf("syncProject() error = %v", err)
+	}
+	if len(requests) != 4 {
+		t.Fatalf("request count = %d, want 4", len(requests))
+	}
+	if len(cache.Items) != 1 {
+		t.Fatalf("item count = %d, want 1", len(cache.Items))
+	}
+	if cache.Items[0].Status != "Todo" || cache.Items[0].Priority != "High" {
+		t.Fatalf("item = %+v", cache.Items[0])
+	}
+}
+
 func TestProvisionWorkflowFieldsNoOpForCompatibleBoard(t *testing.T) {
 	t.Parallel()
 
@@ -436,6 +707,58 @@ func optionNames(options []workflowFieldOption) []string {
 		names = append(names, option.Name)
 	}
 	return names
+}
+
+func syncProjectShellResponse() map[string]any {
+	return map[string]any{
+		"data": map[string]any{
+			"user": map[string]any{
+				"projectV2": map[string]any{
+					"id":    "proj-1",
+					"title": canonicalProjectTitle,
+				},
+			},
+		},
+	}
+}
+
+func emptyFieldsResponse() map[string]any {
+	return map[string]any{
+		"data": map[string]any{
+			"node": map[string]any{
+				"fields": map[string]any{
+					"pageInfo": map[string]any{"hasNextPage": false, "endCursor": nil},
+					"nodes":    []map[string]any{},
+				},
+			},
+		},
+	}
+}
+
+func syncDraftItemNode(itemID, title string, values []map[string]any, hasMoreValues bool, valuesCursor any) map[string]any {
+	return map[string]any{
+		"id": itemID,
+		"content": map[string]any{
+			"__typename": "DraftIssue",
+			"id":         "draft-" + itemID,
+			"title":      title,
+			"body":       "",
+		},
+		"fieldValues": map[string]any{
+			"pageInfo": map[string]any{"hasNextPage": hasMoreValues, "endCursor": valuesCursor},
+			"nodes":    values,
+		},
+	}
+}
+
+func syncSingleSelectFieldValue(fieldName, value string) map[string]any {
+	return map[string]any{
+		"__typename": "ProjectV2ItemFieldSingleSelectValue",
+		"name":       value,
+		"field": map[string]any{
+			"name": fieldName,
+		},
+	}
 }
 
 func writeGraphQLResponse(t *testing.T, w http.ResponseWriter, payload map[string]any) {
