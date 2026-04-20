@@ -103,6 +103,7 @@ Adds a hook installation step after skill symlink setup:
 GitHub Actions workflow that runs the linter on PRs targeting `main`.
 
 - Triggers on `pull_request` to `main`
+- Uses the repository-standard `actions/checkout@v6`
 - Checks out with full history (`fetch-depth: 0`) so `origin/main...HEAD` diff works
 - Passes PR title and body from GitHub event context to `--pr-title` / `--pr-body`
 

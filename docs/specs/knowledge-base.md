@@ -110,6 +110,10 @@ Those yearly landing pages are publish artifacts derived from `docs/kb/sources/Y
 
 ## Operations
 
+The repository-standard GitHub Actions checkout major is `actions/checkout@v6`.
+The `kb-pages` workflow MUST use that standard checkout action before building
+the rendered knowledge-base site on `ubuntu-latest`.
+
 ### 1. Ingest
 
 The primary ingest UX is conversational:

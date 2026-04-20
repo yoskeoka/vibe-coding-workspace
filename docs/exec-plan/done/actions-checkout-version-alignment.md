@@ -71,29 +71,29 @@ Why this is not recommended:
 
 ## Spec Changes
 
-- [ ] Update `docs/specs/knowledge-base.md` to state that the `kb-pages` workflow uses the repository-standard checkout major.
-- [ ] Update `docs/specs/workflow-linter.md` to state that `workflow-lint.yml` uses the repository-standard checkout major with `fetch-depth: 0`.
-- [ ] Update `docs/specs/shellcheck-ci.md` to state that `shellcheck.yml` uses the repository-standard checkout major with `fetch-depth: 0`.
-- [ ] Add a small shared note in the relevant spec text that the current repository standard is `actions/checkout@v6`, unless execution discovers a compatibility reason to choose a different major.
+- [x] Update `docs/specs/knowledge-base.md` to state that the `kb-pages` workflow uses the repository-standard checkout major.
+- [x] Update `docs/specs/workflow-linter.md` to state that `workflow-lint.yml` uses the repository-standard checkout major with `fetch-depth: 0`.
+- [x] Update `docs/specs/shellcheck-ci.md` to state that `shellcheck.yml` uses the repository-standard checkout major with `fetch-depth: 0`.
+- [x] Add a small shared note in the relevant spec text that the current repository standard is `actions/checkout@v6`, unless execution discovers a compatibility reason to choose a different major.
 
 ## Code Changes
 
-- [ ] [parallel] Update `.github/workflows/kb-pages.yml` from `actions/checkout@v4` to the chosen standard, expected to be `actions/checkout@v6`.
-- [ ] [parallel] Confirm `.github/workflows/workflow-lint.yml` already matches the chosen standard.
-- [ ] [parallel] Confirm `.github/workflows/shellcheck.yml` already matches the chosen standard.
-- [ ] Move `docs/issues/actions-checkout-version-alignment-follow-up.md` to `docs/issues/done/actions-checkout-version-alignment-follow-up.md` after the workflow and spec updates are complete.
+- [x] [parallel] Update `.github/workflows/kb-pages.yml` from `actions/checkout@v4` to the chosen standard, expected to be `actions/checkout@v6`.
+- [x] [parallel] Confirm `.github/workflows/workflow-lint.yml` already matches the chosen standard.
+- [x] [parallel] Confirm `.github/workflows/shellcheck.yml` already matches the chosen standard.
+- [x] Move `docs/issues/actions-checkout-version-alignment-follow-up.md` to `docs/issues/done/actions-checkout-version-alignment-follow-up.md` after the workflow and spec updates are complete.
 
 ## Sub-tasks
 
-- [ ] Confirm the final `actions/checkout` major against official release notes and runner requirements.
-- [ ] Update specs first.
-- [ ] Update workflow YAML.
-- [ ] Verify no remaining mixed `actions/checkout` major versions with `rg -n "actions/checkout@" .github/workflows docs/specs docs/issues`.
-- [ ] Run workflow quality gates:
+- [x] Confirm the final `actions/checkout` major against official release notes and runner requirements.
+- [x] Update specs first.
+- [x] Update workflow YAML.
+- [x] Verify no remaining mixed `actions/checkout` major versions with `rg -n "actions/checkout@" .github/workflows docs/specs docs/issues`.
+- [x] Run workflow quality gates:
   - `./tools/workflow-lint.sh --mode=pre-push`
   - `shellcheck tools/workflow-lint.sh tools/list-changed-bash-scripts.sh tools/install-hooks.sh setup-workspace.sh` if `shellcheck` is locally available
   - `tools/kb check` if the knowledge-base spec or workflow changes need KB build validation
-- [ ] Move this plan from `docs/exec-plan/todo/` to `docs/exec-plan/done/` during execution.
+- [x] Move this plan from `docs/exec-plan/todo/` to `docs/exec-plan/done/` during execution.
 
 ## Parallelism
 
