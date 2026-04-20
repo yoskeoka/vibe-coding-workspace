@@ -523,6 +523,112 @@ func appWithClient(client projectClient) app {
 	}
 }
 
+func TestRunRepoLinkStatusReportsLinkedRepository(t *testing.T) {
+	cachePath := filepath.Join(t.TempDir(), "cache.json")
+	if err := writeCache(cachePath, testProjectCache()); err != nil {
+		t.Fatalf("writeCache(): %v", err)
+	}
+
+	client := &stubProjectClient{
+		resolvedRepo: RepositoryRef{ID: "repo-1", NameWithOwner: "yoskeoka/vibe-coding-workspace"},
+		linkedRepos:  []RepositoryRef{{ID: "repo-1", NameWithOwner: "yoskeoka/vibe-coding-workspace"}},
+	}
+
+	var stdout strings.Builder
+	err := appWithClient(client).runRepoLink([]string{"status", "--cache", cachePath, "yoskeoka/vibe-coding-workspace"}, &stdout)
+	if err != nil {
+		t.Fatalf("runRepoLink() error = %v", err)
+	}
+	if !strings.Contains(stdout.String(), "is linked") {
+		t.Fatalf("stdout = %q, want linked status", stdout.String())
+	}
+}
+
+func TestRunRepoLinkAddLinksUnlinkedRepository(t *testing.T) {
+	cachePath := filepath.Join(t.TempDir(), "cache.json")
+	if err := writeCache(cachePath, testProjectCache()); err != nil {
+		t.Fatalf("writeCache(): %v", err)
+	}
+
+	client := &stubProjectClient{
+		resolvedRepo: RepositoryRef{ID: "repo-1", NameWithOwner: "yoskeoka/vibe-coding-workspace"},
+	}
+
+	var stdout strings.Builder
+	err := appWithClient(client).runRepoLink([]string{"add", "--cache", cachePath, "yoskeoka/vibe-coding-workspace"}, &stdout)
+	if err != nil {
+		t.Fatalf("runRepoLink() error = %v", err)
+	}
+	if client.linkedRepo.ID != "repo-1" {
+		t.Fatalf("linked repo = %+v, want repo-1", client.linkedRepo)
+	}
+	if !strings.Contains(stdout.String(), "linked yoskeoka/vibe-coding-workspace") {
+		t.Fatalf("stdout = %q, want linked message", stdout.String())
+	}
+}
+
+func TestRunRepoLinkRemoveUnlinksLinkedRepository(t *testing.T) {
+	cachePath := filepath.Join(t.TempDir(), "cache.json")
+	if err := writeCache(cachePath, testProjectCache()); err != nil {
+		t.Fatalf("writeCache(): %v", err)
+	}
+
+	client := &stubProjectClient{
+		resolvedRepo: RepositoryRef{ID: "repo-1", NameWithOwner: "yoskeoka/vibe-coding-workspace"},
+		linkedRepos:  []RepositoryRef{{ID: "repo-1", NameWithOwner: "yoskeoka/vibe-coding-workspace"}},
+	}
+
+	var stdout strings.Builder
+	err := appWithClient(client).runRepoLink([]string{"remove", "--cache", cachePath, "yoskeoka/vibe-coding-workspace"}, &stdout)
+	if err != nil {
+		t.Fatalf("runRepoLink() error = %v", err)
+	}
+	if client.unlinkedRepo.ID != "repo-1" {
+		t.Fatalf("unlinked repo = %+v, want repo-1", client.unlinkedRepo)
+	}
+	if !strings.Contains(stdout.String(), "unlinked yoskeoka/vibe-coding-workspace") {
+		t.Fatalf("stdout = %q, want unlinked message", stdout.String())
+	}
+}
+
+func TestRunRepoLinkRemoveSkipsUnlinkedRepository(t *testing.T) {
+	cachePath := filepath.Join(t.TempDir(), "cache.json")
+	if err := writeCache(cachePath, testProjectCache()); err != nil {
+		t.Fatalf("writeCache(): %v", err)
+	}
+
+	client := &stubProjectClient{
+		resolvedRepo: RepositoryRef{ID: "repo-1", NameWithOwner: "yoskeoka/vibe-coding-workspace"},
+	}
+
+	var stdout strings.Builder
+	err := appWithClient(client).runRepoLink([]string{"remove", "--cache", cachePath, "yoskeoka/vibe-coding-workspace"}, &stdout)
+	if err != nil {
+		t.Fatalf("runRepoLink() error = %v", err)
+	}
+	if client.unlinkedRepo.ID != "" {
+		t.Fatalf("unlinked repo = %+v, want no unlink call", client.unlinkedRepo)
+	}
+	if !strings.Contains(stdout.String(), "is not linked") {
+		t.Fatalf("stdout = %q, want not linked message", stdout.String())
+	}
+}
+
+func TestRunRepoLinkRejectsDifferentRepositoryOwner(t *testing.T) {
+	cachePath := filepath.Join(t.TempDir(), "cache.json")
+	if err := writeCache(cachePath, testProjectCache()); err != nil {
+		t.Fatalf("writeCache(): %v", err)
+	}
+
+	err := appWithClient(&stubProjectClient{}).runRepoLink([]string{"status", "--cache", cachePath, "acme/vibe-coding-workspace"}, io.Discard)
+	if err == nil {
+		t.Fatal("runRepoLink() error = nil, want owner mismatch")
+	}
+	if !strings.Contains(err.Error(), "does not match project owner") {
+		t.Fatalf("error = %q, want owner mismatch", err)
+	}
+}
+
 func testProjectCache() *Cache {
 	return &Cache{
 		Project: ProjectRef{
@@ -589,6 +695,10 @@ type stubProjectClient struct {
 	addFieldValues    map[string]string
 	updateItemID      string
 	update            itemUpdate
+	resolvedRepo      RepositoryRef
+	linkedRepos       []RepositoryRef
+	linkedRepo        RepositoryRef
+	unlinkedRepo      RepositoryRef
 }
 
 func (s *stubProjectClient) ensureProject(owner, ownerType, title string) (ProjectRef, bool, error) {
@@ -611,6 +721,24 @@ func (s *stubProjectClient) syncProject(ref ProjectRef) (*Cache, error) {
 func (s *stubProjectClient) provisionWorkflowFields(cache *Cache) (bool, error) {
 	s.provisionCalls++
 	return s.provisionCreated, s.provisionErr
+}
+
+func (s *stubProjectClient) projectLinkedRepositories(projectID string) ([]RepositoryRef, error) {
+	return s.linkedRepos, nil
+}
+
+func (s *stubProjectClient) linkProjectToRepository(projectID string, repo RepositoryRef) error {
+	s.linkedRepo = repo
+	return nil
+}
+
+func (s *stubProjectClient) unlinkProjectFromRepository(projectID string, repo RepositoryRef) error {
+	s.unlinkedRepo = repo
+	return nil
+}
+
+func (s *stubProjectClient) resolveRepository(owner, name string) (RepositoryRef, error) {
+	return s.resolvedRepo, nil
 }
 
 func (s *stubProjectClient) addDraftItem(cache *Cache, title, body string, fieldValues map[string]string) error {

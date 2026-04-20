@@ -19,6 +19,9 @@ A short entry in `AGENTS.md` MUST propose triage at the start of every new sessi
 ### 2. Canonical state
 - The canonical remote source of workspace triage state is a GitHub Project (ProjectV2).
 - The workspace MUST use a dedicated ProjectV2 named `Workspace Task Triage` for cross-project task coordination.
+- The canonical ProjectV2 is owner-scoped (`user` or `org`), not repository-owned.
+- The canonical ProjectV2 SHOULD be linked to this workspace repository so it appears in the repository's Projects tab for discoverability.
+- GitHub only supports linking a ProjectV2 to repositories owned by the same user or organization as the Project owner; if the workspace later moves to an organization-owned board, the linked workspace repository must be owned by that same organization.
 - This board is reserved for workspace triage data; unrelated personal/work boards MUST NOT be reused as the canonical workspace tracker.
 - Workspace triage MUST begin with an explicit bootstrap step, `pj init --owner <owner> --owner-type user|org`, which resolves the canonical board by name and creates it when absent.
 - If `Workspace Task Triage` does not exist yet, `pj init` MUST create it before later `pj` commands manage items on it.
@@ -106,6 +109,15 @@ A workspace-local Go CLI provides the task operations. The initial command set i
 - Must be the explicit mechanism for switching the local workspace from one owner scope to another
 - Must clear incompatible cached project identity when the owner scope changes
 - `clear` must also remove the cached project snapshot so later commands cannot keep operating on the old board implicitly
+
+#### `repo-link`
+- Checks, adds, or removes the repository-level ProjectV2 link for the cached canonical board.
+- Supports `status`, `add`, and `remove` subcommands with an explicit `<owner>/<repo>` target.
+- Uses `pj repo-link status <owner>/<repo>` to report whether the target repository already exposes the canonical board through its Projects tab.
+- Uses `pj repo-link add <owner>/<repo>` to link the canonical board to the target repository.
+- Uses `pj repo-link remove <owner>/<repo>` to unlink the canonical board from the target repository when needed.
+- Must reject target repositories whose owner does not match the configured Project owner.
+- Setting a default repository for the Project is not required by this workspace triage flow because task creation uses Project draft items; repository linking is required only for repository-tab discoverability.
 
 ### 6. `triage-tasks` skill integration
 The `triage-tasks` skill may use the local cache and/or the CLI output as its workspace-task source instead of historical local-priority-file flows.
