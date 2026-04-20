@@ -1,0 +1,52 @@
+name: check-pj
+
+"on":
+  pull_request:
+    branches: [main]
+    paths:
+      - tools/pj/**
+      - docs/specs/github-projects-task-cli.md
+      - .github/workflows/check-pj.yml
+
+jobs:
+  check-pj:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/pj
+    env:
+      GOIMPORTS_VERSION: v0.44.0
+      STATICCHECK_VERSION: v0.7.0
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: tools/pj/go.mod
+          cache-dependency-path: tools/pj/go.mod
+
+      - name: Install Go check tools
+        run: |
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+          go install "golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}"
+          go install "honnef.co/go/tools/cmd/staticcheck@${STATICCHECK_VERSION}"
+
+      - name: Check goimports formatting
+        run: |
+          unformatted="$(find . -name '*.go' -print0 | xargs -0 goimports -l)"
+          if [ -n "$unformatted" ]; then
+            echo "Go files need goimports formatting:"
+            printf '%s\n' "$unformatted"
+            exit 1
+          fi
+
+      - name: Run staticcheck
+        run: staticcheck ./...
+
+      - name: Run go vet
+        run: go vet ./...
+
+      - name: Run tests
+        run: go test ./...

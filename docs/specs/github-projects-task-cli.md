@@ -190,6 +190,26 @@ The cache MUST also expose ordered repo-option metadata:
 - If GitHub returns a paginated project field, project item, or item field-value response, the CLI must follow cursors until the full connection is loaded instead of silently truncating the cache.
 - If a paginated response is malformed and cannot provide the next cursor while reporting more pages, the CLI must fail clearly instead of writing an incomplete cache.
 
+## CI verification
+- The repository MUST provide a dedicated GitHub Actions workflow named `check-pj` for the workspace-local `tools/pj` Go module.
+- The workflow MUST run on pull requests targeting `main` when any of these paths change:
+  - `tools/pj/**`
+  - `docs/specs/github-projects-task-cli.md`
+  - `.github/workflows/check-pj.yml`
+- The workflow MUST check out the repository with `actions/checkout@v6`.
+- The workflow MUST set up Go from `tools/pj/go.mod`.
+- All Go checks MUST run with `tools/pj` as the working directory.
+- The workflow MUST install pinned tool versions before checking the module:
+  - `goimports`: `golang.org/x/tools/cmd/goimports@v0.44.0`
+  - `staticcheck`: `honnef.co/go/tools/cmd/staticcheck@v0.7.0`
+- The workflow MUST be non-mutating. Formatting checks must report files that need changes instead of rewriting them in CI.
+- The workflow MUST run these checks:
+  - `goimports` formatting check over all Go files in `tools/pj`
+  - `staticcheck ./...`
+  - `go vet ./...`
+  - `go test ./...`
+- Tool upgrades SHOULD be done by editing the pinned versions in `.github/workflows/check-pj.yml`, updating this spec in the same PR, and rerunning the local equivalents of the workflow checks.
+
 ## Non-Goals
 - Full parity with `gh project`
 - Complex search syntax
