@@ -2,11 +2,13 @@ package pj
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"slices"
 	"strings"
+	"sync"
 	"testing"
 )
 
@@ -123,22 +125,13 @@ func TestEnsureProjectCreatesMissingProject(t *testing.T) {
 }
 
 func TestSyncProjectPaginatesFields(t *testing.T) {
-	var requests []map[string]any
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		defer r.Body.Close()
-
-		var payload map[string]any
-		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-			t.Fatalf("decode request body: %v", err)
-		}
-		requests = append(requests, payload)
-
-		switch len(requests) {
+	recorder := newGraphQLTestRecorder(func(w http.ResponseWriter, payload map[string]any, requestNumber int) error {
+		switch requestNumber {
 		case 1:
 			if !strings.Contains(payload["query"].(string), "projectV2(number: $number)") {
-				t.Fatalf("unexpected project shell query: %s", payload["query"].(string))
+				return fmt.Errorf("unexpected project shell query: %s", payload["query"].(string))
 			}
-			writeGraphQLResponse(t, w, map[string]any{
+			writeGraphQLTestResponse(w, map[string]any{
 				"data": map[string]any{
 					"user": map[string]any{
 						"projectV2": map[string]any{
@@ -151,9 +144,9 @@ func TestSyncProjectPaginatesFields(t *testing.T) {
 		case 2:
 			vars := payload["variables"].(map[string]any)
 			if vars["after"] != nil {
-				t.Fatalf("first fields cursor = %#v, want nil", vars["after"])
+				return fmt.Errorf("first fields cursor = %#v, want nil", vars["after"])
 			}
-			writeGraphQLResponse(t, w, map[string]any{
+			writeGraphQLTestResponse(w, map[string]any{
 				"data": map[string]any{
 					"node": map[string]any{
 						"fields": map[string]any{
@@ -175,9 +168,9 @@ func TestSyncProjectPaginatesFields(t *testing.T) {
 		case 3:
 			vars := payload["variables"].(map[string]any)
 			if vars["after"] != "fields-1" {
-				t.Fatalf("second fields cursor = %#v, want fields-1", vars["after"])
+				return fmt.Errorf("second fields cursor = %#v, want fields-1", vars["after"])
 			}
-			writeGraphQLResponse(t, w, map[string]any{
+			writeGraphQLTestResponse(w, map[string]any{
 				"data": map[string]any{
 					"node": map[string]any{
 						"fields": map[string]any{
@@ -197,7 +190,7 @@ func TestSyncProjectPaginatesFields(t *testing.T) {
 				},
 			})
 		case 4:
-			writeGraphQLResponse(t, w, map[string]any{
+			writeGraphQLTestResponse(w, map[string]any{
 				"data": map[string]any{
 					"node": map[string]any{
 						"items": map[string]any{
@@ -208,9 +201,11 @@ func TestSyncProjectPaginatesFields(t *testing.T) {
 				},
 			})
 		default:
-			t.Fatalf("unexpected request count %d", len(requests))
+			return fmt.Errorf("unexpected request count %d", requestNumber)
 		}
-	}))
+		return nil
+	})
+	server := httptest.NewServer(recorder)
 	defer server.Close()
 
 	client := &githubClient{
@@ -223,6 +218,8 @@ func TestSyncProjectPaginatesFields(t *testing.T) {
 	if err != nil {
 		t.Fatalf("syncProject() error = %v", err)
 	}
+	recorder.assertNoError(t)
+	requests := recorder.requestsSnapshot()
 	if len(requests) != 4 {
 		t.Fatalf("request count = %d, want 4", len(requests))
 	}
@@ -235,27 +232,18 @@ func TestSyncProjectPaginatesFields(t *testing.T) {
 }
 
 func TestSyncProjectPaginatesItems(t *testing.T) {
-	var requests []map[string]any
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		defer r.Body.Close()
-
-		var payload map[string]any
-		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-			t.Fatalf("decode request body: %v", err)
-		}
-		requests = append(requests, payload)
-
-		switch len(requests) {
+	recorder := newGraphQLTestRecorder(func(w http.ResponseWriter, payload map[string]any, requestNumber int) error {
+		switch requestNumber {
 		case 1:
-			writeGraphQLResponse(t, w, syncProjectShellResponse())
+			writeGraphQLTestResponse(w, syncProjectShellResponse())
 		case 2:
-			writeGraphQLResponse(t, w, emptyFieldsResponse())
+			writeGraphQLTestResponse(w, emptyFieldsResponse())
 		case 3:
 			vars := payload["variables"].(map[string]any)
 			if vars["after"] != nil {
-				t.Fatalf("first items cursor = %#v, want nil", vars["after"])
+				return fmt.Errorf("first items cursor = %#v, want nil", vars["after"])
 			}
-			writeGraphQLResponse(t, w, map[string]any{
+			writeGraphQLTestResponse(w, map[string]any{
 				"data": map[string]any{
 					"node": map[string]any{
 						"items": map[string]any{
@@ -272,9 +260,9 @@ func TestSyncProjectPaginatesItems(t *testing.T) {
 		case 4:
 			vars := payload["variables"].(map[string]any)
 			if vars["after"] != "items-1" {
-				t.Fatalf("second items cursor = %#v, want items-1", vars["after"])
+				return fmt.Errorf("second items cursor = %#v, want items-1", vars["after"])
 			}
-			writeGraphQLResponse(t, w, map[string]any{
+			writeGraphQLTestResponse(w, map[string]any{
 				"data": map[string]any{
 					"node": map[string]any{
 						"items": map[string]any{
@@ -289,9 +277,11 @@ func TestSyncProjectPaginatesItems(t *testing.T) {
 				},
 			})
 		default:
-			t.Fatalf("unexpected request count %d", len(requests))
+			return fmt.Errorf("unexpected request count %d", requestNumber)
 		}
-	}))
+		return nil
+	})
+	server := httptest.NewServer(recorder)
 	defer server.Close()
 
 	client := &githubClient{
@@ -304,6 +294,7 @@ func TestSyncProjectPaginatesItems(t *testing.T) {
 	if err != nil {
 		t.Fatalf("syncProject() error = %v", err)
 	}
+	recorder.assertNoError(t)
 	if len(cache.Items) != 2 {
 		t.Fatalf("item count = %d, want 2", len(cache.Items))
 	}
@@ -316,23 +307,14 @@ func TestSyncProjectPaginatesItems(t *testing.T) {
 }
 
 func TestSyncProjectPaginatesItemFieldValues(t *testing.T) {
-	var requests []map[string]any
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		defer r.Body.Close()
-
-		var payload map[string]any
-		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-			t.Fatalf("decode request body: %v", err)
-		}
-		requests = append(requests, payload)
-
-		switch len(requests) {
+	recorder := newGraphQLTestRecorder(func(w http.ResponseWriter, payload map[string]any, requestNumber int) error {
+		switch requestNumber {
 		case 1:
-			writeGraphQLResponse(t, w, syncProjectShellResponse())
+			writeGraphQLTestResponse(w, syncProjectShellResponse())
 		case 2:
-			writeGraphQLResponse(t, w, emptyFieldsResponse())
+			writeGraphQLTestResponse(w, emptyFieldsResponse())
 		case 3:
-			writeGraphQLResponse(t, w, map[string]any{
+			writeGraphQLTestResponse(w, map[string]any{
 				"data": map[string]any{
 					"node": map[string]any{
 						"items": map[string]any{
@@ -348,13 +330,13 @@ func TestSyncProjectPaginatesItemFieldValues(t *testing.T) {
 			})
 		case 4:
 			if !strings.Contains(payload["query"].(string), "fieldValues(first: 20, after: $after)") {
-				t.Fatalf("unexpected field values query: %s", payload["query"].(string))
+				return fmt.Errorf("unexpected field values query: %s", payload["query"].(string))
 			}
 			vars := payload["variables"].(map[string]any)
 			if vars["itemId"] != "item-1" || vars["after"] != "values-1" {
-				t.Fatalf("field value variables = %#v", vars)
+				return fmt.Errorf("field value variables = %#v", vars)
 			}
-			writeGraphQLResponse(t, w, map[string]any{
+			writeGraphQLTestResponse(w, map[string]any{
 				"data": map[string]any{
 					"node": map[string]any{
 						"fieldValues": map[string]any{
@@ -367,9 +349,11 @@ func TestSyncProjectPaginatesItemFieldValues(t *testing.T) {
 				},
 			})
 		default:
-			t.Fatalf("unexpected request count %d", len(requests))
+			return fmt.Errorf("unexpected request count %d", requestNumber)
 		}
-	}))
+		return nil
+	})
+	server := httptest.NewServer(recorder)
 	defer server.Close()
 
 	client := &githubClient{
@@ -382,6 +366,8 @@ func TestSyncProjectPaginatesItemFieldValues(t *testing.T) {
 	if err != nil {
 		t.Fatalf("syncProject() error = %v", err)
 	}
+	recorder.assertNoError(t)
+	requests := recorder.requestsSnapshot()
 	if len(requests) != 4 {
 		t.Fatalf("request count = %d, want 4", len(requests))
 	}
@@ -390,6 +376,72 @@ func TestSyncProjectPaginatesItemFieldValues(t *testing.T) {
 	}
 	if cache.Items[0].Status != "Todo" || cache.Items[0].Priority != "High" {
 		t.Fatalf("item = %+v", cache.Items[0])
+	}
+}
+
+func TestSyncProjectFailsWhenPaginatedResponseHasNoCursor(t *testing.T) {
+	tests := []struct {
+		name        string
+		responses   []map[string]any
+		wantErrPart string
+	}{
+		{
+			name: "fields",
+			responses: []map[string]any{
+				syncProjectShellResponse(),
+				paginatedFieldsResponse(true, ""),
+			},
+			wantErrPart: "project fields response reported another page without an end cursor",
+		},
+		{
+			name: "items",
+			responses: []map[string]any{
+				syncProjectShellResponse(),
+				emptyFieldsResponse(),
+				paginatedItemsResponse(true, ""),
+			},
+			wantErrPart: "project items response reported another page without an end cursor",
+		},
+		{
+			name: "item field values",
+			responses: []map[string]any{
+				syncProjectShellResponse(),
+				emptyFieldsResponse(),
+				paginatedItemsResponse(false, nil, syncDraftItemNode("item-1", "Task", []map[string]any{
+					syncSingleSelectFieldValue(fieldStatus, "Todo"),
+				}, true, "")),
+			},
+			wantErrPart: "item field values for item-1 response reported another page without an end cursor",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			recorder := newGraphQLTestRecorder(func(w http.ResponseWriter, _ map[string]any, requestNumber int) error {
+				if requestNumber > len(tt.responses) {
+					return fmt.Errorf("unexpected request count %d", requestNumber)
+				}
+				writeGraphQLTestResponse(w, tt.responses[requestNumber-1])
+				return nil
+			})
+			server := httptest.NewServer(recorder)
+			defer server.Close()
+
+			client := &githubClient{
+				httpClient: server.Client(),
+				endpoint:   server.URL,
+				token:      "token",
+			}
+
+			_, err := client.syncProject(ProjectRef{Owner: "yoskeoka", OwnerType: "user", ProjectNumber: 42})
+			recorder.assertNoError(t)
+			if err == nil {
+				t.Fatal("syncProject() error = nil, want malformed cursor error")
+			}
+			if !strings.Contains(err.Error(), tt.wantErrPart) {
+				t.Fatalf("syncProject() error = %q, want %q", err, tt.wantErrPart)
+			}
+		})
 	}
 }
 
@@ -735,6 +787,32 @@ func emptyFieldsResponse() map[string]any {
 	}
 }
 
+func paginatedFieldsResponse(hasNextPage bool, endCursor any) map[string]any {
+	return map[string]any{
+		"data": map[string]any{
+			"node": map[string]any{
+				"fields": map[string]any{
+					"pageInfo": map[string]any{"hasNextPage": hasNextPage, "endCursor": endCursor},
+					"nodes":    []map[string]any{},
+				},
+			},
+		},
+	}
+}
+
+func paginatedItemsResponse(hasNextPage bool, endCursor any, nodes ...map[string]any) map[string]any {
+	return map[string]any{
+		"data": map[string]any{
+			"node": map[string]any{
+				"items": map[string]any{
+					"pageInfo": map[string]any{"hasNextPage": hasNextPage, "endCursor": endCursor},
+					"nodes":    nodes,
+				},
+			},
+		},
+	}
+}
+
 func syncDraftItemNode(itemID, title string, values []map[string]any, hasMoreValues bool, valuesCursor any) map[string]any {
 	return map[string]any{
 		"id": itemID,
@@ -759,6 +837,70 @@ func syncSingleSelectFieldValue(fieldName, value string) map[string]any {
 			"name": fieldName,
 		},
 	}
+}
+
+type graphQLTestRecorder struct {
+	mu       sync.Mutex
+	requests []map[string]any
+	err      error
+	handler  func(http.ResponseWriter, map[string]any, int) error
+}
+
+func newGraphQLTestRecorder(handler func(http.ResponseWriter, map[string]any, int) error) *graphQLTestRecorder {
+	return &graphQLTestRecorder{handler: handler}
+}
+
+func (r *graphQLTestRecorder) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	defer req.Body.Close()
+
+	var payload map[string]any
+	if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+		r.recordError(fmt.Errorf("decode request body: %w", err))
+		http.Error(w, "decode request body", http.StatusBadRequest)
+		return
+	}
+
+	r.mu.Lock()
+	r.requests = append(r.requests, payload)
+	requestNumber := len(r.requests)
+	r.mu.Unlock()
+
+	if err := r.handler(w, payload, requestNumber); err != nil {
+		r.recordError(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (r *graphQLTestRecorder) recordError(err error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.err == nil {
+		r.err = err
+	}
+}
+
+func (r *graphQLTestRecorder) assertNoError(t *testing.T) {
+	t.Helper()
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.err != nil {
+		t.Fatal(r.err)
+	}
+}
+
+func (r *graphQLTestRecorder) requestsSnapshot() []map[string]any {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	requests := make([]map[string]any, len(r.requests))
+	copy(requests, r.requests)
+	return requests
+}
+
+func writeGraphQLTestResponse(w http.ResponseWriter, payload map[string]any) {
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(payload)
 }
 
 func writeGraphQLResponse(t *testing.T, w http.ResponseWriter, payload map[string]any) {
