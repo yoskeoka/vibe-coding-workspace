@@ -159,6 +159,23 @@ func TestRunInitRejectsOwnerMismatchWithStoredConfig(t *testing.T) {
 	}
 }
 
+func TestRunInitRejectsMissingClientFactory(t *testing.T) {
+	t.Parallel()
+
+	err := (app{}).runInit([]string{
+		"--config", filepath.Join(t.TempDir(), "config.json"),
+		"--cache", filepath.Join(t.TempDir(), "cache.json"),
+		"--owner", "yoskeoka",
+		"--owner-type", "user",
+	}, io.Discard)
+	if err == nil {
+		t.Fatal("runInit() error = nil, want missing client factory error")
+	}
+	if !strings.Contains(err.Error(), "project client factory is not configured") {
+		t.Fatalf("runInit() error = %q", err)
+	}
+}
+
 func TestRunSyncUsesStoredOwnerConfigAndCachedProjectNumber(t *testing.T) {
 	t.Parallel()
 

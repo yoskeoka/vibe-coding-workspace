@@ -34,6 +34,13 @@ func newApp() app {
 	}
 }
 
+func (a app) newClient() (projectClient, error) {
+	if a.newProjectClient == nil {
+		return nil, errors.New("project client factory is not configured")
+	}
+	return a.newProjectClient()
+}
+
 func Run(args []string, stdout, stderr io.Writer) error {
 	return newApp().run(args, stdout, stderr)
 }
@@ -94,7 +101,7 @@ func (a app) runInit(args []string, stdout io.Writer) error {
 		return err
 	}
 
-	client, err := a.newProjectClient()
+	client, err := a.newClient()
 	if err != nil {
 		return err
 	}
@@ -197,7 +204,7 @@ func (a app) runSync(args []string, stdout io.Writer) error {
 		return fmt.Errorf("sync requires --project, or a cache with project metadata")
 	}
 
-	client, err := a.newProjectClient()
+	client, err := a.newClient()
 	if err != nil {
 		return err
 	}
@@ -393,7 +400,7 @@ func (a app) runAdd(args []string, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
-	client, err := a.newProjectClient()
+	client, err := a.newClient()
 	if err != nil {
 		return err
 	}
@@ -468,7 +475,7 @@ func (a app) runUpdate(args []string, stdout io.Writer) error {
 	if !update.TitleProvided && !update.BodyProvided && len(update.FieldValues) == 0 {
 		return fmt.Errorf("update requires at least one field: --title, --body, --body-file, --status, --repo, --kind, or --priority")
 	}
-	client, err := a.newProjectClient()
+	client, err := a.newClient()
 	if err != nil {
 		return err
 	}
