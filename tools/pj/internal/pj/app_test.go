@@ -538,6 +538,59 @@ func TestRunRepoLinkAddLinksUnlinkedRepository(t *testing.T) {
 	}
 }
 
+func TestRunRepoLinkRemoveUnlinksLinkedRepository(t *testing.T) {
+	cachePath := filepath.Join(t.TempDir(), "cache.json")
+	if err := writeCache(cachePath, testProjectCache()); err != nil {
+		t.Fatalf("writeCache(): %v", err)
+	}
+
+	client := &stubProjectClient{
+		resolvedRepo: RepositoryRef{ID: "repo-1", NameWithOwner: "yoskeoka/vibe-coding-workspace"},
+		linkedRepos:  []RepositoryRef{{ID: "repo-1", NameWithOwner: "yoskeoka/vibe-coding-workspace"}},
+	}
+	orig := newProjectClient
+	newProjectClient = func() (projectClient, error) { return client, nil }
+	defer func() { newProjectClient = orig }()
+
+	var stdout strings.Builder
+	err := runRepoLink([]string{"remove", "--cache", cachePath, "yoskeoka/vibe-coding-workspace"}, &stdout)
+	if err != nil {
+		t.Fatalf("runRepoLink() error = %v", err)
+	}
+	if client.unlinkedRepo.ID != "repo-1" {
+		t.Fatalf("unlinked repo = %+v, want repo-1", client.unlinkedRepo)
+	}
+	if !strings.Contains(stdout.String(), "unlinked yoskeoka/vibe-coding-workspace") {
+		t.Fatalf("stdout = %q, want unlinked message", stdout.String())
+	}
+}
+
+func TestRunRepoLinkRemoveSkipsUnlinkedRepository(t *testing.T) {
+	cachePath := filepath.Join(t.TempDir(), "cache.json")
+	if err := writeCache(cachePath, testProjectCache()); err != nil {
+		t.Fatalf("writeCache(): %v", err)
+	}
+
+	client := &stubProjectClient{
+		resolvedRepo: RepositoryRef{ID: "repo-1", NameWithOwner: "yoskeoka/vibe-coding-workspace"},
+	}
+	orig := newProjectClient
+	newProjectClient = func() (projectClient, error) { return client, nil }
+	defer func() { newProjectClient = orig }()
+
+	var stdout strings.Builder
+	err := runRepoLink([]string{"remove", "--cache", cachePath, "yoskeoka/vibe-coding-workspace"}, &stdout)
+	if err != nil {
+		t.Fatalf("runRepoLink() error = %v", err)
+	}
+	if client.unlinkedRepo.ID != "" {
+		t.Fatalf("unlinked repo = %+v, want no unlink call", client.unlinkedRepo)
+	}
+	if !strings.Contains(stdout.String(), "is not linked") {
+		t.Fatalf("stdout = %q, want not linked message", stdout.String())
+	}
+}
+
 func TestRunRepoLinkRejectsDifferentRepositoryOwner(t *testing.T) {
 	cachePath := filepath.Join(t.TempDir(), "cache.json")
 	if err := writeCache(cachePath, testProjectCache()); err != nil {

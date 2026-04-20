@@ -358,7 +358,7 @@ func (c *githubClient) projectLinkedRepositories(projectID string) ([]Repository
 				PageInfo struct {
 					HasNextPage bool `json:"hasNextPage"`
 				} `json:"pageInfo"`
-				Nodes []struct {
+				Nodes []*struct {
 					ID            string `json:"id"`
 					NameWithOwner string `json:"nameWithOwner"`
 				} `json:"nodes"`
@@ -397,9 +397,12 @@ query($projectId: ID!) {
 	}
 
 	repos := make([]RepositoryRef, 0, len(resp.Node.Repositories.Nodes))
-	for _, node := range resp.Node.Repositories.Nodes {
+	for i, node := range resp.Node.Repositories.Nodes {
+		if node == nil {
+			return nil, fmt.Errorf("project linked repository node %d is incomplete", i)
+		}
 		if node.ID == "" || node.NameWithOwner == "" {
-			continue
+			return nil, fmt.Errorf("project linked repository node %d is incomplete", i)
 		}
 		repos = append(repos, RepositoryRef{
 			ID:            node.ID,
