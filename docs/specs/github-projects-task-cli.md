@@ -10,6 +10,12 @@ Provide a small Go CLI that lets this workspace sync, inspect, create, update, a
 
 This layout is preferred over `scripts/cmd/pj` because the spike is a compiled Go utility, not a shell-script collection, and the workspace root does not currently have a shared `go.mod` suitable for `cmd/pj/`.
 
+## Implementation Testability
+- `Run(args, stdout, stderr)` is the public command entrypoint.
+- Remote-backed commands MUST obtain GitHub Project clients through dependencies owned by the internal command app, not through mutable package-level client factory state.
+- Command tests MAY instantiate the internal app with stub client dependencies so remote-backed command tests can run independently when their config/cache fixtures are isolated.
+- Remote-backed commands MUST continue to create clients lazily only after argument, config, and cache validation reaches the point where remote access is needed.
+
 ## Configuration
 - Authentication MUST use `gh auth token`.
 - The GitHub token needs ProjectV2 scopes:

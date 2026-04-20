@@ -22,11 +22,23 @@ type projectClient interface {
 	updateItem(cache *Cache, itemID string, update itemUpdate) error
 }
 
-var newProjectClient = func() (projectClient, error) {
-	return newGitHubClient()
+type app struct {
+	newProjectClient func() (projectClient, error)
+}
+
+func newApp() app {
+	return app{
+		newProjectClient: func() (projectClient, error) {
+			return newGitHubClient()
+		},
+	}
 }
 
 func Run(args []string, stdout, stderr io.Writer) error {
+	return newApp().run(args, stdout, stderr)
+}
+
+func (a app) run(args []string, stdout, stderr io.Writer) error {
 	if len(args) == 0 {
 		printUsage(stderr)
 		return errors.New("missing command")
@@ -34,17 +46,17 @@ func Run(args []string, stdout, stderr io.Writer) error {
 
 	switch args[0] {
 	case "init":
-		return runInit(args[1:], stdout)
+		return a.runInit(args[1:], stdout)
 	case "sync":
-		return runSync(args[1:], stdout)
+		return a.runSync(args[1:], stdout)
 	case "config":
 		return runConfig(args[1:], stdout)
 	case "list":
 		return runList(args[1:], stdout)
 	case "add":
-		return runAdd(args[1:], stdout)
+		return a.runAdd(args[1:], stdout)
 	case "update":
-		return runUpdate(args[1:], stdout)
+		return a.runUpdate(args[1:], stdout)
 	case "url":
 		return runURL(args[1:], stdout)
 	case "open":
@@ -65,7 +77,7 @@ func Run(args []string, stdout, stderr io.Writer) error {
 	}
 }
 
-func runInit(args []string, stdout io.Writer) error {
+func (a app) runInit(args []string, stdout io.Writer) error {
 	fs := flag.NewFlagSet("init", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 
@@ -82,7 +94,7 @@ func runInit(args []string, stdout io.Writer) error {
 		return err
 	}
 
-	client, err := newProjectClient()
+	client, err := a.newProjectClient()
 	if err != nil {
 		return err
 	}
@@ -154,7 +166,7 @@ func runInit(args []string, stdout io.Writer) error {
 	return nil
 }
 
-func runSync(args []string, stdout io.Writer) error {
+func (a app) runSync(args []string, stdout io.Writer) error {
 	fs := flag.NewFlagSet("sync", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 
@@ -185,7 +197,7 @@ func runSync(args []string, stdout io.Writer) error {
 		return fmt.Errorf("sync requires --project, or a cache with project metadata")
 	}
 
-	client, err := newProjectClient()
+	client, err := a.newProjectClient()
 	if err != nil {
 		return err
 	}
@@ -344,7 +356,7 @@ func runList(args []string, stdout io.Writer) error {
 	return tw.Flush()
 }
 
-func runAdd(args []string, stdout io.Writer) error {
+func (a app) runAdd(args []string, stdout io.Writer) error {
 	fs := flag.NewFlagSet("add", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 
@@ -371,10 +383,6 @@ func runAdd(args []string, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
-	client, err := newProjectClient()
-	if err != nil {
-		return err
-	}
 
 	fieldValues, err := resolveFieldInputs(cache, map[string]string{
 		fieldStatus:   *status,
@@ -382,6 +390,10 @@ func runAdd(args []string, stdout io.Writer) error {
 		fieldKind:     *kind,
 		fieldPriority: *priority,
 	})
+	if err != nil {
+		return err
+	}
+	client, err := a.newProjectClient()
 	if err != nil {
 		return err
 	}
@@ -404,7 +416,7 @@ func runAdd(args []string, stdout io.Writer) error {
 	return nil
 }
 
-func runUpdate(args []string, stdout io.Writer) error {
+func (a app) runUpdate(args []string, stdout io.Writer) error {
 	fs := flag.NewFlagSet("update", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 
@@ -436,10 +448,6 @@ func runUpdate(args []string, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
-	client, err := newProjectClient()
-	if err != nil {
-		return err
-	}
 
 	fieldValues, err := resolveFieldInputs(cache, map[string]string{
 		fieldStatus:   *status,
@@ -459,6 +467,10 @@ func runUpdate(args []string, stdout io.Writer) error {
 	}
 	if !update.TitleProvided && !update.BodyProvided && len(update.FieldValues) == 0 {
 		return fmt.Errorf("update requires at least one field: --title, --body, --body-file, --status, --repo, --kind, or --priority")
+	}
+	client, err := a.newProjectClient()
+	if err != nil {
+		return err
 	}
 	if err := client.updateItem(cache, *itemID, update); err != nil {
 		return err

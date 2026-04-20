@@ -9,6 +9,8 @@ import (
 )
 
 func TestRunInitProvisionsFieldsAndRefreshesCache(t *testing.T) {
+	t.Parallel()
+
 	configPath := filepath.Join(t.TempDir(), "config.json")
 	cachePath := filepath.Join(t.TempDir(), "cache.json")
 	client := &stubProjectClient{
@@ -46,12 +48,8 @@ func TestRunInitProvisionsFieldsAndRefreshesCache(t *testing.T) {
 		provisionCreated: true,
 	}
 
-	orig := newProjectClient
-	newProjectClient = func() (projectClient, error) { return client, nil }
-	defer func() { newProjectClient = orig }()
-
 	var stdout strings.Builder
-	err := runInit([]string{
+	err := appWithClient(client).runInit([]string{
 		"--config", configPath,
 		"--cache", cachePath,
 		"--owner", "yoskeoka",
@@ -84,6 +82,8 @@ func TestRunInitProvisionsFieldsAndRefreshesCache(t *testing.T) {
 }
 
 func TestRunInitDoesNotWriteStaleCacheWhenProvisioningMutatesAndRefreshFails(t *testing.T) {
+	t.Parallel()
+
 	configPath := filepath.Join(t.TempDir(), "config.json")
 	cachePath := filepath.Join(t.TempDir(), "cache.json")
 	client := &stubProjectClient{
@@ -113,11 +113,7 @@ func TestRunInitDoesNotWriteStaleCacheWhenProvisioningMutatesAndRefreshFails(t *
 		provisionErr:     errStubProvision,
 	}
 
-	orig := newProjectClient
-	newProjectClient = func() (projectClient, error) { return client, nil }
-	defer func() { newProjectClient = orig }()
-
-	err := runInit([]string{
+	err := appWithClient(client).runInit([]string{
 		"--config", configPath,
 		"--cache", cachePath,
 		"--owner", "yoskeoka",
@@ -135,13 +131,21 @@ func TestRunInitDoesNotWriteStaleCacheWhenProvisioningMutatesAndRefreshFails(t *
 }
 
 func TestRunInitRejectsOwnerMismatchWithStoredConfig(t *testing.T) {
+	t.Parallel()
+
 	dir := t.TempDir()
 	configPath := filepath.Join(dir, "config.json")
 	if err := writeOwnerConfig(configPath, &OwnerConfig{Owner: "yoskeoka", OwnerType: "user"}); err != nil {
 		t.Fatalf("writeOwnerConfig(): %v", err)
 	}
 
-	err := runInit([]string{
+	app := app{
+		newProjectClient: func() (projectClient, error) {
+			t.Fatal("newProjectClient should not be called before owner config validation")
+			return nil, nil
+		},
+	}
+	err := app.runInit([]string{
 		"--config", configPath,
 		"--cache", filepath.Join(dir, "cache.json"),
 		"--owner", "acme",
@@ -156,6 +160,8 @@ func TestRunInitRejectsOwnerMismatchWithStoredConfig(t *testing.T) {
 }
 
 func TestRunSyncUsesStoredOwnerConfigAndCachedProjectNumber(t *testing.T) {
+	t.Parallel()
+
 	dir := t.TempDir()
 	configPath := filepath.Join(dir, "config.json")
 	cachePath := filepath.Join(dir, "cache.json")
@@ -191,12 +197,8 @@ func TestRunSyncUsesStoredOwnerConfigAndCachedProjectNumber(t *testing.T) {
 		},
 	}
 
-	orig := newProjectClient
-	newProjectClient = func() (projectClient, error) { return client, nil }
-	defer func() { newProjectClient = orig }()
-
 	var stdout strings.Builder
-	err := runSync([]string{
+	err := appWithClient(client).runSync([]string{
 		"--config", configPath,
 		"--cache", cachePath,
 	}, &stdout)
@@ -212,6 +214,8 @@ func TestRunSyncUsesStoredOwnerConfigAndCachedProjectNumber(t *testing.T) {
 }
 
 func TestRunConfigSetClearsMismatchedCache(t *testing.T) {
+	t.Parallel()
+
 	dir := t.TempDir()
 	configPath := filepath.Join(dir, "config.json")
 	cachePath := filepath.Join(dir, "cache.json")
@@ -247,6 +251,8 @@ func TestRunConfigSetClearsMismatchedCache(t *testing.T) {
 }
 
 func TestRunConfigClearRemovesConfigAndCache(t *testing.T) {
+	t.Parallel()
+
 	dir := t.TempDir()
 	configPath := filepath.Join(dir, "config.json")
 	cachePath := filepath.Join(dir, "cache.json")
@@ -307,6 +313,8 @@ func TestRunConfigShowRejectsInvalidConfig(t *testing.T) {
 }
 
 func TestRunAddReadsBodyFileAndResolvesFieldValues(t *testing.T) {
+	t.Parallel()
+
 	dir := t.TempDir()
 	cachePath := filepath.Join(dir, "cache.json")
 	bodyPath := filepath.Join(dir, "body.md")
@@ -320,11 +328,8 @@ func TestRunAddReadsBodyFileAndResolvesFieldValues(t *testing.T) {
 	client := &stubProjectClient{
 		syncResults: []*Cache{testProjectCache()},
 	}
-	orig := newProjectClient
-	newProjectClient = func() (projectClient, error) { return client, nil }
-	defer func() { newProjectClient = orig }()
 
-	err := runAdd([]string{
+	err := appWithClient(client).runAdd([]string{
 		"--cache", cachePath,
 		"--title", "Task",
 		"--body-file", bodyPath,
@@ -353,7 +358,9 @@ func TestRunAddReadsBodyFileAndResolvesFieldValues(t *testing.T) {
 }
 
 func TestRunAddRejectsBodyAndBodyFileTogether(t *testing.T) {
-	err := runAdd([]string{
+	t.Parallel()
+
+	err := appWithClient(&stubProjectClient{}).runAdd([]string{
 		"--cache", filepath.Join(t.TempDir(), "cache.json"),
 		"--title", "Task",
 		"--body", "inline",
@@ -368,6 +375,8 @@ func TestRunAddRejectsBodyAndBodyFileTogether(t *testing.T) {
 }
 
 func TestRunUpdatePartialFieldsAndRepoIndex(t *testing.T) {
+	t.Parallel()
+
 	dir := t.TempDir()
 	cachePath := filepath.Join(dir, "cache.json")
 	bodyPath := filepath.Join(dir, "body.md")
@@ -381,11 +390,8 @@ func TestRunUpdatePartialFieldsAndRepoIndex(t *testing.T) {
 	client := &stubProjectClient{
 		syncResults: []*Cache{testProjectCache()},
 	}
-	orig := newProjectClient
-	newProjectClient = func() (projectClient, error) { return client, nil }
-	defer func() { newProjectClient = orig }()
 
-	err := runUpdate([]string{
+	err := appWithClient(client).runUpdate([]string{
 		"--cache", cachePath,
 		"--item", "item-1",
 		"--title", "New title",
@@ -414,6 +420,8 @@ func TestRunUpdatePartialFieldsAndRepoIndex(t *testing.T) {
 }
 
 func TestRunUpdateRejectsAmbiguousPrefix(t *testing.T) {
+	t.Parallel()
+
 	cache := testProjectCache()
 	cache.RepoOptions = append(cache.RepoOptions, RepoOption{
 		DisplayValue:  "ww-tools",
@@ -429,7 +437,7 @@ func TestRunUpdateRejectsAmbiguousPrefix(t *testing.T) {
 		t.Fatalf("writeCache(): %v", err)
 	}
 
-	err := runUpdate([]string{"--cache", cachePath, "--item", "item-1", "--repo", "github.com/yoskeoka/w"}, io.Discard)
+	err := appWithClient(&stubProjectClient{}).runUpdate([]string{"--cache", cachePath, "--item", "item-1", "--repo", "github.com/yoskeoka/w"}, io.Discard)
 	if err == nil {
 		t.Fatal("runUpdate() error = nil, want ambiguity error")
 	}
@@ -439,6 +447,8 @@ func TestRunUpdateRejectsAmbiguousPrefix(t *testing.T) {
 }
 
 func TestResolveRepoValueSupportsSlugAliasAndPrefix(t *testing.T) {
+	t.Parallel()
+
 	cache := testProjectCache()
 	cases := map[string]string{
 		"github.com/yoskeoka/ww": "ww",
@@ -485,6 +495,14 @@ func TestRunURLAndOpenUseCanonicalProjectURL(t *testing.T) {
 	}
 	if opened != wantURL {
 		t.Fatalf("opened URL = %q, want %q", opened, wantURL)
+	}
+}
+
+func appWithClient(client projectClient) app {
+	return app{
+		newProjectClient: func() (projectClient, error) {
+			return client, nil
+		},
 	}
 }
 
