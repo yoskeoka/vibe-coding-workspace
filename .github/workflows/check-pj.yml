@@ -25,7 +25,7 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version-file: tools/pj/go.mod
-          cache-dependency-path: tools/pj/go.mod
+          cache-dependency-path: tools/pj/go.*
 
       - name: Install Go check tools
         run: |
@@ -35,7 +35,7 @@ jobs:
 
       - name: Check goimports formatting
         run: |
-          unformatted="$(find . -name '*.go' -print0 | xargs -0 goimports -l)"
+          unformatted="$(find . -name '*.go' -print0 | xargs -0 -r goimports -l)"
           if [ -n "$unformatted" ]; then
             echo "Go files need goimports formatting:"
             printf '%s\n' "$unformatted"
