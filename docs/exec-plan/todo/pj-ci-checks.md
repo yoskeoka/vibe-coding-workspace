@@ -57,7 +57,10 @@ Past decisions and constraints:
 ### `.github/workflows/check-pj.yml`
 
 - Create a new GitHub Actions workflow named `check-pj`.
-- Trigger it on pull requests to `main`.
+- Trigger it on pull requests to `main` with a `paths` filter limited to:
+  - `tools/pj/**`
+  - `docs/specs/github-projects-task-cli.md`
+  - `.github/workflows/check-pj.yml`
 - Use `actions/checkout@v6`, matching the existing workflow version alignment.
 - Set up the Go version required by `tools/pj/go.mod`.
 - Install the lint/format tooling used by the workflow:
@@ -68,9 +71,9 @@ Past decisions and constraints:
 
 ### Tooling choice during execution
 
-- Prefer `go install golang.org/x/tools/cmd/goimports@latest` for the formatter check unless a pinned version is added for reproducibility.
-- Prefer a commonly maintained Go lint path during implementation. If `golint` is unsuitable or stale, choose a better-supported linter and record the exact command in the spec and PR verification.
-- If installing the latest Go tools conflicts with the module's declared Go version, pin the tool versions in the workflow and document that choice in the implementation PR.
+- Pin formatter and linter install versions in the workflow (for example, `goimports@vX.Y.Z` and linter `@vA.B.C`) so CI runs are deterministic.
+- Prefer a commonly maintained Go lint path during implementation. If `golint` is unsuitable or stale, choose a better-supported linter and record the exact pinned command in the spec and PR verification.
+- Document the chosen pinned versions and a simple upgrade process in `docs/specs/github-projects-task-cli.md`.
 
 ## Design Decisions
 
@@ -95,7 +98,7 @@ Past decisions and constraints:
 ## Verification
 
 - Confirm `docs/specs/github-projects-task-cli.md` describes the new `check-pj` CI contract.
-- Confirm `.github/workflows/check-pj.yml` exists and is scoped to pull requests targeting `main`.
+- Confirm `.github/workflows/check-pj.yml` exists, targets pull requests to `main`, and uses the documented `paths` filter.
 - Confirm the workflow checks `tools/pj` with formatting, linting, `go vet ./...`, and `go test ./...`.
 - Confirm local verification commands pass before opening the implementation PR.
 - After the implementation PR is created, confirm the `check-pj` GitHub Actions check runs for the latest PR head SHA.

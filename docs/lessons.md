@@ -76,3 +76,10 @@
 - **Pattern**: A helper created to avoid large token usage can lose its value if its failure path silently returns to raw, high-volume JSON polling.
 - **Rule**: When a workflow helper exists specifically to limit context/token cost, its missing/failing path should report the failure reason and stop automatic monitoring unless the user explicitly asks for raw inspection or targeted helper diagnosis.
 - **Applied**: `skills/review-task/scripts/gh-pr-followup`, `skills/review-task/SKILL.md`, and `docs/specs/pr-follow-up-workflow.md`.
+
+## Plan Details Must Match Declared CI Contract
+
+- **Mistake**: I left the execution-plan workflow trigger and tool-install guidance more permissive than the CI contract documented earlier in the same plan.
+- **Pattern**: Drafting implementation details later in a plan can drift from earlier scope constraints unless they are rechecked for exact parity.
+- **Rule**: When a plan defines CI trigger scope or deterministic tool behavior, restate the same constraints in the workflow section (explicit `paths` filters and pinned tool versions) instead of leaving open-ended wording like unscoped triggers or `@latest`.
+- **Applied**: Execution-plan docs that introduce or modify GitHub Actions workflows, especially `docs/exec-plan/todo/pj-ci-checks.md`.
