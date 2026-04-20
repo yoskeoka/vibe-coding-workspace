@@ -107,7 +107,7 @@ func (c *githubClient) graphQL(query string, variables map[string]any, respData 
 }
 
 func (c *githubClient) syncProject(ref ProjectRef) (*Cache, error) {
-	query, rootKey, err := projectQuery(ref.OwnerType)
+	query, rootKey, err := projectShellQuery(ref.OwnerType)
 	if err != nil {
 		return nil, err
 	}
@@ -134,15 +134,18 @@ func (c *githubClient) syncProject(ref ProjectRef) (*Cache, error) {
 	if root.ProjectV2 == nil {
 		return nil, fmt.Errorf("project not found for %s %q number %d", ref.OwnerType, ref.Owner, ref.ProjectNumber)
 	}
-	if root.ProjectV2.Fields.PageInfo.HasNextPage {
-		return nil, fmt.Errorf("project field list exceeds the current spike limit; pagination is not implemented yet")
+
+	fieldNodes, err := c.loadProjectFields(root.ProjectV2.ID)
+	if err != nil {
+		return nil, err
 	}
-	if root.ProjectV2.Items.PageInfo.HasNextPage {
-		return nil, fmt.Errorf("project item list exceeds the current spike limit; pagination is not implemented yet")
+	itemNodes, err := c.loadProjectItems(root.ProjectV2.ID)
+	if err != nil {
+		return nil, err
 	}
 
 	fields := make(map[string]FieldCache)
-	for _, node := range root.ProjectV2.Fields.Nodes {
+	for _, node := range fieldNodes {
 		if node.Name == "" {
 			continue
 		}
@@ -160,8 +163,8 @@ func (c *githubClient) syncProject(ref ProjectRef) (*Cache, error) {
 		fields[node.Name] = field
 	}
 
-	items := make([]Item, 0, len(root.ProjectV2.Items.Nodes))
-	for _, node := range root.ProjectV2.Items.Nodes {
+	items := make([]Item, 0, len(itemNodes))
+	for _, node := range itemNodes {
 		item := Item{
 			ID:           node.ID,
 			DraftIssueID: node.Content.ID,
@@ -205,6 +208,110 @@ func (c *githubClient) syncProject(ref ProjectRef) (*Cache, error) {
 	}
 
 	return cache, nil
+}
+
+func (c *githubClient) loadProjectFields(projectID string) ([]projectFieldNode, error) {
+	var fields []projectFieldNode
+	var after any
+	for {
+		var resp struct {
+			Node struct {
+				Fields struct {
+					PageInfo pageInfo           `json:"pageInfo"`
+					Nodes    []projectFieldNode `json:"nodes"`
+				} `json:"fields"`
+			} `json:"node"`
+		}
+		if err := c.graphQL(projectFieldsQuery, map[string]any{
+			"projectId": projectID,
+			"after":     after,
+		}, &resp); err != nil {
+			return nil, err
+		}
+		fields = append(fields, resp.Node.Fields.Nodes...)
+
+		next, ok, err := nextCursor(resp.Node.Fields.PageInfo, "project fields")
+		if err != nil || !ok {
+			return fields, err
+		}
+		after = next
+	}
+}
+
+func (c *githubClient) loadProjectItems(projectID string) ([]projectItemNode, error) {
+	var items []projectItemNode
+	var after any
+	for {
+		var resp struct {
+			Node struct {
+				Items struct {
+					PageInfo pageInfo          `json:"pageInfo"`
+					Nodes    []projectItemNode `json:"nodes"`
+				} `json:"items"`
+			} `json:"node"`
+		}
+		if err := c.graphQL(projectItemsQuery, map[string]any{
+			"projectId": projectID,
+			"after":     after,
+		}, &resp); err != nil {
+			return nil, err
+		}
+
+		for i := range resp.Node.Items.Nodes {
+			node := &resp.Node.Items.Nodes[i]
+			if node.FieldValues.PageInfo.HasNextPage {
+				allValues, err := c.loadProjectItemFieldValues(node.ID, node.FieldValues)
+				if err != nil {
+					return nil, err
+				}
+				node.FieldValues.Nodes = allValues
+				node.FieldValues.PageInfo = pageInfo{}
+			}
+		}
+		items = append(items, resp.Node.Items.Nodes...)
+
+		next, ok, err := nextCursor(resp.Node.Items.PageInfo, "project items")
+		if err != nil || !ok {
+			return items, err
+		}
+		after = next
+	}
+}
+
+func (c *githubClient) loadProjectItemFieldValues(itemID string, firstPage projectFieldValueConnection) ([]projectFieldValueNode, error) {
+	values := append([]projectFieldValueNode{}, firstPage.Nodes...)
+	page := firstPage
+	for page.PageInfo.HasNextPage {
+		next, ok, err := nextCursor(page.PageInfo, "item field values for "+itemID)
+		if err != nil || !ok {
+			return values, err
+		}
+
+		var resp struct {
+			Node struct {
+				FieldValues projectFieldValueConnection `json:"fieldValues"`
+			} `json:"node"`
+		}
+		if err := c.graphQL(projectItemFieldValuesQuery, map[string]any{
+			"itemId": itemID,
+			"after":  next,
+		}, &resp); err != nil {
+			return nil, err
+		}
+		page = resp.Node.FieldValues
+		values = append(values, page.Nodes...)
+	}
+	return values, nil
+}
+
+func nextCursor(info pageInfo, label string) (string, bool, error) {
+	if !info.HasNextPage {
+		return "", false, nil
+	}
+	if info.EndCursor == "" {
+		return "", false, fmt.Errorf("%s response reported another page without an end cursor", label)
+	}
+	return info.EndCursor, true, nil
 }
 
 func (c *githubClient) ensureProject(owner, ownerType, title string) (ProjectRef, bool, error) {
@@ -648,104 +755,181 @@ mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
 }
 
 type projectNode struct {
-	ID     string `json:"id"`
-	Title  string `json:"title"`
-	Fields struct {
-		PageInfo struct {
-			HasNextPage bool `json:"hasNextPage"`
-		} `json:"pageInfo"`
-		Nodes []struct {
-			Typename string `json:"__typename"`
-			ID       string `json:"id"`
-			Name     string `json:"name"`
-			Options  []struct {
-				ID   string `json:"id"`
-				Name string `json:"name"`
-			} `json:"options"`
-		} `json:"nodes"`
-	} `json:"fields"`
-	Items struct {
-		PageInfo struct {
-			HasNextPage bool `json:"hasNextPage"`
-		} `json:"pageInfo"`
-		Nodes []struct {
-			ID      string `json:"id"`
-			Content struct {
-				Typename   string `json:"__typename"`
-				ID         string `json:"id"`
-				Title      string `json:"title"`
-				Body       string `json:"body"`
-				URL        string `json:"url"`
-				Repository struct {
-					NameWithOwner string `json:"nameWithOwner"`
-				} `json:"repository"`
-			} `json:"content"`
-			FieldValues struct {
-				Nodes []struct {
-					Typename string `json:"__typename"`
-					Name     string `json:"name"`
-					Text     string `json:"text"`
-					Field    struct {
-						Name string `json:"name"`
-					} `json:"field"`
-				} `json:"nodes"`
-			} `json:"fieldValues"`
-		} `json:"nodes"`
-	} `json:"items"`
+	ID    string `json:"id"`
+	Title string `json:"title"`
 }
 
-func projectQuery(ownerType string) (query string, rootKey string, err error) {
+type pageInfo struct {
+	HasNextPage bool   `json:"hasNextPage"`
+	EndCursor   string `json:"endCursor"`
+}
+
+type projectFieldNode struct {
+	Typename string `json:"__typename"`
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Options  []struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+	} `json:"options"`
+}
+
+type projectItemNode struct {
+	ID      string `json:"id"`
+	Content struct {
+		Typename   string `json:"__typename"`
+		ID         string `json:"id"`
+		Title      string `json:"title"`
+		Body       string `json:"body"`
+		URL        string `json:"url"`
+		Repository struct {
+			NameWithOwner string `json:"nameWithOwner"`
+		} `json:"repository"`
+	} `json:"content"`
+	FieldValues projectFieldValueConnection `json:"fieldValues"`
+}
+
+type projectFieldValueConnection struct {
+	PageInfo pageInfo                `json:"pageInfo"`
+	Nodes    []projectFieldValueNode `json:"nodes"`
+}
+
+type projectFieldValueNode struct {
+	Typename string `json:"__typename"`
+	Name     string `json:"name"`
+	Text     string `json:"text"`
+	Field    struct {
+		Name string `json:"name"`
+	} `json:"field"`
+}
+
+func projectShellQuery(ownerType string) (query string, rootKey string, err error) {
 	const projectBody = `
 projectV2(number: $number) {
   id
   title
-  fields(first: 50) {
-    pageInfo {
-      hasNextPage
-    }
-    nodes {
-      __typename
-      ... on ProjectV2FieldCommon {
-        id
-        name
-      }
-      ... on ProjectV2SingleSelectField {
-        options {
-          id
-          name
+}`
+
+	switch ownerType {
+	case "user":
+		return fmt.Sprintf(`
+query($login: String!, $number: Int!) {
+  user(login: $login) {
+    %s
+  }
+}`, projectBody), "user", nil
+	case "org":
+		return fmt.Sprintf(`
+query($login: String!, $number: Int!) {
+  organization(login: $login) {
+    %s
+  }
+}`, projectBody), "organization", nil
+	default:
+		return "", "", fmt.Errorf("unsupported owner type %q: use user or org", ownerType)
+	}
+}
+
+const projectFieldsQuery = `
+query($projectId: ID!, $after: String) {
+  node(id: $projectId) {
+    ... on ProjectV2 {
+      fields(first: 50, after: $after) {
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+        nodes {
+          __typename
+          ... on ProjectV2FieldCommon {
+            id
+            name
+          }
+          ... on ProjectV2SingleSelectField {
+            options {
+              id
+              name
+            }
+          }
         }
       }
     }
   }
-  items(first: 100) {
-    pageInfo {
-      hasNextPage
-    }
-    nodes {
-      id
-      content {
-        __typename
-        ... on DraftIssue {
+}`
+
+const projectItemsQuery = `
+query($projectId: ID!, $after: String) {
+  node(id: $projectId) {
+    ... on ProjectV2 {
+      items(first: 100, after: $after) {
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+        nodes {
           id
-          title
-          body
-        }
-        ... on Issue {
-          title
-          url
-          repository {
-            nameWithOwner
+          content {
+            __typename
+            ... on DraftIssue {
+              id
+              title
+              body
+            }
+            ... on Issue {
+              title
+              url
+              repository {
+                nameWithOwner
+              }
+            }
+            ... on PullRequest {
+              title
+              url
+              repository {
+                nameWithOwner
+              }
+            }
           }
-        }
-        ... on PullRequest {
-          title
-          url
-          repository {
-            nameWithOwner
+          fieldValues(first: 20) {
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+            nodes {
+              __typename
+              ... on ProjectV2ItemFieldSingleSelectValue {
+                name
+                field {
+                  ... on ProjectV2FieldCommon {
+                    name
+                  }
+                }
+              }
+              ... on ProjectV2ItemFieldTextValue {
+                text
+                field {
+                  ... on ProjectV2FieldCommon {
+                    name
+                  }
+                }
+              }
+            }
           }
         }
       }
-      fieldValues(first: 20) {
+    }
+  }
+}`
+
+const projectItemFieldValuesQuery = `
+query($itemId: ID!, $after: String) {
+  node(id: $itemId) {
+    ... on ProjectV2Item {
+      fieldValues(first: 20, after: $after) {
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
         nodes {
           __typename
           ... on ProjectV2ItemFieldSingleSelectValue {
@@ -769,26 +953,6 @@ projectV2(number: $number) {
     }
   }
 }`
-
-	switch ownerType {
-	case "user":
-		return fmt.Sprintf(`
-query($login: String!, $number: Int!) {
-  user(login: $login) {
-    %s
-  }
-}`, projectBody), "user", nil
-	case "org":
-		return fmt.Sprintf(`
-query($login: String!, $number: Int!) {
-  organization(login: $login) {
-    %s
-  }
-}`, projectBody), "organization", nil
-	default:
-		return "", "", fmt.Errorf("unsupported owner type %q: use user or org", ownerType)
-	}
-}
 
 func ownerProjectsQuery(ownerType string) (query string, rootKey string, err error) {
 	const projectListBody = `

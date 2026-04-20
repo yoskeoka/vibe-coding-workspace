@@ -81,14 +81,14 @@ Recommended option: Option B. It aligns with the workspace preference for correc
 
 ## Sub-tasks
 
-- [ ] Update `docs/specs/github-projects-task-cli.md` to require cursor-based pagination for fields and items and to clarify item field value handling.
-- [ ] [parallel] Review the current `syncProject` response parsing and identify the smallest helper boundaries for field, item, and field-value loading.
-- [ ] [parallel] Add failing `httptest` coverage for multi-page field and item responses.
-- [ ] [depends on: helper boundary review, multi-page tests] Refactor `syncProject` into cursor-aware loaders while preserving the existing cache shape.
-- [ ] [depends on: cursor-aware loaders] Decide and implement item field value pagination or retain a clear oversized-field-values error with a follow-up issue.
-- [ ] [depends on: pagination implementation] Run `go -C tools/pj test ./...`.
-- [ ] [depends on: tests] Run `go -C tools/pj run ./cmd/pj sync` against the configured workspace board when credentials and project config are available.
-- [ ] [depends on: verification] Move `docs/issues/pj-pagination-follow-up.md` to `docs/issues/done/` during execution if the issue is fully resolved.
+- [x] Update `docs/specs/github-projects-task-cli.md` to require cursor-based pagination for fields and items and to clarify item field value handling.
+- [x] [parallel] Review the current `syncProject` response parsing and identify the smallest helper boundaries for field, item, and field-value loading.
+- [x] [parallel] Add failing `httptest` coverage for multi-page field and item responses.
+- [x] [depends on: helper boundary review, multi-page tests] Refactor `syncProject` into cursor-aware loaders while preserving the existing cache shape.
+- [x] [depends on: cursor-aware loaders] Decide and implement item field value pagination or retain a clear oversized-field-values error with a follow-up issue.
+- [x] [depends on: pagination implementation] Run `go -C tools/pj test ./...`.
+- [x] [depends on: tests] Run `go -C tools/pj run ./cmd/pj sync` against the configured workspace board when credentials and project config are available.
+- [x] [depends on: verification] Move `docs/issues/pj-pagination-follow-up.md` to `docs/issues/done/` during execution if the issue is fully resolved.
 
 ## Parallelism
 
@@ -98,8 +98,8 @@ Recommended option: Option B. It aligns with the workspace preference for correc
 
 ## Verification
 
-- `go -C tools/pj test ./...`
-- `go -C tools/pj run ./cmd/pj sync` against the configured workspace board, when `gh auth` and `.local/pj/config.json` are available
+- PASS: `go -C tools/pj test ./...`
+- PASS: `go -C tools/pj run ./cmd/pj sync --owner yoskeoka --owner-type user --project 1 --config /tmp/pj-pagination-config.json --cache /tmp/pj-pagination-cache.json`
 - Inspect `.local/pj/cache.json` after sync only as derived verification output; do not commit it.
 - Confirm the spec no longer promises failure for ordinary field/item pagination overflow once implementation supports it.
 
