@@ -1,5 +1,12 @@
 # Lessons Learned
 
+## Video-Backed Notes Need Whole-Video Context
+
+- **Mistake**: I normalized a video-backed source note around only the article-highlighted segment and did not first capture the broader embedded video structure.
+- **Pattern**: When a wrapper article points to one useful moment, it is easy to treat that moment as the entire durable source and miss surrounding model, workflow, pricing, benchmark, or prompting context that future searches need.
+- **Rule**: For `source_type: video` or `video_backed_article`, first skim or caption-review the full video, then decide which anchors are durable; preserve the article-specific anchor plus any broader segments needed to make the source useful without reprocessing the video.
+- **Applied**: `docs/kb/sources/`, especially video-backed article maintenance and follow-up normalization tasks.
+
 ## Command Names Should Avoid Repeating the Same Noun
 
 - **Mistake**: I proposed `pj link-repo --repo <owner>/<repo>`, which repeated `repo` in both the command and flag and made the UX feel clumsy.
