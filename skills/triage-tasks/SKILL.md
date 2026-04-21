@@ -47,6 +47,7 @@ git pull
 Run `go -C tools/pj run ./cmd/pj list` to inspect the current queue.
 
 - Treat `Status=Todo` items as the default candidate set.
+- Exclude routine workflow-skill update PR items from triage. If an item points to a PR titled `chore: update workflow skills` (for example, `https://github.com/yoskeoka/vim-learning-game/pull/93`) or has that title, do not rank or present it as actionable work; close the Project item as `Done` when updating the list.
 - Use the `Priority` column plus current session context to decide what is most actionable.
 - The canonical Project must have a `Priority` field; if an item's `Priority` value is empty, unset, or shows as `-`, rank a short list anyway using explicit heuristics:
   - active exec plans over vague future ideas
@@ -93,6 +94,8 @@ Read `setup.sh` in the workspace root to get the `REPOS` array. Launch one **rea
 4. Runs `gh pr list --state open` — find open PRs, note review status.
 5. Runs `gh issue list --state open` — find open issues.
 6. Returns a structured summary.
+
+When collecting open PRs, ignore PRs titled `chore: update workflow skills`. These are routine workflow propagation PRs that can be checked opportunistically from the repo PR list; they churn as workspace updates close older PRs and open replacements, so they should not create durable triage tasks.
 
 **Subagent rules**: Do NOT modify any files. Do NOT inspect other repos. The main agent remains responsible for final prioritization, `pj` mutations, and the fresh-session handoff prompt.
 
