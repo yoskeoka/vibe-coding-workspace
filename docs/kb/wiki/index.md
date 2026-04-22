@@ -1,6 +1,6 @@
 ---
 title: Workspace Knowledge Base
-last_reviewed: 2026-04-18
+last_reviewed: 2026-04-22
 status: seed
 sources: []
 ---

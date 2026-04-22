@@ -1,6 +1,6 @@
 ---
 title: AI-Assisted Game Development
-last_reviewed: 2026-04-18
+last_reviewed: 2026-04-22
 status: seed
 sources:
   - ../../sources/2026/2026-04-11-openai-gpt-5-4-phaser-tactical-rpg.md
