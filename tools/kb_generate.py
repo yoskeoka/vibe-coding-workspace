@@ -11,6 +11,7 @@ from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 SOURCE_DOCS_DIR = ROOT_DIR / "docs" / "kb"
+SOURCE_JA_DOCS_DIR = SOURCE_DOCS_DIR / "ja"
 GENERATED_PARENT = ROOT_DIR / ".local" / "kb-generated"
 DEFAULT_GENERATED_ROOT = GENERATED_PARENT / "direct"
 GENERATED_ROOT = DEFAULT_GENERATED_ROOT
@@ -18,6 +19,61 @@ GENERATED_DOCS_DIR = GENERATED_ROOT / "docs"
 GENERATED_CONFIG_FILE = GENERATED_ROOT / "mkdocs.kb.generated.yml"
 TEMPLATE_CONFIG_FILE = ROOT_DIR / "mkdocs.kb.template.yml"
 SITE_DIR = ROOT_DIR / ".site" / "kb"
+
+DEFAULT_LOCALE = "en"
+JA_LOCALE = "ja"
+LOCALE_SUFFIX = {JA_LOCALE: ".ja.md"}
+VISIBLE_SECTION_HEADINGS = {
+    DEFAULT_LOCALE: {"sources": "Sources", "related_pages": "Related pages"},
+    JA_LOCALE: {"sources": "ソース", "related_pages": "関連ページ"},
+}
+SECTION_LABELS = {
+    DEFAULT_LOCALE: {
+        "topics": "Topics",
+        "tools": "Tools",
+        "patterns": "Patterns",
+        "projects": "Projects",
+        "log": "Log",
+        "sources": "Sources",
+        "index": "Index",
+        "kb_docs": "KB Docs",
+        "home": "Home",
+        "schema": "Schema",
+        "ingest": "Ingest",
+    },
+    JA_LOCALE: {
+        "topics": "トピック",
+        "tools": "ツール",
+        "patterns": "パターン",
+        "projects": "プロジェクト",
+        "log": "ログ",
+        "sources": "ソース",
+        "index": "一覧",
+        "kb_docs": "KB Docs",
+        "home": "ホーム",
+        "schema": "Schema",
+        "ingest": "Ingest",
+    },
+}
+NAV_PATHS = {
+    "topics": [
+        "wiki/topics/llm-knowledge-bases.md",
+        "wiki/topics/ai-game-dev.md",
+        "wiki/topics/deployment-options.md",
+        "wiki/topics/pixel-art-ui.md",
+    ],
+    "tools": ["wiki/tools/phaser.md"],
+    "patterns": [
+        "wiki/patterns/source-ingestion.md",
+        "wiki/patterns/cheap-hosting.md",
+        "wiki/patterns/branching-narrative-authoring.md",
+    ],
+    "projects": [
+        "wiki/projects/ww.md",
+        "wiki/projects/reversi-adventure.md",
+        "wiki/projects/vim-learning-game.md",
+    ],
+}
 
 
 def configured_generated_root() -> str | None:
@@ -112,6 +168,26 @@ def doc_rel_path(path: Path) -> str:
     return path.relative_to(GENERATED_DOCS_DIR).as_posix()
 
 
+def locale_for_rel(rel: str) -> str:
+    for locale, suffix in LOCALE_SUFFIX.items():
+        if rel.endswith(suffix):
+            return locale
+    return DEFAULT_LOCALE
+
+
+def localized_rel(rel: str, locale: str) -> str:
+    if locale == DEFAULT_LOCALE or not rel.endswith(".md"):
+        return rel
+    return rel[:-3] + LOCALE_SUFFIX[locale]
+
+
+def best_rel_for_locale(rel: str, locale: str, title_map: dict[str, str]) -> str:
+    localized = localized_rel(rel, locale)
+    if localized in title_map:
+        return localized
+    return rel
+
+
 def title_for_doc(path: Path) -> str:
     text = path.read_text(encoding="utf-8")
     meta, body = parse_frontmatter(text)
@@ -135,10 +211,15 @@ def resolve_target(current_rel: str, target: str) -> str:
 
 def render_link_section(current_rel: str, targets: list[str], title_map: dict[str, str], heading: str) -> str:
     lines = [f"## {heading}", ""]
+    current_locale = locale_for_rel(current_rel)
+    current_dir = posixpath.dirname(current_rel)
+
     for target in targets:
         resolved = resolve_target(current_rel, target)
-        label = title_map.get(resolved, Path(resolved).stem)
-        lines.append(f"- [{label}]({target})")
+        preferred = best_rel_for_locale(resolved, current_locale, title_map)
+        label = title_map.get(preferred, title_map.get(resolved, Path(resolved).stem))
+        rendered_target = posixpath.relpath(preferred, current_dir)
+        lines.append(f"- [{label}]({rendered_target})")
     return "\n".join(lines)
 
 
@@ -156,36 +237,49 @@ def insert_before_heading(body: str, heading: str, section: str) -> str:
 
 
 def enhance_markdown(current_rel: str, meta: dict[str, object], body: str, title_map: dict[str, str]) -> str:
+    locale = locale_for_rel(current_rel)
+    headings = VISIBLE_SECTION_HEADINGS[locale]
     updated = body.rstrip() + "\n"
 
     sources = meta.get("sources")
-    if current_rel.startswith("wiki/") and isinstance(sources, list) and sources and "## Sources" not in updated:
-        section = render_link_section(current_rel, sources, title_map, "Sources")
-        updated = insert_before_heading(updated, "Related pages", section)
+    if current_rel.startswith("wiki/") and isinstance(sources, list) and sources and f"## {headings['sources']}" not in updated:
+        section = render_link_section(current_rel, sources, title_map, headings["sources"])
+        updated = insert_before_heading(updated, headings["related_pages"], section)
 
     related_pages = meta.get("related_pages")
-    if current_rel.startswith("sources/") and isinstance(related_pages, list) and related_pages and "## Related pages" not in updated:
-        section = render_link_section(current_rel, related_pages, title_map, "Related pages")
+    if current_rel.startswith("sources/") and isinstance(related_pages, list) and related_pages and f"## {headings['related_pages']}" not in updated:
+        section = render_link_section(current_rel, related_pages, title_map, headings["related_pages"])
         updated = updated.rstrip() + "\n\n" + section + "\n"
 
     return updated
 
 
-def collect_source_notes() -> dict[str, list[Path]]:
+def collect_source_notes(locale: str) -> dict[str, list[Path]]:
     by_year: dict[str, list[Path]] = {}
     for path in sorted((GENERATED_DOCS_DIR / "sources").glob("*/*.md")):
-        if path.name == "index.md":
+        name = path.name
+        if name == "index.md" or name.endswith(".ja.md"):
             continue
+        rel = doc_rel_path(path)
+        if locale == JA_LOCALE:
+            localized = localized_rel(rel, JA_LOCALE)
+            if localized not in build_title_map():
+                continue
+            rel = localized
+            path = GENERATED_DOCS_DIR / rel
         year = path.parent.name
         by_year.setdefault(year, []).append(path)
+
     for paths in by_year.values():
         paths.sort(key=lambda item: item.name, reverse=True)
     return dict(sorted(by_year.items(), reverse=True))
 
 
-def generate_year_index(year: str, paths: list[Path], title_map: dict[str, str]) -> None:
-    target = GENERATED_DOCS_DIR / "sources" / year / "index.md"
-    lines = [f"# Sources from {year}", ""]
+def generate_year_index(year: str, paths: list[Path], title_map: dict[str, str], locale: str) -> None:
+    filename = "index.md" if locale == DEFAULT_LOCALE else f"index.{locale}.md"
+    target = GENERATED_DOCS_DIR / "sources" / year / filename
+    heading = f"# Sources from {year}" if locale == DEFAULT_LOCALE else f"# {year}年のソース"
+    lines = [heading, ""]
     for path in paths:
         source_rel = doc_rel_path(path)
         date_label = path.stem[:10]
@@ -194,19 +288,24 @@ def generate_year_index(year: str, paths: list[Path], title_map: dict[str, str])
     target.write_text("\n".join(lines), encoding="utf-8")
 
 
-def generate_sources_index(by_year: dict[str, list[Path]]) -> None:
-    target = GENERATED_DOCS_DIR / "sources" / "index.md"
-    lines = ["# Sources", ""]
+def generate_sources_index(by_year: dict[str, list[Path]], locale: str) -> None:
+    filename = "index.md" if locale == DEFAULT_LOCALE else f"index.{locale}.md"
+    target = GENERATED_DOCS_DIR / "sources" / filename
+    heading = "# Sources" if locale == DEFAULT_LOCALE else "# ソース"
+    intro = "Browse source notes by year." if locale == DEFAULT_LOCALE else "年ごとにソースノートを参照します。"
+    empty = "No source notes have been ingested yet." if locale == DEFAULT_LOCALE else "まだソースノートはありません。"
+    lines = [heading, ""]
     if not by_year:
-        lines.append("No source notes have been ingested yet.")
+        lines.append(empty)
         lines.append("")
         target.write_text("\n".join(lines), encoding="utf-8")
         return
 
-    lines.append("Browse source notes by year.")
+    lines.append(intro)
     lines.append("")
     for year, paths in by_year.items():
-        lines.append(f"- [{year} ({len(paths)})]({year}/index.md)")
+        year_index = "index.md" if locale == DEFAULT_LOCALE else f"index.{locale}.md"
+        lines.append(f"- [{year} ({len(paths)})]({year}/{year_index})")
     lines.append("")
     target.write_text("\n".join(lines), encoding="utf-8")
 
@@ -217,11 +316,7 @@ def require_generated_file(path: Path, description: str) -> None:
         raise SystemExit(f"missing generated KB {description}: {rel}")
 
 
-def generate_root_index() -> None:
-    source = GENERATED_DOCS_DIR / "wiki" / "index.md"
-    target = GENERATED_DOCS_DIR / "index.md"
-    require_generated_file(source, "wiki index")
-    text = source.read_text(encoding="utf-8")
+def rewrite_root_links(text: str) -> str:
     replacements = {
         "](projects/": "](wiki/projects/",
         "](topics/": "](wiki/topics/",
@@ -231,8 +326,21 @@ def generate_root_index() -> None:
     }
     for old, new in replacements.items():
         text = text.replace(old, new)
-    target.write_text(text, encoding="utf-8")
+    return text
+
+
+def generate_root_indexes() -> None:
+    source = GENERATED_DOCS_DIR / "wiki" / "index.md"
+    target = GENERATED_DOCS_DIR / "index.md"
+    require_generated_file(source, "wiki index")
+    target.write_text(rewrite_root_links(source.read_text(encoding="utf-8")), encoding="utf-8")
     source.unlink()
+
+    ja_source = GENERATED_DOCS_DIR / "wiki" / "index.ja.md"
+    if ja_source.exists():
+        ja_target = GENERATED_DOCS_DIR / "index.ja.md"
+        ja_target.write_text(rewrite_root_links(ja_source.read_text(encoding="utf-8")), encoding="utf-8")
+        ja_source.unlink()
 
 
 def relocate_readme() -> None:
@@ -247,24 +355,73 @@ def relocate_readme() -> None:
     source.unlink()
 
 
-def build_sources_nav(by_year: dict[str, list[Path]], title_map: dict[str, str]) -> str:
-    lines = ["      - Index: sources/index.md"]
+def copy_source_docs() -> None:
+    GENERATED_DOCS_DIR.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(SOURCE_DOCS_DIR, GENERATED_DOCS_DIR, ignore=shutil.ignore_patterns("ja"))
+
+
+def copy_japanese_mirror() -> None:
+    if not SOURCE_JA_DOCS_DIR.exists():
+        return
+
+    for source in sorted(SOURCE_JA_DOCS_DIR.rglob("*")):
+        rel = source.relative_to(SOURCE_JA_DOCS_DIR)
+        target = GENERATED_DOCS_DIR / rel
+        if source.is_dir():
+            target.mkdir(parents=True, exist_ok=True)
+            continue
+
+        if source.suffix == ".md":
+            target = target.with_name(f"{target.stem}.ja.md")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
+
+
+def build_sources_nav(by_year: dict[str, list[Path]], title_map: dict[str, str], locale: str) -> list[str]:
+    labels = SECTION_LABELS[locale]
+    lines = [f"      - {labels['index']}: {best_rel_for_locale('sources/index.md', locale, title_map)}"]
     for year, paths in by_year.items():
         lines.append(f"      - {yaml_quote(f'{year} ({len(paths)})')}:")
-        lines.append(f"          - Index: sources/{year}/index.md")
+        year_index = best_rel_for_locale(f"sources/{year}/index.md", locale, title_map)
+        lines.append(f"          - {labels['index']}: {year_index}")
         for path in paths:
             source_rel = doc_rel_path(path)
             date_label = path.stem[:10]
-            label = yaml_quote(f"{date_label} {title_map[source_rel]}")
-            lines.append(f"          - {label}: {source_rel}")
+            lines.append(f"          - {yaml_quote(f'{date_label} {title_map[source_rel]}')}: {source_rel}")
+    return lines
+
+
+def build_nav(locale: str, title_map: dict[str, str], sources_nav: list[str]) -> str:
+    labels = SECTION_LABELS[locale]
+    lines: list[str] = [f"  - {labels['home']}: {best_rel_for_locale('index.md', locale, title_map)}"]
+
+    for section in ["topics", "tools", "patterns", "projects"]:
+        lines.append(f"  - {labels[section]}:")
+        for rel in NAV_PATHS[section]:
+            preferred = best_rel_for_locale(rel, locale, title_map)
+            lines.append(f"      - {yaml_quote(title_map[preferred])}: {preferred}")
+
+    lines.append(f"  - {labels['log']}: {best_rel_for_locale('wiki/log.md', locale, title_map)}")
+    lines.append(f"  - {labels['sources']}:")
+    lines.extend(sources_nav)
+    lines.append(f"  - {labels['kb_docs']}:")
+    lines.append(f"      - {labels['home']}: kb-docs/README.md")
+    lines.append(f"      - {labels['schema']}: schema.md")
+    lines.append(f"      - {labels['ingest']}: ingest.md")
     return "\n".join(lines)
 
 
-def write_generated_config(nav_block: str) -> None:
+def indent_block(text: str, spaces: int) -> str:
+    prefix = " " * spaces
+    return "\n".join(f"{prefix}{line}" if line else "" for line in text.splitlines())
+
+
+def write_generated_config(en_nav: str, ja_nav: str) -> None:
     template = TEMPLATE_CONFIG_FILE.read_text(encoding="utf-8")
     rendered = template.replace("__GENERATED_DOCS_DIR__", str(GENERATED_DOCS_DIR))
     rendered = rendered.replace("__GENERATED_SITE_DIR__", str(SITE_DIR))
-    rendered = rendered.replace("__GENERATED_SOURCES_NAV__", nav_block)
+    rendered = rendered.replace("__GENERATED_EN_NAV__", en_nav)
+    rendered = rendered.replace("__GENERATED_JA_NAV__", indent_block(ja_nav, 12))
     GENERATED_CONFIG_FILE.write_text(rendered, encoding="utf-8")
 
 
@@ -274,16 +431,20 @@ def main() -> None:
 
     if GENERATED_ROOT.exists():
         shutil.rmtree(GENERATED_ROOT)
-    GENERATED_DOCS_DIR.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(SOURCE_DOCS_DIR, GENERATED_DOCS_DIR)
-    generate_root_index()
+    copy_source_docs()
+    copy_japanese_mirror()
+    generate_root_indexes()
     relocate_readme()
 
-    initial_title_map = build_title_map()
-    by_year = collect_source_notes()
-    generate_sources_index(by_year)
-    for year, paths in by_year.items():
-        generate_year_index(year, paths, initial_title_map)
+    title_map = build_title_map()
+    by_year_en = collect_source_notes(DEFAULT_LOCALE)
+    by_year_ja = collect_source_notes(JA_LOCALE)
+    generate_sources_index(by_year_en, DEFAULT_LOCALE)
+    generate_sources_index(by_year_ja, JA_LOCALE)
+    for year, paths in by_year_en.items():
+        generate_year_index(year, paths, title_map, DEFAULT_LOCALE)
+    for year, paths in by_year_ja.items():
+        generate_year_index(year, paths, title_map, JA_LOCALE)
 
     title_map = build_title_map()
     for path in sorted(GENERATED_DOCS_DIR.rglob("*.md")):
@@ -298,7 +459,10 @@ def main() -> None:
         frontmatter = text[: text.find("---", 3) + 4]
         path.write_text(frontmatter + "\n" + updated_body, encoding="utf-8")
 
-    write_generated_config(build_sources_nav(by_year, title_map))
+    title_map = build_title_map()
+    en_nav = build_nav(DEFAULT_LOCALE, title_map, build_sources_nav(by_year_en, title_map, DEFAULT_LOCALE))
+    ja_nav = build_nav(JA_LOCALE, title_map, build_sources_nav(by_year_ja, title_map, JA_LOCALE))
+    write_generated_config(en_nav, ja_nav)
 
 
 if __name__ == "__main__":

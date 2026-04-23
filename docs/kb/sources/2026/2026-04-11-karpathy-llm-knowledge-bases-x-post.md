@@ -2,6 +2,7 @@
 title: LLM Knowledge Bases
 source_url: https://x.com/karpathy/status/2039805659525644595
 source_type: post
+original_language: en
 ingested_on: 2026-04-11
 status: active
 tags:

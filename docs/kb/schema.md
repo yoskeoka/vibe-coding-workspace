@@ -9,6 +9,7 @@ The knowledge base is not a dumping ground for raw article text. It is a compile
 ## Directory rules
 
 - `sources/YYYY/*.md`: one file per ingested source
+- `ja/sources/YYYY/*.md`: Japanese mirror source notes with the same relative path shape when translations exist
 - rendered `Sources` year landing pages are generated from `sources/YYYY/*.md` during build/check and are not hand-maintained in git
 - `wiki/index.md`: top-level navigation page
 - `wiki/log.md`: ingest and maintenance log
@@ -16,6 +17,9 @@ The knowledge base is not a dumping ground for raw article text. It is a compile
 - `wiki/topics/*.md`: broad conceptual pages
 - `wiki/tools/*.md`: tool and framework pages
 - `wiki/patterns/*.md`: reusable methods and heuristics
+- `ja/wiki/index.md`: Japanese top-level navigation page
+- `ja/wiki/log.md`: Japanese ingest and maintenance log
+- `ja/wiki/**`: Japanese mirror wiki pages using the same relative path layout where translations exist
 
 ## Maintenance rules
 
@@ -42,12 +46,15 @@ Source note frontmatter:
 title:
 source_url:
 source_type: article|post|docs|video|video_backed_article|repo|demo
+original_language: en|ja|...
 ingested_on:
 status: active|watch|superseded
 tags: []
 related_pages: []
 ---
 ```
+
+`original_language` records the language of the original source material, not the locale of the KB note file. A translated Japanese mirror note therefore keeps the same `original_language` as its canonical English counterpart.
 
 Video-oriented source notes SHOULD also preserve durable retrieval anchors when available:
 
@@ -80,6 +87,8 @@ In the rendered site:
 - wiki page `sources:` frontmatter is converted into a visible `## Sources` section
 - source-note `related_pages:` frontmatter is converted into a visible `## Related pages` section
 - these visible sections are derived from frontmatter during build/check and should not be duplicated manually unless the prose itself needs additional context
+- English pages at `docs/kb/**` are canonical for AI retrieval; Japanese mirror pages under `docs/kb/ja/**` are excluded from QA/retrieval by default
+- Japanese mirror pages should keep the same relative layout as the English tree so `/foo/` can map cleanly to `/ja/foo/` when a translation exists
 
 ## During ingest
 
@@ -89,6 +98,8 @@ For each new source:
 3. Create new wiki pages only when the concept does not already have a natural home.
 4. Update `wiki/index.md` if a new section or notable page was added.
 5. Append a dated item to `wiki/log.md`.
+
+When practical, also update the Japanese mirror under `ja/wiki/` and `ja/sources/` with the same relative path layout.
 
 Do not hand-edit generated `Sources` navigation or yearly source landing pages.
 

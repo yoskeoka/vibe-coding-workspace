@@ -2,6 +2,7 @@
 title: OpenAI built a Tactical RPG with Phaser
 source_url: https://phaser.io/news/2026/03/gpt-5-4-phaser-game-tactical-rpg
 source_type: video_backed_article
+original_language: en
 ingested_on: 2026-04-11
 status: active
 tags:

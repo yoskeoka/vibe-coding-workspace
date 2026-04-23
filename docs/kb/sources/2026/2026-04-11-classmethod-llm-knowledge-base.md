@@ -2,6 +2,7 @@
 title: Karpathy 氏が言語化した「LLM Knowledge Base」というパターン
 source_url: https://dev.classmethod.jp/articles/karpathy-llm-knowledge-base/
 source_type: article
+original_language: ja
 ingested_on: 2026-04-11
 status: active
 tags:

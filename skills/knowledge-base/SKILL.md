@@ -22,6 +22,8 @@ This is a workspace-only skill for maintaining `docs/kb/`.
 2. `docs/kb/ingest.md`
 3. `docs/kb/wiki/index.md`
 
+For AI-facing query or filing-back work, treat English `docs/kb/**` as canonical and exclude `docs/kb/ja/**` unless the user explicitly asks to inspect or update the Japanese mirror.
+
 ## Preparation for file-changing work
 
 Knowledge-base ingest normally changes files, so use the same branch hygiene as other workspace work before editing `docs/kb/`, `docs/issues/`, renderer dependencies, or skill files.

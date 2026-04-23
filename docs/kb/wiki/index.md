@@ -1,6 +1,6 @@
 ---
 title: Workspace Knowledge Base
-last_reviewed: 2026-04-22
+last_reviewed: 2026-04-24
 status: seed
 sources: []
 ---
@@ -42,6 +42,7 @@ This is the compiled wiki for `vibe-coding-workspace`.
 - 2026-04-16: refreshed the Phaser tactical RPG note as a video-backed article with a canonical YouTube link and a jump-back time anchor for the embedded demo segment
 - 2026-04-18: ingested Phaser's Claude Code space-shooter tutorial as an AI-assisted game prototyping pattern with `AskUserQuestion`, free pixel art assets, playable milestones, and Vercel deployment
 - 2026-04-22: ingested Unity's `Esoteric Ebb` postmortem as a branching narrative authoring pattern covering `Ink`, story variables, choice feedback, text search, and validation risk
+- 2026-04-24: added bilingual KB rendering so English publishes at `/` and Japanese mirror pages publish at `/ja/` while retrieval stays English-only
 
 ## Logs
 

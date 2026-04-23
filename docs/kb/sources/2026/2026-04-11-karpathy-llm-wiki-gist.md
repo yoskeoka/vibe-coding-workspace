@@ -2,6 +2,7 @@
 title: llm-wiki
 source_url: https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f
 source_type: docs
+original_language: en
 ingested_on: 2026-04-11
 status: active
 tags:

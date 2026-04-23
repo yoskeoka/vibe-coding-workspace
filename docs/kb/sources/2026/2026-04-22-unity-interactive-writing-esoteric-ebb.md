@@ -2,6 +2,7 @@
 title: "Esoteric Ebb: tackling interactive writing challenges"
 source_url: https://unity.com/ja/blog/interactive-writing-challenges-for-nonlinear-rpg-design
 source_type: article
+original_language: en
 ingested_on: 2026-04-22
 status: active
 tags:

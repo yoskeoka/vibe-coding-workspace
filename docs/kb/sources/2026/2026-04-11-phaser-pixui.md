@@ -2,6 +2,7 @@
 title: Phaser PixUI: Open-Source UI Library for Pixel Art Games
 source_url: https://phaser.io/news/2026/02/phaser-pixel-art-ui-library
 source_type: article
+original_language: en
 ingested_on: 2026-04-11
 status: watch
 tags:
