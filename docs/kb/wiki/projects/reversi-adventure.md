@@ -1,9 +1,10 @@
 ---
 title: reversi-adventure
-last_reviewed: 2026-04-11
+last_reviewed: 2026-04-23
 status: seed
 sources:
   - ../../sources/2026/2026-04-11-openai-gpt-5-4-phaser-tactical-rpg.md
+  - ../../sources/2026/2026-04-22-unity-interactive-writing-esoteric-ebb.md
 ---
 
 # reversi-adventure
@@ -15,7 +16,9 @@ This project is a current game-development testbed in the workspace, so AI-assis
 ## Current takeaways
 
 - The Phaser tactical RPG reference is not directly reusable, but it strengthens the case for agent-driven playtest loops and richer game prototyping.
+- The `Esoteric Ebb` narrative-authoring note is relevant if the adventure layer grows into authored choices, quest state, or player-specific callbacks. The useful transfer is not CRPG scale; it is the discipline of naming state, tying choices to later feedback, and validating branching content before it accumulates.
 
 ## Related pages
 
 - [ai-game-dev](../topics/ai-game-dev.md)
+- [branching-narrative-authoring](../patterns/branching-narrative-authoring.md)
