@@ -11,7 +11,7 @@ This plan covers:
 - adding bilingual KB source trees with matching path structure under `docs/kb/` and `docs/kb/ja/`
 - publishing both locales through MkDocs with a shared navigation model and language switcher
 - keeping `docs/kb/ja/**` out of QA and retrieval flows
-- recording original source language in source-note front matter
+- recording original source language in source-note frontmatter
 
 ## Design Decisions
 
@@ -22,7 +22,7 @@ Past decision: the KB lives in-repo under `docs/kb/` and publishes from the same
 Considered options:
 
 - `docs/kb/` English only, Japanese wiki pages only: simpler duplication story, but source-note browsing becomes inconsistent between locales and the published Japanese wiki lacks the source-oriented layer.
-- `docs/kb/` canonical English plus full `docs/kb/ja/` mirror for wiki and source notes: slightly more ingest work, but consistent rendered IA, simple path mapping, and straightforward retrieval exclusion.
+- `docs/kb/` canonical English plus full `docs/kb/ja/` mirror for wiki and source notes: slightly more ingest work, but consistent rendered information architecture, simple path mapping, and straightforward retrieval exclusion.
 - move the human-facing site to a different framework such as Astro: more control over navigation and performance, but it increases stack complexity before the KB publishing model is settled.
 
 Recommended option confirmed in discussion: keep canonical English under `docs/kb/`, add a Japanese mirror under `docs/kb/ja/` for wiki and source notes, continue using MkDocs Material, and disable `navigation.instant` to stay compatible with static i18n routing.
@@ -81,7 +81,7 @@ No ADR update is expected unless implementation reveals a materially different r
 ### `docs/kb/schema.md`
 
 - Extend the directory rules and frontmatter conventions to cover `docs/kb/ja/`.
-- Document `original_language` in source-note front matter.
+- Document `original_language` in source-note frontmatter.
 - Clarify that Japanese source notes and wiki pages mirror the English path layout for publishing, while English remains canonical for AI retrieval.
 
 ### `docs/kb/ingest.md`
