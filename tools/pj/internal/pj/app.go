@@ -1,6 +1,7 @@
 package pj
 
 import (
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -70,6 +71,8 @@ func (a app) run(args []string, stdout, stderr io.Writer) error {
 		return a.runAdd(args[1:], stdout)
 	case "update":
 		return a.runUpdate(args[1:], stdout)
+	case "update-batch":
+		return a.runUpdateBatch(args[1:], stdout)
 	case "url":
 		return runURL(args[1:], stdout)
 	case "open":
@@ -601,24 +604,18 @@ func (a app) runUpdate(args []string, stdout io.Writer) error {
 		return err
 	}
 
-	fieldValues, err := resolveFieldInputs(cache, map[string]string{
-		fieldStatus:   *status,
-		fieldRepo:     *repo,
-		fieldKind:     *kind,
-		fieldPriority: *priority,
-	})
-	if err != nil {
-		return err
-	}
-	update := itemUpdate{
+	update, changedFields, err := buildItemUpdate(cache, itemUpdateInput{
 		Title:         *title,
 		TitleProvided: flagWasProvided(fs, "title"),
 		Body:          resolvedBody,
 		BodyProvided:  bodyProvided,
-		FieldValues:   fieldValues,
-	}
-	if !update.TitleProvided && !update.BodyProvided && len(update.FieldValues) == 0 {
-		return fmt.Errorf("update requires at least one field: --title, --body, --body-file, --status, --repo, --kind, or --priority")
+		Status:        *status,
+		Repo:          *repo,
+		Kind:          *kind,
+		Priority:      *priority,
+	}, "update")
+	if err != nil {
+		return err
 	}
 	client, err := a.newClient()
 	if err != nil {
@@ -639,7 +636,73 @@ func (a app) runUpdate(args []string, stdout io.Writer) error {
 		return err
 	}
 
-	fmt.Fprintf(stdout, "updated item %s and refreshed cache\n", *itemID)
+	fmt.Fprintf(stdout, "updated item %s (%s) and refreshed cache\n", *itemID, strings.Join(changedFields, ", "))
+	return nil
+}
+
+func (a app) runUpdateBatch(args []string, stdout io.Writer) error {
+	fs := flag.NewFlagSet("update-batch", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+
+	cachePath := fs.String("cache", defaultCachePath, "cache file path")
+	filePath := fs.String("file", "", "path to a JSON file containing batch update operations")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if *filePath == "" {
+		return fmt.Errorf("update-batch requires --file")
+	}
+
+	cache, err := loadCacheRequired(*cachePath)
+	if err != nil {
+		return err
+	}
+
+	ops, err := loadBatchUpdateFile(*filePath)
+	if err != nil {
+		return err
+	}
+	planned := make([]plannedBatchUpdate, 0, len(ops))
+	for i, op := range ops {
+		plan, err := prepareBatchUpdate(cache, op, i)
+		if err != nil {
+			return err
+		}
+		planned = append(planned, plan)
+	}
+	if len(planned) == 0 {
+		return fmt.Errorf("update-batch requires at least one operation")
+	}
+
+	fmt.Fprintf(stdout, "validated %d batch updates from %s\n", len(planned), *filePath)
+
+	client, err := a.newClient()
+	if err != nil {
+		return err
+	}
+
+	for i, plan := range planned {
+		if err := client.updateItem(cache, plan.ItemID, plan.Update); err != nil {
+			fmt.Fprintf(stdout, "[%d/%d] item %s failed: %v\n", i+1, len(planned), plan.ItemID, err)
+			fmt.Fprintln(stdout, "cache was not refreshed; remote state may be partially updated. run `pj sync`")
+			return fmt.Errorf("update-batch stopped after %d successful operations: %w", i, err)
+		}
+		fmt.Fprintf(stdout, "[%d/%d] item %s updated: %s\n", i+1, len(planned), plan.ItemID, strings.Join(plan.ChangedFields, ", "))
+	}
+
+	refreshed, err := client.syncProject(cache.Project)
+	if err != nil {
+		fmt.Fprintln(stdout, "cache refresh failed after successful remote updates; run `pj sync`")
+		return err
+	}
+	if err := enrichCacheRepoOptions(refreshed, *cachePath); err != nil {
+		return err
+	}
+	if err := writeCache(*cachePath, refreshed); err != nil {
+		return err
+	}
+
+	fmt.Fprintf(stdout, "refreshed cache after %d batch updates\n", len(planned))
 	return nil
 }
 
@@ -702,9 +765,10 @@ Usage:
   go -C tools/pj run ./cmd/pj repo-link status <owner>/<repo>
   go -C tools/pj run ./cmd/pj repo-link add <owner>/<repo>
   go -C tools/pj run ./cmd/pj repo-link remove <owner>/<repo>
-  go -C tools/pj run ./cmd/pj list [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]
-  go -C tools/pj run ./cmd/pj add --title <title> [--body <text>|--body-file <path>] [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]
-  go -C tools/pj run ./cmd/pj update --item <item-id> [--title <title>] [--body <text>|--body-file <path>] [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]
+	go -C tools/pj run ./cmd/pj list [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]
+	go -C tools/pj run ./cmd/pj add --title <title> [--body <text>|--body-file <path>] [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]
+	go -C tools/pj run ./cmd/pj update --item <item-id> [--title <title>] [--body <text>|--body-file <path>] [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]
+  go -C tools/pj run ./cmd/pj update-batch --file <path>
   go -C tools/pj run ./cmd/pj url
   go -C tools/pj run ./cmd/pj open
 
@@ -717,6 +781,8 @@ func printCommandUsage(w io.Writer, command string) {
 		fmt.Fprintln(w, "Usage: pj add --title <title> [--body <text>|--body-file <path>] [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]")
 	case "update":
 		fmt.Fprintln(w, "Usage: pj update --item <item-id> [--title <title>] [--body <text>|--body-file <path>] [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]")
+	case "update-batch":
+		fmt.Fprintln(w, "Usage: pj update-batch --file <path>")
 	case "url":
 		fmt.Fprintln(w, "Usage: pj url")
 	case "open":
@@ -742,6 +808,135 @@ type itemUpdate struct {
 	Body          string
 	BodyProvided  bool
 	FieldValues   map[string]string
+}
+
+type itemUpdateInput struct {
+	Title         string
+	TitleProvided bool
+	Body          string
+	BodyProvided  bool
+	Status        string
+	Repo          string
+	Kind          string
+	Priority      string
+}
+
+type batchUpdateOperation struct {
+	Item     *string `json:"item"`
+	Title    *string `json:"title"`
+	Body     *string `json:"body"`
+	BodyFile *string `json:"body_file"`
+	Status   *string `json:"status"`
+	Repo     *string `json:"repo"`
+	Kind     *string `json:"kind"`
+	Priority *string `json:"priority"`
+}
+
+type plannedBatchUpdate struct {
+	ItemID        string
+	Update        itemUpdate
+	ChangedFields []string
+}
+
+func loadBatchUpdateFile(path string) ([]batchUpdateOperation, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("read --file %s: %w", path, err)
+	}
+
+	var ops []batchUpdateOperation
+	decoder := json.NewDecoder(strings.NewReader(string(data)))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&ops); err != nil {
+		return nil, fmt.Errorf("decode --file %s: %w", path, err)
+	}
+	var extra any
+	if err := decoder.Decode(&extra); err != io.EOF {
+		return nil, fmt.Errorf("decode --file %s: unexpected trailing JSON input", path)
+	}
+	return ops, nil
+}
+
+func prepareBatchUpdate(cache *Cache, op batchUpdateOperation, index int) (plannedBatchUpdate, error) {
+	label := fmt.Sprintf("update-batch operation %d", index+1)
+	if op.Item == nil || strings.TrimSpace(*op.Item) == "" {
+		return plannedBatchUpdate{}, fmt.Errorf("%s requires item", label)
+	}
+
+	resolvedBody, err := resolveBodyInput(label, stringPointerValue(op.Body), stringPointerValue(op.BodyFile), op.Body != nil, op.BodyFile != nil)
+	if err != nil {
+		return plannedBatchUpdate{}, err
+	}
+
+	update, changedFields, err := buildItemUpdate(cache, itemUpdateInput{
+		Title:         stringPointerValue(op.Title),
+		TitleProvided: op.Title != nil,
+		Body:          resolvedBody,
+		BodyProvided:  op.Body != nil || op.BodyFile != nil,
+		Status:        stringPointerValue(op.Status),
+		Repo:          stringPointerValue(op.Repo),
+		Kind:          stringPointerValue(op.Kind),
+		Priority:      stringPointerValue(op.Priority),
+	}, label)
+	if err != nil {
+		return plannedBatchUpdate{}, err
+	}
+
+	return plannedBatchUpdate{
+		ItemID:        strings.TrimSpace(*op.Item),
+		Update:        update,
+		ChangedFields: changedFields,
+	}, nil
+}
+
+func buildItemUpdate(cache *Cache, input itemUpdateInput, command string) (itemUpdate, []string, error) {
+	fieldValues, err := resolveFieldInputs(cache, map[string]string{
+		fieldStatus:   input.Status,
+		fieldRepo:     input.Repo,
+		fieldKind:     input.Kind,
+		fieldPriority: input.Priority,
+	})
+	if err != nil {
+		return itemUpdate{}, nil, err
+	}
+
+	update := itemUpdate{
+		Title:         input.Title,
+		TitleProvided: input.TitleProvided,
+		Body:          input.Body,
+		BodyProvided:  input.BodyProvided,
+		FieldValues:   fieldValues,
+	}
+	changedFields := make([]string, 0, 6)
+	if update.TitleProvided {
+		changedFields = append(changedFields, "title")
+	}
+	if update.BodyProvided {
+		changedFields = append(changedFields, "body")
+	}
+	if _, ok := update.FieldValues[fieldStatus]; ok {
+		changedFields = append(changedFields, "status")
+	}
+	if _, ok := update.FieldValues[fieldRepo]; ok {
+		changedFields = append(changedFields, "repo")
+	}
+	if _, ok := update.FieldValues[fieldKind]; ok {
+		changedFields = append(changedFields, "kind")
+	}
+	if _, ok := update.FieldValues[fieldPriority]; ok {
+		changedFields = append(changedFields, "priority")
+	}
+	if len(changedFields) == 0 {
+		return itemUpdate{}, nil, fmt.Errorf("%s requires at least one field: --title, --body, --body-file, --status, --repo, --kind, or --priority", command)
+	}
+	return update, changedFields, nil
+}
+
+func stringPointerValue(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return *value
 }
 
 func resolveBodyInput(command, body, bodyFile string, bodyProvided, bodyFileProvided bool) (string, error) {

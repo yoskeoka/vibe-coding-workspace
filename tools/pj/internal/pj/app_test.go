@@ -463,6 +463,155 @@ func TestRunUpdateRejectsAmbiguousPrefix(t *testing.T) {
 	}
 }
 
+func TestRunUpdateBatchReadsJSONAndRefreshesCacheOnce(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	cachePath := filepath.Join(dir, "cache.json")
+	opsPath := filepath.Join(dir, "ops.json")
+	bodyPath := filepath.Join(dir, "body.md")
+	if err := os.WriteFile(bodyPath, []byte("updated body"), 0o644); err != nil {
+		t.Fatalf("WriteFile(): %v", err)
+	}
+	if err := writeCache(cachePath, testProjectCache()); err != nil {
+		t.Fatalf("writeCache(): %v", err)
+	}
+	if err := os.WriteFile(opsPath, []byte(`[
+  {"item":"item-1","status":"done"},
+  {"item":"item-1","title":"New title","body_file":"`+bodyPath+`","repo":"ww"}
+]`), 0o644); err != nil {
+		t.Fatalf("WriteFile(): %v", err)
+	}
+
+	client := &stubProjectClient{
+		syncResults: []*Cache{testProjectCache()},
+	}
+
+	var stdout strings.Builder
+	err := appWithClient(client).runUpdateBatch([]string{
+		"--cache", cachePath,
+		"--file", opsPath,
+	}, &stdout)
+	if err != nil {
+		t.Fatalf("runUpdateBatch() error = %v", err)
+	}
+	if len(client.updateCalls) != 2 {
+		t.Fatalf("update calls = %d, want 2", len(client.updateCalls))
+	}
+	if client.syncCalls != 1 {
+		t.Fatalf("sync calls = %d, want 1", client.syncCalls)
+	}
+	if client.updateCalls[0].update.FieldValues[fieldStatus] != "Done" {
+		t.Fatalf("first status = %q, want Done", client.updateCalls[0].update.FieldValues[fieldStatus])
+	}
+	if !client.updateCalls[1].update.TitleProvided || client.updateCalls[1].update.Title != "New title" {
+		t.Fatalf("second title update = %+v", client.updateCalls[1].update)
+	}
+	if !client.updateCalls[1].update.BodyProvided || client.updateCalls[1].update.Body != "updated body" {
+		t.Fatalf("second body update = %+v", client.updateCalls[1].update)
+	}
+	if !strings.Contains(stdout.String(), "validated 2 batch updates") || !strings.Contains(stdout.String(), "refreshed cache after 2 batch updates") {
+		t.Fatalf("stdout = %q", stdout.String())
+	}
+}
+
+func TestRunUpdateBatchRejectsUnknownFieldsBeforeRemoteMutation(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	cachePath := filepath.Join(dir, "cache.json")
+	opsPath := filepath.Join(dir, "ops.json")
+	if err := writeCache(cachePath, testProjectCache()); err != nil {
+		t.Fatalf("writeCache(): %v", err)
+	}
+	if err := os.WriteFile(opsPath, []byte(`[{"item":"item-1","unknown":"x"}]`), 0o644); err != nil {
+		t.Fatalf("WriteFile(): %v", err)
+	}
+
+	client := &stubProjectClient{}
+	err := appWithClient(client).runUpdateBatch([]string{
+		"--cache", cachePath,
+		"--file", opsPath,
+	}, io.Discard)
+	if err == nil {
+		t.Fatal("runUpdateBatch() error = nil, want unknown field error")
+	}
+	if !strings.Contains(err.Error(), "unknown field") {
+		t.Fatalf("runUpdateBatch() error = %q", err)
+	}
+	if len(client.updateCalls) != 0 {
+		t.Fatalf("update calls = %d, want 0", len(client.updateCalls))
+	}
+}
+
+func TestRunUpdateBatchRejectsNoOpOperationBeforeRemoteMutation(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	cachePath := filepath.Join(dir, "cache.json")
+	opsPath := filepath.Join(dir, "ops.json")
+	if err := writeCache(cachePath, testProjectCache()); err != nil {
+		t.Fatalf("writeCache(): %v", err)
+	}
+	if err := os.WriteFile(opsPath, []byte(`[{"item":"item-1"}]`), 0o644); err != nil {
+		t.Fatalf("WriteFile(): %v", err)
+	}
+
+	client := &stubProjectClient{}
+	err := appWithClient(client).runUpdateBatch([]string{
+		"--cache", cachePath,
+		"--file", opsPath,
+	}, io.Discard)
+	if err == nil {
+		t.Fatal("runUpdateBatch() error = nil, want no-op error")
+	}
+	if !strings.Contains(err.Error(), "requires at least one field") {
+		t.Fatalf("runUpdateBatch() error = %q", err)
+	}
+	if len(client.updateCalls) != 0 {
+		t.Fatalf("update calls = %d, want 0", len(client.updateCalls))
+	}
+}
+
+func TestRunUpdateBatchReportsPartialRemoteFailure(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	cachePath := filepath.Join(dir, "cache.json")
+	opsPath := filepath.Join(dir, "ops.json")
+	if err := writeCache(cachePath, testProjectCache()); err != nil {
+		t.Fatalf("writeCache(): %v", err)
+	}
+	if err := os.WriteFile(opsPath, []byte(`[
+  {"item":"item-1","status":"done"},
+  {"item":"item-1","priority":"medium"}
+]`), 0o644); err != nil {
+		t.Fatalf("WriteFile(): %v", err)
+	}
+
+	client := &stubProjectClient{
+		updateErrs: []error{nil, os.ErrPermission},
+	}
+
+	var stdout strings.Builder
+	err := appWithClient(client).runUpdateBatch([]string{
+		"--cache", cachePath,
+		"--file", opsPath,
+	}, &stdout)
+	if err == nil {
+		t.Fatal("runUpdateBatch() error = nil, want partial failure")
+	}
+	if !strings.Contains(err.Error(), "stopped after 1 successful operations") {
+		t.Fatalf("runUpdateBatch() error = %q", err)
+	}
+	if client.syncCalls != 0 {
+		t.Fatalf("sync calls = %d, want 0", client.syncCalls)
+	}
+	if !strings.Contains(stdout.String(), "remote state may be partially updated") {
+		t.Fatalf("stdout = %q", stdout.String())
+	}
+}
+
 func TestResolveRepoValueSupportsSlugAliasAndPrefix(t *testing.T) {
 	t.Parallel()
 
@@ -695,10 +844,17 @@ type stubProjectClient struct {
 	addFieldValues    map[string]string
 	updateItemID      string
 	update            itemUpdate
+	updateCalls       []stubUpdateCall
+	updateErrs        []error
 	resolvedRepo      RepositoryRef
 	linkedRepos       []RepositoryRef
 	linkedRepo        RepositoryRef
 	unlinkedRepo      RepositoryRef
+}
+
+type stubUpdateCall struct {
+	itemID string
+	update itemUpdate
 }
 
 func (s *stubProjectClient) ensureProject(owner, ownerType, title string) (ProjectRef, bool, error) {
@@ -750,6 +906,11 @@ func (s *stubProjectClient) addDraftItem(cache *Cache, title, body string, field
 func (s *stubProjectClient) updateItem(cache *Cache, itemID string, update itemUpdate) error {
 	s.updateItemID = itemID
 	s.update = update
+	s.updateCalls = append(s.updateCalls, stubUpdateCall{itemID: itemID, update: update})
+	callIndex := len(s.updateCalls) - 1
+	if callIndex < len(s.updateErrs) {
+		return s.updateErrs[callIndex]
+	}
 	return nil
 }
 
