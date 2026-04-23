@@ -36,6 +36,7 @@ nav:
   - Patterns:
       - Source Ingestion: wiki/patterns/source-ingestion.md
       - Cheap Hosting: wiki/patterns/cheap-hosting.md
+      - Branching Narrative Authoring: wiki/patterns/branching-narrative-authoring.md
   - Projects:
       - ww: wiki/projects/ww.md
       - reversi-adventure: wiki/projects/reversi-adventure.md

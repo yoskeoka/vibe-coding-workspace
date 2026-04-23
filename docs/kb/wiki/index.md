@@ -1,6 +1,6 @@
 ---
 title: Workspace Knowledge Base
-last_reviewed: 2026-04-18
+last_reviewed: 2026-04-22
 status: seed
 sources: []
 ---
@@ -32,6 +32,7 @@ This is the compiled wiki for `vibe-coding-workspace`.
 
 - [source-ingestion](patterns/source-ingestion.md)
 - [cheap-hosting](patterns/cheap-hosting.md)
+- [branching-narrative-authoring](patterns/branching-narrative-authoring.md)
 
 ## Recent ingests
 
@@ -40,6 +41,7 @@ This is the compiled wiki for `vibe-coding-workspace`.
 - 2026-04-13: ingested a concrete near-zero-cost hobby web app architecture using `Cloudflare DNS Proxy + Cloud Connector`, `Cloud Run`, `Cloud Storage`, `TiDB Serverless`, and `Cloudflare WAF`
 - 2026-04-16: refreshed the Phaser tactical RPG note as a video-backed article with a canonical YouTube link and a jump-back time anchor for the embedded demo segment
 - 2026-04-18: ingested Phaser's Claude Code space-shooter tutorial as an AI-assisted game prototyping pattern with `AskUserQuestion`, free pixel art assets, playable milestones, and Vercel deployment
+- 2026-04-22: ingested Unity's `Esoteric Ebb` postmortem as a branching narrative authoring pattern covering `Ink`, story variables, choice feedback, text search, and validation risk
 
 ## Logs
 

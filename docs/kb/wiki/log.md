@@ -1,6 +1,6 @@
 ---
 title: Knowledge Base Log
-last_reviewed: 2026-04-18
+last_reviewed: 2026-04-22
 status: seed
 sources: []
 ---
@@ -13,3 +13,4 @@ sources: []
 - 2026-04-16: refreshed `OpenAI built a Tactical RPG with Phaser` as a `video_backed_article`; preserved the canonical YouTube URL, `10:58-11:16` demo anchor, and the concrete workflow tuple `GPT-5.4 + Codex + Playwright Interactive + image generation + Phaser`
 - 2026-04-18: ingested `Build a 2D Space Shooter with Phaser and Claude Code`; added a `video_backed_article` source note and updated Phaser / AI-assisted game development pages with the concrete workflow `Cursor + Claude Code + AskUserQuestion + Legacy Pixel Collection + GitHub + Vercel`
 - 2026-04-22: normalized the `OpenAI built a Tactical RPG with Phaser` source note to the current video-backed format with visible source/video links, subtitle availability, selected screenshots, and anchor-aligned segment notes for the full embedded video.
+- 2026-04-22: ingested Unity's `Esoteric Ebb: tackling interactive writing challenges`; added a source note and new `branching-narrative-authoring` pattern page with anchors for `Ink`, story-variable naming, choice feedback, text search, and pre-launch validation.
