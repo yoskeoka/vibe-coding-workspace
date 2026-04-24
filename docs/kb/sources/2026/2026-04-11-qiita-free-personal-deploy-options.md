@@ -2,6 +2,7 @@
 title: できるだけ無料でサービスを運用するための個人開発オススメデプロイ先
 source_url: https://qiita.com/Hiru-ge/items/262e0645fbfb024ecd4b
 source_type: article
+original_language: ja
 ingested_on: 2026-04-11
 status: watch
 tags:

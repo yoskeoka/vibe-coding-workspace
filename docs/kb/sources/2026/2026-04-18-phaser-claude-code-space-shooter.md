@@ -2,6 +2,7 @@
 title: Build a 2D Space Shooter with Phaser and Claude Code
 source_url: https://phaser.io/news/2026/02/phaser-claude-code-tutorial
 source_type: video_backed_article
+original_language: en
 ingested_on: 2026-04-18
 status: active
 tags:

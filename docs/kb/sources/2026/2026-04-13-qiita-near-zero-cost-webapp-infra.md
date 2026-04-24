@@ -2,6 +2,7 @@
 title: 趣味開発Webアプリケーションのほぼ0円インフラ構成
 source_url: https://qiita.com/mazrean/items/f4a48d43b2d680a92216
 source_type: article
+original_language: ja
 ingested_on: 2026-04-13
 status: watch
 tags:

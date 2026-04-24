@@ -16,10 +16,13 @@ For video-heavy sources, the intended UX also includes:
    - which projects or themes they seem relevant to
 3. Create one source note per URL in `sources/<year>/`.
 4. Update the most relevant compiled wiki pages in `wiki/`.
-5. Add a short entry to `wiki/log.md`.
-6. If the source suggests a concrete experiment, record it as a follow-up bullet.
+5. Add or refresh Japanese mirror files under `ja/sources/<year>/` and `ja/wiki/` when practical.
+6. Add a short entry to `wiki/log.md`.
+7. If the source suggests a concrete experiment, record it as a follow-up bullet.
 
 Do not hand-maintain rendered `Sources` navigation or yearly source index pages during ingest. `tools/kb check`, `tools/kb build`, and `tools/kb serve` derive those artifacts automatically.
+
+English remains the canonical AI-facing corpus. Japanese mirror files improve the published site for humans, but QA/retrieval flows should continue to read `docs/kb/**` while excluding `docs/kb/ja/**` unless the user explicitly asks for Japanese mirror content.
 
 ## Video-backed flow
 
@@ -57,7 +60,9 @@ Temporary processing artifacts belong in OS temp storage or `.local/kb-ingest/<j
 
 Durable KB outputs remain limited to:
 - `docs/kb/sources/<year>/`
+- `docs/kb/ja/sources/<year>/`
 - `docs/kb/wiki/`
+- `docs/kb/ja/wiki/`
 - `docs/kb/wiki/log.md`
 - `docs/kb/assets/source-images/<year>/<source-slug>/` for selected screenshots only
 

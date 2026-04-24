@@ -91,13 +91,13 @@ No ADR update is expected unless implementation reveals a materially different r
 
 ## Sub-tasks
 
-- [ ] Update KB specs and schema for bilingual layout, retrieval scoping, and `original_language`
-- [ ] Implement MkDocs static i18n configuration and remove `navigation.instant`
-- [ ] [parallel] Extend KB input generation for locale-aware nav, yearly source indexes, and per-locale visible relationship sections
-- [ ] [parallel] Add `docs/kb/ja/` structure and seed mirror content needed to validate the bilingual publishing path
-- [ ] [depends on: spec updates, MkDocs static i18n configuration, locale-aware generation] Wire KB build and serve commands to render `/` and `/ja/` correctly
-- [ ] [depends on: spec updates] Update ingest/retrieval flows so Japanese files are generated as a companion output but excluded from QA/retrieval inputs
-- [ ] [depends on: all implementation tasks] Verify with `tools/kb check` and `tools/kb build`
+- [x] Update KB specs and schema for bilingual layout, retrieval scoping, and `original_language`
+- [x] Implement MkDocs static i18n configuration and remove `navigation.instant`
+- [x] [parallel] Extend KB input generation for locale-aware nav, yearly source indexes, and per-locale visible relationship sections
+- [x] [parallel] Add `docs/kb/ja/` structure and seed mirror content needed to validate the bilingual publishing path
+- [x] [depends on: spec updates, MkDocs static i18n configuration, locale-aware generation] Wire KB build and serve commands to render `/` and `/ja/` correctly
+- [x] [depends on: spec updates] Update ingest/retrieval flows so Japanese files are generated as a companion output but excluded from QA/retrieval inputs
+- [x] [depends on: all implementation tasks] Verify with `tools/kb check` and `tools/kb build`
 
 ## Verification
 

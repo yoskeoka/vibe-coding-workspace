@@ -27,6 +27,17 @@ docs/kb/
   README.md
   schema.md
   ingest.md
+  ja/
+    sources/
+      YYYY/
+        YYYY-MM-DD-slug.md
+    wiki/
+      index.md
+      log.md
+      projects/
+      topics/
+      tools/
+      patterns/
   sources/
     YYYY/
       YYYY-MM-DD-slug.md
@@ -40,6 +51,8 @@ docs/kb/
 
 Generated build inputs MAY be created under `.local/` during build, check, or preview, but the git-tracked source of truth remains `docs/kb/`.
 ```
+
+English content under `docs/kb/` is the canonical AI-facing corpus. Japanese content under `docs/kb/ja/` is a human-facing published mirror and SHOULD preserve the same relative path layout for translated pages.
 
 Video ingest jobs MAY also use:
 
@@ -60,6 +73,7 @@ A source note MUST include:
 - title
 - source URL
 - source type
+- original source language
 - ingested date
 - status
 - tags
@@ -108,6 +122,9 @@ Each year entry SHOULD use a compact label such as `2026 (6)` and point to a gen
 
 Those yearly landing pages are publish artifacts derived from `docs/kb/sources/YYYY/*.md` and MUST NOT become hand-maintained source files in git.
 
+The published site MUST support English at `/` and Japanese at `/ja/`.
+Locale switching SHOULD keep the same relative page path when both locales exist and MAY fall back to the canonical English page when a Japanese mirror page is not present yet.
+
 ## Operations
 
 The repository-standard GitHub Actions checkout major is `actions/checkout@v6`.
@@ -123,6 +140,7 @@ The primary ingest UX is conversational:
 Ingest MUST:
 - create or update source notes
 - update the relevant wiki pages
+- create or update Japanese mirror pages under `docs/kb/ja/` when practical
 - update `docs/kb/wiki/index.md` if navigation changes
 - append a short entry to `docs/kb/wiki/log.md`
 
@@ -134,6 +152,7 @@ Ingest SHOULD:
 - preserve the user's framing about why the source matters
 - prefer updating an existing wiki page over creating duplicates
 - identify which workspace projects, tools, topics, and patterns are affected
+- keep Japanese mirror paths aligned with the English relative layout when translated pages are added
 - prefer subtitles over fresh transcription when the source provides usable subtitles
 - narrow AI context to structured segment summaries and representative frame candidates instead of passing full transcripts or all frames
 
@@ -234,6 +253,8 @@ The durable screenshot budget SHOULD stay small. The initial implementation SHOU
 
 Questions answered from the knowledge base SHOULD cite the relevant source notes or wiki pages. Durable outputs from those questions MAY be filed back into `docs/kb/wiki/`.
 
+AI-facing question answering and retrieval MUST use the canonical English KB corpus and exclude `docs/kb/ja/**` unless a future spec explicitly broadens that contract.
+
 ### 3. Lint
 
 The knowledge base SHOULD support periodic AI maintenance to detect:
@@ -249,6 +270,7 @@ Human-readable publishing MUST use MkDocs with:
 - a git-tracked template config file `mkdocs.kb.template.yml`
 - a generated effective config file produced during build/check/serve
 - a generated docs tree that may include publish-only files such as yearly source index pages
+- the `mkdocs-static-i18n` plugin to publish `/` and `/ja/`
 
 The local helper command `tools/kb` MUST provide:
 - `build` to render the site
@@ -259,6 +281,7 @@ The local helper command `tools/kb` MUST provide:
 The helper SHOULD prefer `uv` when available and fall back to `python3 -m mkdocs` otherwise.
 
 The helper MUST derive the rendered `Sources` nav from `docs/kb/sources/YYYY/*.md` so newly added source notes cannot be omitted accidentally.
+The helper MUST derive locale-aware yearly `Sources` index pages for both English and Japanese from the corresponding canonical and mirror source trees.
 
 Generated MkDocs inputs MUST be safe for concurrent local invocations:
 - Each `tools/kb check`, `tools/kb build`, and `tools/kb serve` invocation MUST use an invocation-owned generated root under `.local/`.
@@ -274,6 +297,7 @@ Generated MkDocs inputs MUST be safe for concurrent local invocations:
 ## Rendering and Publishing
 
 - The git-tracked Markdown under `docs/kb/` MUST remain the source of truth for the rendered site, but the published site MAY be built from a derived docs tree that includes publish-only artifacts and sections derived from frontmatter.
+- The git-tracked Japanese mirror under `docs/kb/ja/` MUST remain separable enough that QA and retrieval can exclude it by path instead of by language heuristics.
 - The published top-level navigation MUST treat wiki content as the primary browsing surface:
   - `wiki/index.md` MUST be the leading top-level page in the rendered nav.
   - the current wiki groupings (`Log`, `Topics`, `Tools`, `Patterns`, `Projects`) SHOULD remain top-level rendered entries instead of being nested under a `Wiki` parent.
@@ -286,6 +310,7 @@ Generated MkDocs inputs MUST be safe for concurrent local invocations:
 - Frontmatter relationships that drive human navigation MUST also be visible in rendered page content:
   - wiki page `sources:` entries MUST render as a visible `## Sources` section
   - source-note `related_pages:` entries MUST render as a visible `## Related pages` section
+- `navigation.instant` MUST remain disabled because it conflicts with the current static i18n locale-switching setup.
 - Pull requests that change the knowledge base publishing inputs MUST run a strict MkDocs build in CI before merge.
 - GitHub Pages MUST publish the rendered site from GitHub Actions.
 - Local build output MUST be ignored by git.
