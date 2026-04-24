@@ -98,6 +98,13 @@ A workspace-local Go CLI provides the task operations. The initial command set i
 - Refreshes the local cache after mutation succeeds
 - Replaces the former `move` command; status changes use `pj update --item <id> --status <value>`
 
+#### `update-batch`
+- Applies a JSON-file mutation plan to multiple existing project items
+- Validates the full input before remote mutation when possible
+- Refreshes the local cache once after all successful mutations instead of after every item
+- Stops on the first remote failure and leaves the local cache stale with a clear instruction to run `pj sync`
+- Is an optimization for reconciling existing items; it does not replace `pj add` for genuinely missing tasks
+
 #### `url`
 - Prints the canonical GitHub Project URL from cached project metadata
 
@@ -127,6 +134,9 @@ The `triage-tasks` skill may use the local cache and/or the CLI output as its wo
 - The skill MUST create new triage items with `pj add` and claim or complete them by changing `Status` with `pj update --item <id> --status <value>`.
 - The skill SHOULD use `pj add --body-file` for generated startup handoff bodies that are long enough to make inline shell quoting awkward.
 - The skill MAY correct existing items through `pj update` instead of forcing manual GitHub edits or item recreation for `Repo`, `Kind`, and `Priority`.
+- During full re-triage, the skill MAY build a short mutation plan first and apply existing-item corrections with `pj update-batch` when that command is available.
+- The skill MUST continue using `pj add` for genuinely missing items; `pj update-batch` only changes items that already exist.
+- If `pj update-batch` is unavailable or fails, the skill MUST remain compatible with one-item-at-a-time `pj update`.
 - During full re-triage, every newly created `pj add` item MUST include a compact body that acts as a remote-facing startup handoff, not only a source note.
 - The Project item body MUST stay concise enough for GitHub Project scanning and SHOULD be a short Markdown block with these minimum fields:
   - `Source`: the local plan, local issue, GitHub PR, GitHub Issue, or discovered source reference

@@ -140,6 +140,43 @@ The config stores:
 - Refreshes the local cache after successful mutation
 - Replaces the former `pj move` command; `pj move` is not a supported command
 
+### `pj update-batch`
+- Updates many existing project items from a JSON file
+- Requires `--file <path>`
+- The input file MUST decode to a top-level JSON array of update operations
+- Each operation MUST include:
+  - `item`
+- Each operation MAY include:
+  - `title`
+  - `body`
+  - `body_file`
+  - `status`
+  - `repo`
+  - `kind`
+  - `priority`
+- `body` and `body_file` are mutually exclusive within a single operation
+- Each operation MUST change at least one field beyond `item`
+- Unknown fields in any operation MUST fail before remote mutation begins
+- Invalid local input MUST fail before remote mutation begins, including:
+  - missing `item`
+  - an operation with no changes
+  - unreadable `body_file`
+  - invalid `body`/`body_file` combinations
+  - invalid `status`, `repo`, `kind`, or `priority` values using the same resolver behavior as `pj update`
+- The command MUST validate the full input file before contacting GitHub when those checks can be performed locally
+- After successful validation, remote mutations MUST run in input order
+- On full success, the command MUST refresh the local cache exactly once after all remote mutations finish
+- On remote failure after one or more successful mutations:
+  - the command MUST stop immediately at the failing operation
+  - the command MUST report that remote state may be partially updated
+  - the command MUST NOT invent a partial cache snapshot locally
+  - the command MUST leave the existing cache stale and tell the operator to run `pj sync`
+- Output MUST stay compact and operator-readable:
+  - print a validation summary
+  - print one short per-item result line
+  - print the final cache refresh status
+- The command is an optimization for existing-item corrections; it does not replace `pj add` for genuinely missing tasks
+
 ### `pj url`
 - Reads `.local/pj/cache.json`
 - Prints the canonical GitHub Project URL to stdout without opening a browser
