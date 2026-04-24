@@ -254,19 +254,16 @@ def enhance_markdown(current_rel: str, meta: dict[str, object], body: str, title
     return updated
 
 
-def collect_source_notes(locale: str) -> dict[str, list[Path]]:
+def collect_source_notes(locale: str, title_map: dict[str, str]) -> dict[str, list[Path]]:
     by_year: dict[str, list[Path]] = {}
     for path in sorted((GENERATED_DOCS_DIR / "sources").glob("*/*.md")):
         name = path.name
         if name == "index.md" or name.endswith(".ja.md"):
             continue
-        rel = doc_rel_path(path)
         if locale == JA_LOCALE:
-            localized = localized_rel(rel, JA_LOCALE)
-            if localized not in build_title_map():
-                continue
-            rel = localized
-            path = GENERATED_DOCS_DIR / rel
+            localized = localized_rel(doc_rel_path(path), JA_LOCALE)
+            if localized in title_map:
+                path = GENERATED_DOCS_DIR / localized
         year = path.parent.name
         by_year.setdefault(year, []).append(path)
 
@@ -437,8 +434,8 @@ def main() -> None:
     relocate_readme()
 
     title_map = build_title_map()
-    by_year_en = collect_source_notes(DEFAULT_LOCALE)
-    by_year_ja = collect_source_notes(JA_LOCALE)
+    by_year_en = collect_source_notes(DEFAULT_LOCALE, title_map)
+    by_year_ja = collect_source_notes(JA_LOCALE, title_map)
     generate_sources_index(by_year_en, DEFAULT_LOCALE)
     generate_sources_index(by_year_ja, JA_LOCALE)
     for year, paths in by_year_en.items():
