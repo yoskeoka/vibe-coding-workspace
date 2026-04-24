@@ -1,6 +1,7 @@
 package pj
 
 import (
+	"encoding/json"
 	"io"
 	"os"
 	"path/filepath"
@@ -476,10 +477,14 @@ func TestRunUpdateBatchReadsJSONAndRefreshesCacheOnce(t *testing.T) {
 	if err := writeCache(cachePath, testProjectCache()); err != nil {
 		t.Fatalf("writeCache(): %v", err)
 	}
-	if err := os.WriteFile(opsPath, []byte(`[
-  {"item":"item-1","status":"done"},
-  {"item":"item-1","title":"New title","body_file":"`+bodyPath+`","repo":"ww"}
-]`), 0o644); err != nil {
+	opsJSON, err := json.Marshal([]map[string]string{
+		{"item": "item-1", "status": "done"},
+		{"item": "item-1", "title": "New title", "body_file": bodyPath, "repo": "ww"},
+	})
+	if err != nil {
+		t.Fatalf("json.Marshal(): %v", err)
+	}
+	if err := os.WriteFile(opsPath, opsJSON, 0o644); err != nil {
 		t.Fatalf("WriteFile(): %v", err)
 	}
 
@@ -488,7 +493,7 @@ func TestRunUpdateBatchReadsJSONAndRefreshesCacheOnce(t *testing.T) {
 	}
 
 	var stdout strings.Builder
-	err := appWithClient(client).runUpdateBatch([]string{
+	err = appWithClient(client).runUpdateBatch([]string{
 		"--cache", cachePath,
 		"--file", opsPath,
 	}, &stdout)
@@ -601,7 +606,7 @@ func TestRunUpdateBatchReportsPartialRemoteFailure(t *testing.T) {
 	if err == nil {
 		t.Fatal("runUpdateBatch() error = nil, want partial failure")
 	}
-	if !strings.Contains(err.Error(), "stopped after 1 successful operations") {
+	if !strings.Contains(err.Error(), "stopped after 1 successful operation") {
 		t.Fatalf("runUpdateBatch() error = %q", err)
 	}
 	if client.syncCalls != 0 {
@@ -609,6 +614,56 @@ func TestRunUpdateBatchReportsPartialRemoteFailure(t *testing.T) {
 	}
 	if !strings.Contains(stdout.String(), "remote state may be partially updated") {
 		t.Fatalf("stdout = %q", stdout.String())
+	}
+}
+
+func TestRunUpdateBatchWrapsOperationContextOnResolverError(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	cachePath := filepath.Join(dir, "cache.json")
+	opsPath := filepath.Join(dir, "ops.json")
+	if err := writeCache(cachePath, testProjectCache()); err != nil {
+		t.Fatalf("writeCache(): %v", err)
+	}
+	if err := os.WriteFile(opsPath, []byte(`[{"item":"item-1","repo":"github.com/yoskeoka/unknown"}]`), 0o644); err != nil {
+		t.Fatalf("WriteFile(): %v", err)
+	}
+
+	err := appWithClient(&stubProjectClient{}).runUpdateBatch([]string{
+		"--cache", cachePath,
+		"--file", opsPath,
+	}, io.Discard)
+	if err == nil {
+		t.Fatal("runUpdateBatch() error = nil, want resolver error")
+	}
+	if !strings.Contains(err.Error(), "update-batch operation 1:") {
+		t.Fatalf("runUpdateBatch() error = %q", err)
+	}
+}
+
+func TestRunUpdateBatchUsesJSONFieldNamesInBodyErrors(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	cachePath := filepath.Join(dir, "cache.json")
+	opsPath := filepath.Join(dir, "ops.json")
+	if err := writeCache(cachePath, testProjectCache()); err != nil {
+		t.Fatalf("writeCache(): %v", err)
+	}
+	if err := os.WriteFile(opsPath, []byte(`[{"item":"item-1","body":"inline","body_file":"body.md"}]`), 0o644); err != nil {
+		t.Fatalf("WriteFile(): %v", err)
+	}
+
+	err := appWithClient(&stubProjectClient{}).runUpdateBatch([]string{
+		"--cache", cachePath,
+		"--file", opsPath,
+	}, io.Discard)
+	if err == nil {
+		t.Fatal("runUpdateBatch() error = nil, want body conflict error")
+	}
+	if !strings.Contains(err.Error(), "\"body\" or \"body_file\"") {
+		t.Fatalf("runUpdateBatch() error = %q", err)
 	}
 }
 

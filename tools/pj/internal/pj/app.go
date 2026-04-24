@@ -1,6 +1,7 @@
 package pj
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -685,7 +686,7 @@ func (a app) runUpdateBatch(args []string, stdout io.Writer) error {
 		if err := client.updateItem(cache, plan.ItemID, plan.Update); err != nil {
 			fmt.Fprintf(stdout, "[%d/%d] item %s failed: %v\n", i+1, len(planned), plan.ItemID, err)
 			fmt.Fprintln(stdout, "cache was not refreshed; remote state may be partially updated. run `pj sync`")
-			return fmt.Errorf("update-batch stopped after %d successful operations: %w", i, err)
+			return fmt.Errorf("update-batch stopped after %d %s: %w", i, pluralizeOperation(i), err)
 		}
 		fmt.Fprintf(stdout, "[%d/%d] item %s updated: %s\n", i+1, len(planned), plan.ItemID, strings.Join(plan.ChangedFields, ", "))
 	}
@@ -765,9 +766,9 @@ Usage:
   go -C tools/pj run ./cmd/pj repo-link status <owner>/<repo>
   go -C tools/pj run ./cmd/pj repo-link add <owner>/<repo>
   go -C tools/pj run ./cmd/pj repo-link remove <owner>/<repo>
-	go -C tools/pj run ./cmd/pj list [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]
-	go -C tools/pj run ./cmd/pj add --title <title> [--body <text>|--body-file <path>] [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]
-	go -C tools/pj run ./cmd/pj update --item <item-id> [--title <title>] [--body <text>|--body-file <path>] [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]
+  go -C tools/pj run ./cmd/pj list [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]
+  go -C tools/pj run ./cmd/pj add --title <title> [--body <text>|--body-file <path>] [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]
+  go -C tools/pj run ./cmd/pj update --item <item-id> [--title <title>] [--body <text>|--body-file <path>] [--status <value>] [--repo <value>] [--kind <value>] [--priority <value>]
   go -C tools/pj run ./cmd/pj update-batch --file <path>
   go -C tools/pj run ./cmd/pj url
   go -C tools/pj run ./cmd/pj open
@@ -845,7 +846,7 @@ func loadBatchUpdateFile(path string) ([]batchUpdateOperation, error) {
 	}
 
 	var ops []batchUpdateOperation
-	decoder := json.NewDecoder(strings.NewReader(string(data)))
+	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&ops); err != nil {
 		return nil, fmt.Errorf("decode --file %s: %w", path, err)
@@ -863,7 +864,7 @@ func prepareBatchUpdate(cache *Cache, op batchUpdateOperation, index int) (plann
 		return plannedBatchUpdate{}, fmt.Errorf("%s requires item", label)
 	}
 
-	resolvedBody, err := resolveBodyInput(label, stringPointerValue(op.Body), stringPointerValue(op.BodyFile), op.Body != nil, op.BodyFile != nil)
+	resolvedBody, err := resolveBatchBodyInput(label, stringPointerValue(op.Body), stringPointerValue(op.BodyFile), op.Body != nil, op.BodyFile != nil)
 	if err != nil {
 		return plannedBatchUpdate{}, err
 	}
@@ -879,7 +880,7 @@ func prepareBatchUpdate(cache *Cache, op batchUpdateOperation, index int) (plann
 		Priority:      stringPointerValue(op.Priority),
 	}, label)
 	if err != nil {
-		return plannedBatchUpdate{}, err
+		return plannedBatchUpdate{}, fmt.Errorf("%s: %w", label, err)
 	}
 
 	return plannedBatchUpdate{
@@ -932,11 +933,32 @@ func buildItemUpdate(cache *Cache, input itemUpdateInput, command string) (itemU
 	return update, changedFields, nil
 }
 
+func resolveBatchBodyInput(label, body, bodyFile string, bodyProvided, bodyFileProvided bool) (string, error) {
+	if bodyProvided && bodyFileProvided {
+		return "", fmt.Errorf("%s accepts either \"body\" or \"body_file\", not both", label)
+	}
+	if !bodyFileProvided {
+		return body, nil
+	}
+	data, err := os.ReadFile(bodyFile)
+	if err != nil {
+		return "", fmt.Errorf("%s read body_file %s: %w", label, bodyFile, err)
+	}
+	return string(data), nil
+}
+
 func stringPointerValue(value *string) string {
 	if value == nil {
 		return ""
 	}
 	return *value
+}
+
+func pluralizeOperation(n int) string {
+	if n == 1 {
+		return "successful operation"
+	}
+	return "successful operations"
 }
 
 func resolveBodyInput(command, body, bodyFile string, bodyProvided, bodyFileProvided bool) (string, error) {
