@@ -1,6 +1,6 @@
 ---
 title: Knowledge Base Log
-last_reviewed: 2026-04-24
+last_reviewed: 2026-04-25
 status: seed
 sources: []
 ---
@@ -15,3 +15,4 @@ sources: []
 - 2026-04-22: normalized the `OpenAI built a Tactical RPG with Phaser` source note to the current video-backed format with visible source/video links, subtitle availability, selected screenshots, and anchor-aligned segment notes for the full embedded video.
 - 2026-04-22: ingested Unity's `Esoteric Ebb: tackling interactive writing challenges`; added a source note and new `branching-narrative-authoring` pattern page with anchors for `Ink`, story-variable naming, choice feedback, text search, and pre-launch validation.
 - 2026-04-24: added bilingual KB rendering with `docs/kb/ja/` mirror content, MkDocs static i18n publishing for `/` and `/ja/`, locale-aware source indexes, and English-only retrieval guidance.
+- 2026-04-25: ingested seven mixed-source notes covering `Luminary`, shi3z's AI vertical shooter, `Godot + Codex`, `Next2D`, UE-style component gameplay architecture, Go transaction-boundary design, and modern Go container defaults; added new `godot` / `next2d` tool pages and `component-oriented-gameplay` / `go-transaction-boundaries` / `go-container-workflows` pattern pages; refreshed `ai-game-dev` and `wiki/index.md`

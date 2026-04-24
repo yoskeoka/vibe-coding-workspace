@@ -62,11 +62,18 @@ NAV_PATHS = {
         "wiki/topics/deployment-options.md",
         "wiki/topics/pixel-art-ui.md",
     ],
-    "tools": ["wiki/tools/phaser.md"],
+    "tools": [
+        "wiki/tools/phaser.md",
+        "wiki/tools/godot.md",
+        "wiki/tools/next2d.md",
+    ],
     "patterns": [
         "wiki/patterns/source-ingestion.md",
         "wiki/patterns/cheap-hosting.md",
         "wiki/patterns/branching-narrative-authoring.md",
+        "wiki/patterns/component-oriented-gameplay.md",
+        "wiki/patterns/go-transaction-boundaries.md",
+        "wiki/patterns/go-container-workflows.md",
     ],
     "projects": [
         "wiki/projects/ww.md",

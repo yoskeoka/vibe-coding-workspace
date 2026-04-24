@@ -1,6 +1,6 @@
 ---
 title: Workspace Knowledge Base
-last_reviewed: 2026-04-24
+last_reviewed: 2026-04-25
 status: seed
 sources: []
 ---
@@ -26,6 +26,8 @@ This is the compiled wiki for `vibe-coding-workspace`.
 
 ### Tools
 
+- [godot](tools/godot.md)
+- [next2d](tools/next2d.md)
 - [phaser](tools/phaser.md)
 
 ### Patterns
@@ -33,6 +35,9 @@ This is the compiled wiki for `vibe-coding-workspace`.
 - [source-ingestion](patterns/source-ingestion.md)
 - [cheap-hosting](patterns/cheap-hosting.md)
 - [branching-narrative-authoring](patterns/branching-narrative-authoring.md)
+- [component-oriented-gameplay](patterns/component-oriented-gameplay.md)
+- [go-transaction-boundaries](patterns/go-transaction-boundaries.md)
+- [go-container-workflows](patterns/go-container-workflows.md)
 
 ## Recent ingests
 
@@ -43,6 +48,7 @@ This is the compiled wiki for `vibe-coding-workspace`.
 - 2026-04-18: ingested Phaser's Claude Code space-shooter tutorial as an AI-assisted game prototyping pattern with `AskUserQuestion`, free pixel art assets, playable milestones, and Vercel deployment
 - 2026-04-22: ingested Unity's `Esoteric Ebb` postmortem as a branching narrative authoring pattern covering `Ink`, story variables, choice feedback, text search, and validation risk
 - 2026-04-24: added bilingual KB rendering so English publishes at `/` and Japanese mirror pages publish at `/ja/` while retrieval stays English-only
+- 2026-04-25: ingested a mixed roundup covering `Godot + Codex`, realtime AI-in-the-loop shooting, `Next2D`, family-friendly co-op ARPG design, UE-style component architecture, and two Go backend/container workflow notes
 
 ## Logs
 
