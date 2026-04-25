@@ -24,16 +24,16 @@ time_anchors:
   - "11:20-12:09: pricing 議論と frontier output のコスト警告"
   - "12:10-12:52: OpenClaw 向けの prompting 助言と model-specific prompt guide 推奨"
 selected_screenshots:
-  - path: ../../assets/source-images/2026/openai-gpt-5-4-phaser-tactical-rpg/07-25-plan-first.jpg
+  - path: ../../../assets/source-images/2026/openai-gpt-5-4-phaser-tactical-rpg/07-25-plan-first.jpg
     anchor: "07:25"
     note: "planning、tools、computer use、long-context agents に関する blog post 抜粋"
-  - path: ../../assets/source-images/2026/openai-gpt-5-4-phaser-tactical-rpg/08-45-osworld.jpg
+  - path: ../../../assets/source-images/2026/openai-gpt-5-4-phaser-tactical-rpg/08-45-osworld.jpg
     anchor: "08:45"
     note: "OSWorld の検証精度と tool yield 比較グラフ"
-  - path: ../../assets/source-images/2026/openai-gpt-5-4-phaser-tactical-rpg/10-18-theme-park-demo.jpg
+  - path: ../../../assets/source-images/2026/openai-gpt-5-4-phaser-tactical-rpg/10-18-theme-park-demo.jpg
     anchor: "10:18"
     note: "生成された isometric asset と管理 UI を含む theme-park simulation デモ"
-  - path: ../../assets/source-images/2026/openai-gpt-5-4-phaser-tactical-rpg/11-05-rpg-demo.jpg
+  - path: ../../../assets/source-images/2026/openai-gpt-5-4-phaser-tactical-rpg/11-05-rpg-demo.jpg
     anchor: "11:05"
     note: "movement、attack、wait、cancel、end-turn 操作を備えた 2D tactical RPG デモ"
 named_entities:
@@ -85,13 +85,13 @@ Matthew Berman は `GPT-5.4` を、幅広い world knowledge、coding 力、brow
 
 ### 06:57-08:03: planning、tools、computer use、long context
 
-![planning、tools、computer use、long-context agents に関する blog post 抜粋](../../assets/source-images/2026/openai-gpt-5-4-phaser-tactical-rpg/07-25-plan-first.jpg)
+![planning、tools、computer use、long-context agents に関する blog post 抜粋](../../../assets/source-images/2026/openai-gpt-5-4-phaser-tactical-rpg/07-25-plan-first.jpg)
 
 発表者は、今回のリリースを reasoning、coding、agentic workflow をまとめて改善したものとして要約する。ワークスペース的に重要なのは、実行前の planning、tool/software environment、spreadsheet や document のような professional artifact、computer use、long-context agent task を前面に出している点である。これは、このワークスペース自身の plan-first 運用と直接かみ合う。
 
 ### 08:03-09:24: OSWorld と computer-use デモ
 
-![OSWorld の検証精度と tool yield 比較グラフ](../../assets/source-images/2026/openai-gpt-5-4-phaser-tactical-rpg/08-45-osworld.jpg)
+![OSWorld の検証精度と tool yield 比較グラフ](../../../assets/source-images/2026/openai-gpt-5-4-phaser-tactical-rpg/08-45-osworld.jpg)
 
 OSWorld 議論では、tool yield 回数に対する精度が主題になる。発表者は、GPT-5.4 が GPT-5.2 より少ない tool call で高い精度に到達しており、tool-driven work を理論上より安く効率的にできると読む。その後、sent mail の確認、label 付与、calendar invite 作成といった Gmail 風 automation を見せる。ここで残すべき anchor は benchmark の数値そのものではなく、agent 品質を task success、tool call 数、screenshot や UI state への反応で測るという評価の形である。
 
@@ -101,13 +101,13 @@ OSWorld 議論では、tool yield 回数に対する精度が主題になる。�
 
 ### 10:05-10:58: テーマパーク simulation デモ
 
-![生成された isometric asset と管理 UI を含む theme-park simulation デモ](../../assets/source-images/2026/openai-gpt-5-4-phaser-tactical-rpg/10-18-theme-park-demo.jpg)
+![生成された isometric asset と管理 UI を含む theme-park simulation デモ](../../../assets/source-images/2026/openai-gpt-5-4-phaser-tactical-rpg/10-18-theme-park-demo.jpg)
 
 最初のゲームデモは `Miniature` という isometric な theme-park simulation で、time-speed control、build palette、生成された attraction、path、visitor dot、funds、guest count、happiness、cleanliness、park rating、ride status、guest reaction を含む。発表者は、軽い指定の prompt から作ったと述べ、見た目だけでなく logic と metrics も prototype に入っていると強調する。
 
 ### 10:58-11:16: 2D tactical RPG デモ
 
-![movement、attack、wait、cancel、end-turn 操作を備えた 2D tactical RPG デモ](../../assets/source-images/2026/openai-gpt-5-4-phaser-tactical-rpg/11-05-rpg-demo.jpg)
+![movement、attack、wait、cancel、end-turn 操作を備えた 2D tactical RPG デモ](../../../assets/source-images/2026/openai-gpt-5-4-phaser-tactical-rpg/11-05-rpg-demo.jpg)
 
 ここが Phaser 記事の主対象区間で、tile map、character card、movement range、attack / wait / cancel / end-turn 操作、battle log、turn state、generated character art を備えた 2D tactical RPG が映る。retrieval の観点では、turn-based combat UI と tactical movement affordance が見えるため、theme-park 区間よりも Phaser / game-dev 向け anchor として強い。
 
