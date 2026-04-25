@@ -158,8 +158,41 @@ The `triage-tasks` skill may use the local cache and/or the CLI output as its wo
   `1. Pick a task`, `2. Update the list`, `3. Full re-triage`.
 - After offering those choices, the skill MUST wait for user confirmation instead of auto-choosing one of them.
 - During full re-triage, the skill MAY delegate repo-by-repo read-only exploration to subagents in order to keep the main context smaller.
-- When delegating that exploration, the skill SHOULD prefer an available low-cost small model rather than a frontier-sized model, but MUST avoid hard-coding a specific model version name in the workflow contract.
+- When delegating that exploration, the skill SHOULD explicitly choose an available low-cost small model for routine read-only collection unless the repo question needs deeper reasoning, but MUST avoid hard-coding a specific model version name in the workflow contract.
 - The main agent MUST keep responsibility for final prioritization, Project mutations, and the handoff prompt even when read-only exploration is delegated.
+- Full re-triage MUST classify collected findings before mutating the Project:
+  - direct backlog item: pending exec plan, local issue, open PR, or open GitHub Issue
+  - roadmap gap: an unchecked project-plan phase or unmet requirement that is not already represented by a more concrete item
+  - do not add yet: vague, duplicate, or superseded findings that are better represented by an existing direct item
+- Full re-triage MUST reconcile existing Project items before creating new ones.
+- Reconciliation MUST compare a candidate against existing items by `Source` first, then by a normalized title fallback when `Source` is missing, stale, or still in an older body format.
+- Reconciliation MUST prefer updating an equivalent existing item over creating a duplicate item.
+- Full re-triage MUST only create a new Project item when no equivalent existing item can be reconciled.
+- Reconciliation MUST handle local sources in all of these states:
+  - still present in `docs/exec-plan/todo/` or `docs/issues/`
+  - moved to `docs/exec-plan/done/` or `docs/issues/done/`
+  - missing locally because the repo checkout is unavailable
+  - missing locally because the file no longer exists
+- Reconciliation MUST handle remote sources in all of these states:
+  - PR URL still open
+  - PR URL closed or merged
+  - PR URL superseded by a newer open PR for the same workflow-sync task in the same repo
+  - GitHub Issue still open
+  - GitHub Issue closed
+- Missing local repo checkouts MUST be reported explicitly during full re-triage.
+- When a local checkout is missing, the skill MAY still inspect GitHub PRs and issues for that repo, but MUST mark local project-plan, exec-plan, and issue inspection as unavailable instead of inferring local state.
+- During full re-triage, workflow-sync PRs MUST maintain at most one active Project item per repo for the current sync PR.
+- When a newer open workflow-sync PR supersedes an older one in the same repo, the skill MUST update the existing item to the newer PR instead of creating another Project item.
+- When an existing item is already being updated for title, source, repo, kind, priority, or status reasons, the skill SHOULD also normalize an old `Source:`-only or otherwise outdated body to the current durable handoff body format in the same mutation.
+- Full re-triage SHOULD build a short mutation plan before changing the Project.
+- That mutation plan SHOULD be ordered as:
+  - mark stale items `Done`
+  - update PR source/title/body replacements
+  - normalize `Priority`, `Kind`, `Repo`, and body fields on existing items
+  - add genuinely missing items
+  - run a final `pj sync`/`pj list`
+- During full re-triage, the skill MAY apply existing-item corrections with `pj update-batch` when that command is available.
+- If `pj update-batch` is unavailable, the skill MUST remain compatible with one-item-at-a-time `pj update`.
 - After the user picks a task, the default handoff SHOULD be a fresh-session prompt rather than immediately starting implementation in the same session, because triage often leaves broad cross-repo context in the conversation.
 - That handoff prompt SHOULD include enough context to start the next workflow step cleanly: target repo path, suggested `ww` worktree command, files to read first, the goal, deliverables, and key constraints.
 - For normal planning/execution handoff, that suggested command SHOULD use the globally installed `ww` binary rather than raw `git switch -c`.
@@ -172,6 +205,16 @@ The `triage-tasks` skill may use the local cache and/or the CLI output as its wo
 - The skill MUST emit the handoff prompt in the same language the user is currently using in the chat, rather than always generating multiple language variants.
 - The skill MUST NOT instruct agents to use legacy tracker-only concepts such as backup restore flows, dependency edges, or claim-style mutations outside the GitHub Project workflow.
 - The skill SHOULD use `pj update` for corrections to `Repo`, `Kind`, or `Priority` on existing items.
+- During full re-triage, delegated repo summaries SHOULD use a strict schema with stable field names, workspace repo basenames, canonical priority casing (`High`, `Medium`, `Low`), and a stable `next` string rather than free-form shapes.
+- The final full re-triage briefing SHOULD include:
+  - the Project URL
+  - the synced item count
+  - how many items were marked `Done`
+  - how many existing items were updated
+  - how many new items were added
+  - a high-priority Todo shortlist
+  - caveats such as missing local checkouts or GitHub-only inspection
+  - the standard numbered next choices
 
 ### 7. Placement and structure
 - The spike CLI lives under `tools/pj/` as an independent Go module.
