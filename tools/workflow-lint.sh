@@ -16,6 +16,9 @@ PR_BODY=""
 WARN_COUNT=0
 FIXABLE_WARN_COUNT=0
 ADVISORY_WARN_COUNT=0
+DIFF_CHECKS_AVAILABLE=true
+CHANGED_FILES=""
+DELETED_FILES=""
 
 usage() {
     echo "Usage: $0 --mode=pre-push|ci [--pr-title=TITLE] [--pr-body=BODY]" >&2
@@ -102,19 +105,30 @@ if ! git rev-parse --verify --quiet "${BASE_REF}" >/dev/null; then
     emit_warning \
         "advisory" \
         "Base ref '${BASE_REF}' not found; skipping diff-based workflow checks" \
-        "Shallow or partially fetched clones can omit the branch the linter compares against, which would otherwise look like 'no changes'" \
-        "Fetch the base branch locally before rerunning workflow-lint"
-    exit 0
-fi
+        "Shallow or partially fetched clones can omit the branch the linter compares against, which would otherwise look like 'no changes'. Fetch the base branch locally before rerunning workflow-lint."
+    DIFF_CHECKS_AVAILABLE=false
+else
+    # Get changed files relative to base
+    # --diff-filter=D lists deleted files, ADMR lists added/deleted/modified/renamed
+    if ! CHANGED_FILES=$(git diff --name-only --diff-filter=ADMR "${BASE_REF}...HEAD" 2>/dev/null); then
+        emit_warning \
+            "advisory" \
+            "Unable to compute changed files relative to '${BASE_REF}'; skipping diff-based workflow checks" \
+            "The repository state prevented git diff from computing the expected comparison range, so the linter will keep running only non-diff checks."
+        DIFF_CHECKS_AVAILABLE=false
+    fi
 
-# Get changed files relative to base
-# --diff-filter=D lists deleted files, ADMR lists added/deleted/modified/renamed
-CHANGED_FILES=$(git diff --name-only --diff-filter=ADMR "${BASE_REF}...HEAD" 2>/dev/null)
-DELETED_FILES=$(git diff --name-only --diff-filter=D "${BASE_REF}...HEAD" 2>/dev/null)
+    if ! DELETED_FILES=$(git diff --name-only --diff-filter=D "${BASE_REF}...HEAD" 2>/dev/null); then
+        emit_warning \
+            "advisory" \
+            "Unable to compute deleted files relative to '${BASE_REF}'; skipping diff-based workflow checks" \
+            "The repository state prevented git diff from computing the expected comparison range, so the linter will keep running only non-diff checks."
+        DIFF_CHECKS_AVAILABLE=false
+    fi
 
-if [ -z "$CHANGED_FILES" ] && [ -z "$DELETED_FILES" ]; then
-    info "No changes detected relative to ${BASE_REF}"
-    exit 0
+    if $DIFF_CHECKS_AVAILABLE && [ -z "$CHANGED_FILES" ] && [ -z "$DELETED_FILES" ]; then
+        info "No changes detected relative to ${BASE_REF}"
+    fi
 fi
 
 # =============================================================================
@@ -122,6 +136,10 @@ fi
 # Files removed from docs/issues/ must appear in docs/issues/done/
 # =============================================================================
 check_issue_lifecycle() {
+    if ! $DIFF_CHECKS_AVAILABLE; then
+        return
+    fi
+
     local deleted_issues
     deleted_issues=$(echo "$DELETED_FILES" | grep '^docs/issues/[^/]*\.md$' || true)
 
@@ -150,6 +168,10 @@ check_issue_lifecycle() {
 # If code files changed but no docs/ files changed, warn (unless [trivial])
 # =============================================================================
 check_docs_change_hint() {
+    if ! $DIFF_CHECKS_AVAILABLE; then
+        return
+    fi
+
     if [ "$MODE" != "ci" ]; then
         return
     fi
@@ -256,6 +278,10 @@ check_exec_plan_existence() {
 # bypass the global ww CLI.
 # =============================================================================
 check_workflow_doc_startup_commands() {
+    if ! $DIFF_CHECKS_AVAILABLE; then
+        return
+    fi
+
     local workflow_files=(
         "AI_WORKFLOW.md"
         "AGENTS.md"

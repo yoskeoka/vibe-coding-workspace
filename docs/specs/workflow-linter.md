@@ -33,7 +33,9 @@ tools/workflow-lint.sh --mode=ci [--pr-title=TITLE] [--pr-body=BODY]
 - Resolves the diff base as `origin/${GITHUB_BASE_REF}` when `GITHUB_BASE_REF` is set, otherwise `origin/main`
 - Verifies the resolved base ref exists locally before running diff-based checks
 - Computes changed files via `git diff --name-only --diff-filter=ADMR <base-ref>...HEAD`
-- If the base ref is missing locally, emits an advisory warning and skips diff-based checks instead of silently treating that state as "no changes"
+- If the base ref is missing locally, emits an advisory warning and skips only diff-based checks instead of silently treating that state as "no changes"
+- If diff computation fails for another repository-state reason, emits an advisory warning and skips only diff-based checks
+- Runs branch / exec-plan checks even when diff-based checks are skipped
 - Runs checks based on mode
 - Outputs normalized warning blocks to stderr
 - Each warning block includes:
@@ -56,7 +58,7 @@ tools/workflow-lint.sh --mode=ci [--pr-title=TITLE] [--pr-body=BODY]
 | 4 | Exec-plan existence | `fixable` | pre-push, ci | For `feat/*` and `fix/*` branches, `docs/exec-plan/todo/<name>.md` or `docs/exec-plan/done/<name>.md` must exist, where `<name>` is the branch description. `plan/*`, `chore/*`, `docs/*` branches are exempt. | AI_WORKFLOW.md: "Exec-Plan Mapping" |
 | 5 | Workflow startup wording | `fixable` | pre-push, ci | If changed migrated workflow-facing docs or skills reintroduce raw startup snippets like `git fetch origin` or `git switch -c`, emit a warning to keep global `ww` as the default operator path. Covered skills include `plan-execution`, `execute-task`, `triage-tasks`, `plan-project`, `review-task`, and `manage-workflow`. | docs/specs/ww-dogfooding-workflow.md: "Workflow lint guard" |
 
-The missing-base-ref advisory is environment-sensitive guardrail behavior, not a repo-policy check. It exists to keep shallow or partially fetched clones from producing a misleading "no changes" result.
+The missing-base-ref and diff-failure advisories are environment-sensitive guardrail behavior, not repo-policy checks. They exist to keep shallow, partially fetched, or otherwise unusual repository states from producing a misleading "no changes" result while still preserving non-diff checks.
 
 **Operating rule:**
 - `fixable` warnings should normally be resolved before push/PR
