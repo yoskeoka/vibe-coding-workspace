@@ -99,13 +99,22 @@ else
     BASE_REF="origin/main"
 fi
 
+if ! git rev-parse --verify --quiet "${BASE_REF}" >/dev/null; then
+    emit_warning \
+        "advisory" \
+        "Base ref '${BASE_REF}' not found; skipping diff-based workflow checks" \
+        "Shallow or partially fetched clones can omit the branch the linter compares against, which would otherwise look like 'no changes'" \
+        "Fetch the base branch locally before rerunning workflow-lint"
+    exit 0
+fi
+
 # Get changed files relative to base
 # --diff-filter=D lists deleted files, ADMR lists added/deleted/modified/renamed
-CHANGED_FILES=$(git diff --name-only --diff-filter=ADMR "${BASE_REF}...HEAD" 2>/dev/null || true)
-DELETED_FILES=$(git diff --name-only --diff-filter=D "${BASE_REF}...HEAD" 2>/dev/null || true)
+CHANGED_FILES=$(git diff --name-only --diff-filter=ADMR "${BASE_REF}...HEAD" 2>/dev/null)
+DELETED_FILES=$(git diff --name-only --diff-filter=D "${BASE_REF}...HEAD" 2>/dev/null)
 
 if [ -z "$CHANGED_FILES" ] && [ -z "$DELETED_FILES" ]; then
-    info "No changes detected relative to origin/main"
+    info "No changes detected relative to ${BASE_REF}"
     exit 0
 fi
 
@@ -122,15 +131,17 @@ check_issue_lifecycle() {
     fi
 
     for issue_file in $deleted_issues; do
-        basename=$(basename "$issue_file")
-        done_file="docs/issues/done/$basename"
+        local base_name
+        local done_file
+        base_name=$(basename "$issue_file")
+        done_file="docs/issues/done/$base_name"
         # Check if the file was added to done/ in this diff
         if ! echo "$CHANGED_FILES" | grep -qF "$done_file"; then
             emit_warning \
                 "fixable" \
                 "Issue file '${issue_file}' was deleted instead of moved to done/" \
                 "Issues must be preserved for audit trail (AI_WORKFLOW.md Step 3)" \
-                "git mv ${issue_file} docs/issues/done/${basename}"
+                "git mv ${issue_file} docs/issues/done/${base_name}"
         fi
     done
 }
