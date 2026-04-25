@@ -1,6 +1,6 @@
 ---
 title: ソース取り込み
-last_reviewed: 2026-04-24
+last_reviewed: 2026-04-25
 status: active
 sources:
   - ../../sources/2026/2026-04-11-karpathy-llm-knowledge-bases-x-post.md
@@ -12,10 +12,19 @@ sources:
 
 ## パターン
 
-ユーザーが URL と短い文脈を渡し、エージェントが source note を作り、既存 wiki page を更新します。孤立した bookmark を増やさず、durable な整理面に編み込みます。
+ユーザーが URL と少量の文脈を渡し、エージェントがそれを source note に変換し、孤立した bookmark のまま放置せず durable な wiki page を更新する。
 
 ## 良い取り込み動作
 
-- 具体的な製品名や文書名などの retrieval anchor を落とさない
-- 既存ページに自然な置き場所があるなら新規ページを乱立させない
-- provenance を source note で保ち、wiki page では再利用可能な要点に圧縮する
+- URL ごとに 1 つの source note を保つ
+- 記事の完全再現ではなく、ワークスペースでの有用性を基準に要約する
+- `Obsidian`、`Obsidian Web Clipper`、`Mem0`、`pgvector`、`/kb-compile`、`index.md`、`log.md` のような concrete retrieval anchor が重要なら落とさない
+- 既存の concept page を新設より優先して更新する
+- source が experiment を示唆するなら、短い follow-up idea も残す
+
+## アンチパターン
+
+- source の長文をそのまま repository に複製する
+- link ごとに新しい wiki page を作る
+- synthesized page 更新時に provenance を失う
+- 後で検索や比較に効く tool 名、command 名、file 名を圧縮しすぎて消す
