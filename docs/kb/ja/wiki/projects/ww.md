@@ -1,6 +1,6 @@
 ---
 title: ww
-last_reviewed: 2026-04-24
+last_reviewed: 2026-04-25
 status: seed
 sources:
   - ../../sources/2026/2026-04-11-karpathy-llm-knowledge-bases-x-post.md
@@ -12,9 +12,15 @@ sources:
 
 ## 関連性
 
-`ww` はワークスペースの workflow tooling なので、AI ワークフロー、multi-agent orchestration、durable knowledge support に関する知見を吸収する最も自然な対象です。
+`ww` はワークスペースの tooling project なので、AI workflow ergonomics、multi-agent orchestration、durable knowledge support に関する今後の学びを吸収する最も自然な対象である。
 
-## 現在のフック
+## 現在の知識フック
 
-- KB は workflow 自体の dogfooding 記録や再利用知識の置き場になれる
-- repo-native Markdown は `ww` の日常運用と相性がよい
+- LLM knowledge-base の発想は、CLI 本体そのものより、今後の workspace tooling に流れ込む可能性が高い。
+- `ww` に knowledge-aware な command が増えるなら、このページがそのパターンを追跡する場所になれる。
+- 記事中の `/kb-compile` という command 形は、将来の `ww` や workspace tooling の判断材料として useful reference point である。
+- 実務寄りの stack 説明からは、compiled wiki はまず Markdown、search layer は `Mem0` や `pgvector` のような任意追加、という interface boundary も読み取れる。
+
+## 関連ページ
+
+- [llm-knowledge-bases](../topics/llm-knowledge-bases.md)
