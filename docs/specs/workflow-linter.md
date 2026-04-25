@@ -30,7 +30,12 @@ tools/workflow-lint.sh --mode=ci [--pr-title=TITLE] [--pr-body=BODY]
 ```
 
 **Behavior:**
-- Computes changed files via `git diff --name-only --diff-filter=ADMR origin/main...HEAD`
+- Resolves the diff base as `origin/${GITHUB_BASE_REF}` when `GITHUB_BASE_REF` is set, otherwise `origin/main`
+- Verifies the resolved base ref exists locally before running diff-based checks
+- Computes changed files via `git diff --name-only --diff-filter=ADMR <base-ref>...HEAD`
+- If the base ref is missing locally, emits an advisory warning and skips only diff-based checks instead of silently treating that state as "no changes"
+- If diff computation fails for another repository-state reason, emits an advisory warning and skips only diff-based checks
+- Runs branch / exec-plan checks even when diff-based checks are skipped
 - Runs checks based on mode
 - Outputs normalized warning blocks to stderr
 - Each warning block includes:
@@ -52,6 +57,8 @@ tools/workflow-lint.sh --mode=ci [--pr-title=TITLE] [--pr-body=BODY]
 | 3 | Branch naming | `fixable` | pre-push, ci | Branch name must match `<type>/<description>` where type is `plan\|feat\|fix\|chore\|docs` and description is non-empty kebab-case. `main` is exempt. | AI_WORKFLOW.md: "Branch Naming Convention" |
 | 4 | Exec-plan existence | `fixable` | pre-push, ci | For `feat/*` and `fix/*` branches, `docs/exec-plan/todo/<name>.md` or `docs/exec-plan/done/<name>.md` must exist, where `<name>` is the branch description. `plan/*`, `chore/*`, `docs/*` branches are exempt. | AI_WORKFLOW.md: "Exec-Plan Mapping" |
 | 5 | Workflow startup wording | `fixable` | pre-push, ci | If changed migrated workflow-facing docs or skills reintroduce raw startup snippets like `git fetch origin` or `git switch -c`, emit a warning to keep global `ww` as the default operator path. Covered skills include `plan-execution`, `execute-task`, `triage-tasks`, `plan-project`, `review-task`, and `manage-workflow`. | docs/specs/ww-dogfooding-workflow.md: "Workflow lint guard" |
+
+The missing-base-ref and diff-failure advisories are environment-sensitive guardrail behavior, not repo-policy checks. They exist to keep shallow, partially fetched, or otherwise unusual repository states from producing a misleading "no changes" result while still preserving non-diff checks.
 
 **Operating rule:**
 - `fixable` warnings should normally be resolved before push/PR
@@ -104,7 +111,7 @@ GitHub Actions workflow that runs the linter on PRs targeting `main`.
 
 - Triggers on `pull_request` to `main`
 - Uses the repository-standard `actions/checkout@v6`
-- Checks out with full history (`fetch-depth: 0`) so `origin/main...HEAD` diff works
+- Checks out with full history (`fetch-depth: 0`) so the resolved base ref exists locally and diff checks can run
 - Passes PR title and body from GitHub event context to `--pr-title` / `--pr-body`
 
 ## Non-Goals
