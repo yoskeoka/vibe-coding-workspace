@@ -6,7 +6,6 @@ set -euo pipefail
 # All checks are warnings only (exit 0)
 
 # Colors
-RED='\033[0;31m'
 YELLOW='\033[1;33m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
@@ -268,6 +267,7 @@ check_workflow_doc_startup_commands() {
         "skills/review-task/SKILL.md"
         "skills/manage-workflow/SKILL.md"
     )
+    # shellcheck disable=SC2016
     local raw_git_pattern='^[[:space:]]*git fetch origin([[:space:]]|$)|^[[:space:]]*git switch -c[[:space:]]|`git fetch origin`|`git switch -c [^`]+`|`git fetch origin && git switch -c [^`]+`'
     local file
 
