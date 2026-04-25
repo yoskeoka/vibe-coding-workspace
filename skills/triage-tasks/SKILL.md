@@ -47,7 +47,7 @@ git pull
 Run `go -C tools/pj run ./cmd/pj list` to inspect the current queue.
 
 - Treat `Status=Todo` items as the default candidate set.
-- Exclude routine workflow-skill update PR items from triage. If an item points to a PR titled `chore: update workflow skills` (for example, `https://github.com/yoskeoka/vim-learning-game/pull/93`) or has that title, do not rank or present it as actionable work; close the Project item as `Done` when updating the list.
+- Exclude routine workflow-sync PR items from the default ranked shortlist. Treat a PR as workflow-sync when it has the `workflow-sync` label; if label data is unavailable in the stored item, fall back to the title prefix `chore: update workflow skills to `. These items are usually maintenance noise rather than operator-selected work. If a workflow-sync item points to a closed or superseded PR, close the Project item as `Done` when updating the list.
 - Use the `Priority` column plus current session context to decide what is most actionable.
 - The canonical Project must have a `Priority` field; if an item's `Priority` value is empty, unset, or shows as `-`, rank a short list anyway using explicit heuristics:
   - active exec plans over vague future ideas
@@ -154,7 +154,13 @@ Read `setup.sh` in the workspace root to get the `REPOS` array. Launch one **rea
 
 Use workspace repo basenames such as `ww` or `vibe-coding-workspace`, keep `priority` casing canonical, and keep `next` as a single string rather than an array or nested object.
 
-When collecting open PRs, ignore PRs titled `chore: update workflow skills`. These are routine workflow propagation PRs that can be checked opportunistically from the repo PR list; they churn as workspace updates close older PRs and open replacements, so they should not create durable triage tasks.
+When `checkout` is `missing`, keep the schema shape intact:
+- `project_plan_gaps`, `exec_plans`, and `issues` must be present as empty arrays
+- `caveats` must explicitly say that local inspection was unavailable and only GitHub PR/issue inspection was possible
+
+Do not blanket-ignore workflow-sync PRs during collection. Detect them by a stable rule instead:
+- canonical identifier: GitHub label `workflow-sync`
+- fallback identifier when label data is unavailable: title prefix `chore: update workflow skills to `
 
 If a local repo checkout is missing, the subagent must report `checkout: "missing"` and may still inspect GitHub PRs and issues for that repo, but must not infer local `docs/project-plan.md`, `docs/exec-plan/todo/`, or `docs/issues/` state.
 
@@ -188,6 +194,7 @@ Handle stale sources deliberately:
 
 Workflow-sync PRs need replacement behavior:
 
+- Treat a PR as workflow-sync when it has the `workflow-sync` label. If labels are unavailable, the title prefix `chore: update workflow skills to ` may be used as a fallback indicator.
 - Maintain at most one active workflow-sync PR item per repo.
 - If a newer open sync PR supersedes an older one in the same repo, update the existing item to the newer PR source/title/body instead of adding another item.
 

@@ -181,6 +181,9 @@ The `triage-tasks` skill may use the local cache and/or the CLI output as its wo
   - GitHub Issue closed
 - Missing local repo checkouts MUST be reported explicitly during full re-triage.
 - When a local checkout is missing, the skill MAY still inspect GitHub PRs and issues for that repo, but MUST mark local project-plan, exec-plan, and issue inspection as unavailable instead of inferring local state.
+- When a local checkout is missing, delegated summaries MUST still emit the standard schema shape, using empty arrays for unavailable local `project_plan_gaps`, `exec_plans`, and `issues`, plus a caveat that only GitHub PR/issue inspection was possible.
+- During full re-triage, a workflow-sync PR MUST be identified primarily by the GitHub label `workflow-sync`.
+- If label data is unavailable for a candidate PR or existing Project item, the skill MAY fall back to the normalized title prefix `chore: update workflow skills to `, but the label remains the canonical identifier when present.
 - During full re-triage, workflow-sync PRs MUST maintain at most one active Project item per repo for the current sync PR.
 - When a newer open workflow-sync PR supersedes an older one in the same repo, the skill MUST update the existing item to the newer PR instead of creating another Project item.
 - When an existing item is already being updated for title, source, repo, kind, priority, or status reasons, the skill SHOULD also normalize an old `Source:`-only or otherwise outdated body to the current durable handoff body format in the same mutation.
