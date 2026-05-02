@@ -24,43 +24,10 @@ Run a structured intake flow:
 2. **Existing-solution research**
    - Investigate current alternatives (products, games, tools, communities).
    - Summarize what experience already exists and what is missing.
-   - Before asking the user what to do next after a meaningful research or sparring checkpoint, compress the current findings into `docs/issues/<descriptive-name>.md`.
-   - Use that note as the durable next-session handoff so web-search results, discarded comparisons, and transient technical-detail context can be dropped from chat context safely.
 
-3. **Value test (Go/No-Go)**
-   - Judge whether the idea has build value using:
-     - novelty/differentiation
-     - personal motivation (hobby/learning value)
-     - user-facing payoff
-   - Make the decision explicit:
-     - **GO**: proceed to bootstrap.
-     - **NO-GO**: log and stop.
-
-4. **NO-GO path**
-   - Append summary to `docs/design-decisions/rejected-ideas.md` with:
-     - date
-     - idea name
-     - short summary
-     - why no-go now
-     - conditions to revisit
-     - references
-   - End with a concise recommendation (pause, pivot, or re-scope).
-
-5. **GO path: project bootstrap**
-   - Create GitHub repo if missing.
-   - Ensure local project directory exists under this workspace.
-   - Initialize docs/workflow scaffold (use `setup-workspace.sh` or template structure).
-   - Update meta-repo management entries:
-     - `setup.sh` (`REPOS`)
-     - `.gitignore`
-     - `README.md` Managed Projects
-
-6. **Handoff to Step 1**
-   - After bootstrap, explicitly ask:
-     - "Move to the new project directory and continue with `plan-project` now?"
-
-7. **Checkpoint handoff note**
+3. **Checkpoint handoff note**
    - For any non-trivial research checkpoint, create or update `docs/issues/<descriptive-name>.md` before asking the user whether to continue, pivot, compare another option, bootstrap, or stop.
+   - Use that note as the durable next-session handoff so web-search results, discarded comparisons, and transient technical-detail context can be dropped from chat context safely.
    - Keep the note compressed and decision-oriented.
    - Include:
      - date
@@ -74,6 +41,39 @@ Run a structured intake flow:
      - next questions / next candidate actions
    - Update the existing note when the same line of inquiry continues. Create a separate note only when the work clearly splits into independent tracks.
 
+4. **Value test (Go/No-Go)**
+   - Judge whether the idea has build value using:
+     - novelty/differentiation
+     - personal motivation (hobby/learning value)
+     - user-facing payoff
+   - Make the decision explicit:
+     - **GO**: proceed to bootstrap.
+     - **NO-GO**: log and stop.
+
+5. **NO-GO path**
+   - Ensure the latest checkpoint is captured in `docs/issues/<descriptive-name>.md` before stopping.
+   - Append summary to `docs/design-decisions/rejected-ideas.md` with:
+     - date
+     - idea name
+     - short summary
+     - why no-go now
+     - conditions to revisit
+     - references
+   - End with a concise recommendation (pause, pivot, or re-scope).
+
+6. **GO path: project bootstrap**
+   - Create GitHub repo if missing.
+   - Ensure local project directory exists under this workspace.
+   - Initialize docs/workflow scaffold (use `setup-workspace.sh` or template structure).
+   - Update meta-repo management entries:
+     - `setup.sh` (`REPOS`)
+     - `.gitignore`
+     - `README.md` Managed Projects
+
+7. **Handoff to Step 1**
+   - After bootstrap, explicitly ask:
+      - "Move to the new project directory and continue with `plan-project` now?"
+
 ## Rules
 
 1. Do not skip research and go/no-go framing when the idea is still vague.
@@ -86,11 +86,11 @@ Run a structured intake flow:
 ## Deliverables
 
 - GO case:
-  - `docs/issues/<name>.md` checkpoint handoff note with preserved research context and source links
+  - `docs/issues/<descriptive-name>.md` checkpoint handoff note with preserved research context and source links
   - New repo and local project skeleton ready
   - Meta-repo references updated
   - Proposal to continue with `plan-project`
 - NO-GO case:
-  - `docs/issues/<name>.md` checkpoint handoff note with preserved research context and source links
+  - `docs/issues/<descriptive-name>.md` checkpoint handoff note with preserved research context and source links
   - Entry appended to `docs/design-decisions/rejected-ideas.md`
   - Research-backed summary of why it is not worth starting now

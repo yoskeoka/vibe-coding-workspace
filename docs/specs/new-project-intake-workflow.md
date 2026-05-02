@@ -37,7 +37,7 @@ Skill responsibilities:
 6. After bootstrap, explicitly propose continuing with `plan-project` in the new child repo.
 
 ### 2. Research-checkpoint handoff notes
-When `new-project-intake` performs non-trivial idea sparring or external research, it MUST compress the current state into a durable `docs/issues/<name>.md` note before asking the user what to do next.
+When `new-project-intake` performs non-trivial idea sparring or external research, it MUST compress the current state into a durable `docs/issues/<descriptive-name>.md` note before asking the user what to do next.
 
 This note exists to discard no-longer-needed exploration context while preserving the parts that matter for later sessions.
 
