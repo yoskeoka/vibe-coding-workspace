@@ -33,6 +33,7 @@ This document outlines the workflow for developing projects with AI as the centr
     1. Idea sparring (pain points, desired experience, target users)
     2. Existing-solution research
     3. Go/No-Go decision
+- Before asking what to do next after a non-trivial intake checkpoint, compress the current findings into `docs/issues/<descriptive-name>.md` with the preserved problem framing, conclusion, next questions, and source links so later sessions can resume without replaying the full research context.
 - If **No-Go**: append findings to `docs/design-decisions/rejected-ideas.md` and stop.
 - If **Go**: create/bootstrap the child project repo, update workspace meta entries, then continue to Step 1 (`plan-project`).
 
