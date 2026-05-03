@@ -1,0 +1,27 @@
+{
+  "PostToolUse": [
+    {
+      "matcher": "^(apply_patch|Edit|Write)$",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/dispatch_hook.py\" post-tool-use",
+          "timeout": 30,
+          "statusMessage": "Dispatching child-repo formatter hooks"
+        }
+      ]
+    }
+  ],
+  "Stop": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/dispatch_hook.py\" stop",
+          "timeout": 180,
+          "statusMessage": "Dispatching child-repo quality gates"
+        }
+      ]
+    }
+  ]
+}
