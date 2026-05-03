@@ -22,3 +22,14 @@ During normal workflow startup for this task, the released global `ww` binary cr
 ## Priority
 
 Medium. This does not block execution once the reported path is used manually, but it directly breaks the default dogfooding workflow that the workspace now documents and expects.
+
+## Resolution
+
+Resolved upstream in `ww` on `main`.
+
+- fix commit: `720ab5d` `fix: cover git-backed workspace-root create/cd parity (#213)`
+- regression test: `ww/integration_test.go` `TestCdFindsJustCreatedWorktreeFromGitBackedWorkspaceRoot`
+
+Verified in this session with:
+
+- `go test -C ww ./... -run TestCdFindsJustCreatedWorktreeFromGitBackedWorkspaceRoot -count=1`
