@@ -38,7 +38,7 @@ workspace 側 dispatcher は、session cwd と hook payload から対象 child r
 - `<workspace-root>/ai-arena`
 - `<workspace-root>/.worktrees/...` とは別に存在する canonical workspace checkout 上の `ai-arena`
 
-`PostToolUse` dispatch は `apply_patch` に限定し、patch payload が `ai-arena/` を含むか、session cwd 自体が `ai-arena` repo 内にある場合にだけ起動する。
+`PostToolUse` dispatch は `apply_patch`, `Edit`, `Write` を対象にし、hook payload の `tool_input` 全体が `ai-arena/` を含むか、session cwd 自体が `ai-arena` repo 内にある場合にだけ起動する。
 
 `Stop` dispatch は session cwd が `ai-arena` repo 内にある場合、または canonical workspace checkout 上の `ai-arena` が存在する場合に child repo 側 script へ委譲してよい。重い実行を避けるための最終判定は child repo 側 script が持つ。
 
