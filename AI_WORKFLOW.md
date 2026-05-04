@@ -111,6 +111,7 @@ PR creation is not the terminal workflow action. For every new PR, updated PR, o
 - Detail:
     - Code changes.
     - Spec changes (How `docs/specs/` will change).
+    - `Addresses:` entries for any tracked local issues under `docs/issues/` that this execution work is expected to resolve.
     - Break down large tasks into smaller sub-plans if needed.
 - Review/Update `design-decisions/` if architectural choices are made.
 - Follow the **PR Workflow** above to merge the plan into `main`.
@@ -120,13 +121,14 @@ PR creation is not the terminal workflow action. For every new PR, updated PR, o
 - **Spec First**: Update `docs/specs/` *before* modifying code.
 - **Implement**: Write the code to match the spec.
 - **Issues**: If unrelated problems are found, log them in `docs/issues/<name>.md`. Do not fix them within the current plan unless blocking.
-- **Issue Resolution**: When an issue is resolved, move its file from `docs/issues/` to `docs/issues/done/`.
+- **Issue Resolution**: When an issue is resolved, move its file from `docs/issues/` to `docs/issues/done/`. If the matching execution plan declares that issue in `Addresses:`, the implementation branch should include the move unless the PR body explicitly explains why the issue remains open.
 - **Completion**: Move the plan file from `docs/exec-plan/todo/` to `docs/exec-plan/done/`.
 - Follow the **PR Workflow** above (Verify → Create PR → Review).
 - The PR must include:
     - Code changes.
     - Spec updates.
     - The plan file moved to `done/`.
+    - Any resolved linked local issue files moved to `docs/issues/done/`, or an explicit PR-body justification for leaving them open.
     - Verification artifacts (test results, screenshots, logs) for human review.
     - Post-PR follow-up status for the latest pushed head SHA.
 

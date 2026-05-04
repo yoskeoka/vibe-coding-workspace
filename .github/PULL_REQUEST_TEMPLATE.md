@@ -1,6 +1,9 @@
 ## Plan / Issues
 
-<!-- Link the exec-plan, issue, or project-plan that triggered this PR. If none, write N/A. -->
+<!-- Link the exec-plan, issue, or project-plan that triggered this PR. If none, write N/A.
+If the matching execution plan has an `Addresses:` line with local issue paths, list the same
+paths under Issues unless you are intentionally leaving one open. In that case, keep the path
+here and say `remains open: <reason>` somewhere in the PR body. -->
 
 - **Plan**: <!-- e.g., docs/exec-plan/todo/feature-name.md -->
 - **Issues**: <!-- e.g., docs/issues/bug-name.md, or GitHub issue link -->
@@ -72,6 +75,7 @@ N/A
 - [ ] Branch created from latest `origin/main`
 - [ ] `docs/specs/` updated (Spec-Code Parity) — _if code changed_
 - [ ] Plan moved from `todo/` to `done/` — _if executing a plan_
+- [ ] Resolved linked local issues from the plan's `Addresses:` line were moved to `docs/issues/done/`, or this PR explains why they remain open
 - [ ] Workflow-linter warnings reviewed; all `fixable` warnings were resolved or explicitly justified in this PR
 - [ ] New issues logged in `docs/issues/` — _if discovered during work_
 - [ ] No unresolved blockers remain
