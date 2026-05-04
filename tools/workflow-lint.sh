@@ -19,6 +19,7 @@ ADVISORY_WARN_COUNT=0
 DIFF_CHECKS_AVAILABLE=true
 CHANGED_FILES=""
 DELETED_FILES=""
+NAME_STATUS=""
 
 usage() {
     echo "Usage: $0 --mode=pre-push|ci [--pr-title=TITLE] [--pr-body=BODY]" >&2
@@ -57,6 +58,78 @@ emit_warning() {
 
 info() {
     echo -e "${GREEN}[INFO]${NC} $1" >&2
+}
+
+current_branch() {
+    git rev-parse --abbrev-ref HEAD 2>/dev/null || true
+}
+
+current_exec_plan_paths() {
+    local branch
+    branch=$(current_branch)
+
+    if ! echo "$branch" | grep -qE "^(feat|fix)/"; then
+        return
+    fi
+
+    local plan_name="${branch#*/}"
+    echo "docs/exec-plan/todo/${plan_name}.md|docs/exec-plan/done/${plan_name}.md"
+}
+
+extract_linked_issue_paths_from_plan() {
+    local plan_file="$1"
+
+    [ -f "$plan_file" ] || return
+
+    awk '
+        function emit_paths(text) {
+            gsub(/`/, "", text)
+            while (match(text, /docs\/issues\/[A-Za-z0-9._-]+\.md/)) {
+                print substr(text, RSTART, RLENGTH)
+                text = substr(text, RSTART + RLENGTH)
+            }
+        }
+
+        /^Addresses:/ {
+            emit_paths($0)
+        }
+    ' "$plan_file"
+}
+
+pr_body_justifies_open_issue() {
+    local issue_file="$1"
+
+    if [ "$MODE" != "ci" ] || [ -z "$PR_BODY" ]; then
+        return 1
+    fi
+
+    printf '%s\n' "$PR_BODY" | awk -v issue_file="$issue_file" '
+        BEGIN {
+            IGNORECASE = 1
+        }
+
+        index($0, issue_file) && $0 ~ /(remain(s)? open|left open|stays open|intentionally open)/ {
+            found = 1
+        }
+
+        END {
+            exit(found ? 0 : 1)
+        }
+    '
+}
+
+diff_includes_rename() {
+    local old_path="$1"
+    local new_path="$2"
+
+    printf '%s\n' "$NAME_STATUS" | awk -v old_path="$old_path" -v new_path="$new_path" '
+        $1 ~ /^R[0-9]+$/ && $2 == old_path && $3 == new_path {
+            found = 1
+        }
+        END {
+            exit(found ? 0 : 1)
+        }
+    '
 }
 
 # Parse arguments
@@ -123,6 +196,14 @@ else
             "advisory" \
             "Unable to compute deleted files relative to '${BASE_REF}'; skipping diff-based workflow checks" \
             "The repository state prevented git diff from computing the expected comparison range, so the linter will keep running only non-diff checks."
+        DIFF_CHECKS_AVAILABLE=false
+    fi
+
+    if ! NAME_STATUS=$(git diff --name-status --find-renames "${BASE_REF}...HEAD" 2>/dev/null); then
+        emit_warning \
+            "advisory" \
+            "Unable to compute file status changes relative to '${BASE_REF}'; skipping diff-based workflow checks" \
+            "The repository state prevented git diff from computing rename-aware file status changes, so the linter will keep running only non-diff checks."
         DIFF_CHECKS_AVAILABLE=false
     fi
 
@@ -252,7 +333,7 @@ check_branch_naming() {
 # =============================================================================
 check_exec_plan_existence() {
     local branch
-    branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)
+    branch=$(current_branch)
 
     # Only check feat/* and fix/* branches
     if ! echo "$branch" | grep -qE "^(feat|fix)/"; then
@@ -312,12 +393,66 @@ check_workflow_doc_startup_commands() {
     done
 }
 
+# =============================================================================
+# Check 6: Linked local issues declared in completed exec-plans must move to done/
+# Narrow scope: only the matching feat/* or fix/* branch, only after the plan
+# has moved to docs/exec-plan/done/, and only for explicit docs/issues/*.md
+# paths named on an Addresses: line.
+# =============================================================================
+check_linked_issue_resolution() {
+    if ! $DIFF_CHECKS_AVAILABLE; then
+        return
+    fi
+
+    local plan_paths
+    plan_paths=$(current_exec_plan_paths)
+    [ -z "$plan_paths" ] && return
+
+    local done_plan_file="${plan_paths##*|}"
+
+    if [ ! -f "$done_plan_file" ]; then
+        return
+    fi
+
+    local linked_issues
+    linked_issues=$(extract_linked_issue_paths_from_plan "$done_plan_file")
+
+    if [ -z "$linked_issues" ]; then
+        return
+    fi
+
+    local issue_file
+    for issue_file in $linked_issues; do
+        local base_name
+        local moved_issue_file
+        local plan_reference
+        base_name=$(basename "$issue_file")
+        moved_issue_file="docs/issues/done/$base_name"
+        plan_reference="${done_plan_file}"
+
+        if diff_includes_rename "$issue_file" "$moved_issue_file"; then
+            continue
+        fi
+
+        if pr_body_justifies_open_issue "$issue_file"; then
+            continue
+        fi
+
+        emit_warning \
+            "fixable" \
+            "Completed exec-plan '${plan_reference}' links local issue '${issue_file}' but this branch does not move it to done/" \
+            "Execution branches should close explicitly linked local issues in the same branch so reviewers and future sessions can trust the plan-to-issue completion trail (AI_WORKFLOW.md Step 3)." \
+            "Move the issue with 'git mv ${issue_file} ${moved_issue_file}', or explain in the PR body why ${issue_file} remains open."
+    done
+}
+
 # Run checks
 check_issue_lifecycle
 check_docs_change_hint
 check_branch_naming
 check_exec_plan_existence
 check_workflow_doc_startup_commands
+check_linked_issue_resolution
 
 # Summary
 if [ "$WARN_COUNT" -gt 0 ]; then

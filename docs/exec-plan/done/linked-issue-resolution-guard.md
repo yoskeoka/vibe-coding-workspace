@@ -80,11 +80,11 @@ Apply the same reasoning here: the missing safeguard is not another reminder sen
 
 ## Sub-tasks
 
-- [ ] Define the `Addresses:` contract for execution plans and linked local issue closure in `AI_WORKFLOW.md`
-- [ ] Update `docs/specs/workflow-linter.md` with the new linked-issue-resolution check and its guardrails
-- [ ] Update `.github/PULL_REQUEST_TEMPLATE.md` so reviewers must confirm the linked-issue closure state
-- [ ] Implement the new `tools/workflow-lint.sh` check for linked local issue resolution
-- [ ] Verify the new check with at least one positive and one negative repo-state example
+- [x] Define the `Addresses:` contract for execution plans and linked local issue closure in `AI_WORKFLOW.md`
+- [x] Update `docs/specs/workflow-linter.md` with the new linked-issue-resolution check and its guardrails
+- [x] Update `.github/PULL_REQUEST_TEMPLATE.md` so reviewers must confirm the linked-issue closure state
+- [x] Implement the new `tools/workflow-lint.sh` check for linked local issue resolution
+- [x] Verify the new check with at least one positive and one negative repo-state example
 
 ## Parallelism
 
