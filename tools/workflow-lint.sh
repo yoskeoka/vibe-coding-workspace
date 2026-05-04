@@ -19,6 +19,7 @@ ADVISORY_WARN_COUNT=0
 DIFF_CHECKS_AVAILABLE=true
 CHANGED_FILES=""
 DELETED_FILES=""
+NAME_STATUS=""
 
 usage() {
     echo "Usage: $0 --mode=pre-push|ci [--pr-title=TITLE] [--pr-body=BODY]" >&2
@@ -113,6 +114,20 @@ pr_body_justifies_open_issue() {
     return 1
 }
 
+diff_includes_rename() {
+    local old_path="$1"
+    local new_path="$2"
+
+    printf '%s\n' "$NAME_STATUS" | awk -v old_path="$old_path" -v new_path="$new_path" '
+        $1 ~ /^R[0-9]+$/ && $2 == old_path && $3 == new_path {
+            found = 1
+        }
+        END {
+            exit(found ? 0 : 1)
+        }
+    '
+}
+
 # Parse arguments
 for arg in "$@"; do
     case "$arg" in
@@ -177,6 +192,14 @@ else
             "advisory" \
             "Unable to compute deleted files relative to '${BASE_REF}'; skipping diff-based workflow checks" \
             "The repository state prevented git diff from computing the expected comparison range, so the linter will keep running only non-diff checks."
+        DIFF_CHECKS_AVAILABLE=false
+    fi
+
+    if ! NAME_STATUS=$(git diff --name-status --find-renames "${BASE_REF}...HEAD" 2>/dev/null); then
+        emit_warning \
+            "advisory" \
+            "Unable to compute file status changes relative to '${BASE_REF}'; skipping diff-based workflow checks" \
+            "The repository state prevented git diff from computing rename-aware file status changes, so the linter will keep running only non-diff checks."
         DIFF_CHECKS_AVAILABLE=false
     fi
 
@@ -403,7 +426,7 @@ check_linked_issue_resolution() {
         moved_issue_file="docs/issues/done/$base_name"
         plan_reference="${done_plan_file}"
 
-        if echo "$CHANGED_FILES" | grep -qxF "$moved_issue_file" && echo "$DELETED_FILES" | grep -qxF "$issue_file"; then
+        if diff_includes_rename "$issue_file" "$moved_issue_file"; then
             continue
         fi
 
