@@ -103,15 +103,19 @@ pr_body_justifies_open_issue() {
         return 1
     fi
 
-    if ! printf '%s\n' "$PR_BODY" | grep -qF "$issue_file"; then
-        return 1
-    fi
+    printf '%s\n' "$PR_BODY" | awk -v issue_file="$issue_file" '
+        BEGIN {
+            IGNORECASE = 1
+        }
 
-    if printf '%s\n' "$PR_BODY" | grep -qiE 'remain(s)? open|left open|stays open|intentionally open'; then
-        return 0
-    fi
+        index($0, issue_file) && $0 ~ /(remain(s)? open|left open|stays open|intentionally open)/ {
+            found = 1
+        }
 
-    return 1
+        END {
+            exit(found ? 0 : 1)
+        }
+    '
 }
 
 diff_includes_rename() {
