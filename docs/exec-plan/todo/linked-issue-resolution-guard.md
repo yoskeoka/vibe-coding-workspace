@@ -1,5 +1,6 @@
-# linked-issue-resolution-guard
-**Execution**: Use `/execute-task` to implement this plan.
+# Linked Issue Resolution Guard
+
+> **Execution**: Use `/execute-task` to implement this plan.
 
 ## Objective
 

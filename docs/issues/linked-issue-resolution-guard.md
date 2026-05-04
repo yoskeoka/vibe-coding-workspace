@@ -1,4 +1,4 @@
-# Guard resolved `docs/issues/` items with explicit plan linkage
+# Guard Resolved Local Issue Moves with Explicit Plan Linkage
 
 ## Summary
 
