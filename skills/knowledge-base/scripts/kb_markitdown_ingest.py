@@ -15,11 +15,13 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-DEFAULT_MARKITDOWN_WITH = "markitdown[pdf,docx,pptx,xlsx]"
-DEFAULT_SCRATCH_ROOT = ".local/kb-ingest"
+DEFAULT_MARKITDOWN_WITH = "markitdown[pdf,docx,pptx,xlsx,epub]"
 REPO_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_UV_CACHE_DIR = REPO_ROOT / ".uv-cache"
 URL_SCHEMES = {"http", "https", "file"}
+DOWNLOAD_TIMEOUT_SECONDS = 60
+DOWNLOAD_MAX_BYTES = 100 * 1024 * 1024  # 100 MB
+DOWNLOAD_CHUNK_SIZE = 64 * 1024  # 64 KB
 
 
 @dataclass
@@ -102,11 +104,11 @@ def default_slug_for_source(source: str) -> str:
 
 def ensure_job_dir(args: argparse.Namespace) -> Path:
     if args.job_dir:
-        job_dir = Path(args.job_dir)
+        job_dir = Path(args.job_dir).expanduser().resolve()
         job_dir.mkdir(parents=True, exist_ok=True)
         return job_dir
     if args.scratch_root:
-        scratch_root = Path(args.scratch_root)
+        scratch_root = Path(args.scratch_root).expanduser().resolve()
         scratch_root.mkdir(parents=True, exist_ok=True)
         slug = sanitize_slug(args.source_slug or default_slug_for_source(args.source))
         stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
@@ -151,7 +153,7 @@ def dependency_help_text() -> str:
             "Preferred setup:",
             f"  env UV_CACHE_DIR=.uv-cache uv run --with '{DEFAULT_MARKITDOWN_WITH}' python -m markitdown --help",
             "Alternative setup:",
-            "  python3 -m pip install 'markitdown[pdf,docx,pptx,xlsx]'",
+            f"  python3 -m pip install '{DEFAULT_MARKITDOWN_WITH}'",
             "",
             "This fallback intentionally excludes OCR-heavy plugins from the default path.",
         ]
@@ -201,8 +203,19 @@ def ensure_dependency_status() -> DependencyStatus:
 def download_source(url: str, destination: Path) -> Path:
     destination.parent.mkdir(parents=True, exist_ok=True)
     request = urllib.request.Request(url, headers={"User-Agent": "kb-markitdown-ingest/1.0"})
-    with urllib.request.urlopen(request) as response:
-        destination.write_bytes(response.read())
+    with urllib.request.urlopen(request, timeout=DOWNLOAD_TIMEOUT_SECONDS) as response:
+        with destination.open("wb") as out_file:
+            downloaded = 0
+            while True:
+                chunk = response.read(DOWNLOAD_CHUNK_SIZE)
+                if not chunk:
+                    break
+                downloaded += len(chunk)
+                if downloaded > DOWNLOAD_MAX_BYTES:
+                    raise RuntimeError(
+                        f"Download exceeded maximum allowed size of {DOWNLOAD_MAX_BYTES // (1024 * 1024)} MB"
+                    )
+                out_file.write(chunk)
     return destination
 
 
