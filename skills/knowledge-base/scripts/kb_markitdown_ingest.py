@@ -213,7 +213,8 @@ def download_source(url: str, destination: Path) -> Path:
                 downloaded += len(chunk)
                 if downloaded > DOWNLOAD_MAX_BYTES:
                     raise RuntimeError(
-                        f"Download exceeded maximum allowed size of {DOWNLOAD_MAX_BYTES // (1024 * 1024)} MB"
+                        f"Download of {url!r} exceeded maximum allowed size of"
+                        f" {DOWNLOAD_MAX_BYTES // (1024 * 1024)} MB"
                     )
                 out_file.write(chunk)
     return destination

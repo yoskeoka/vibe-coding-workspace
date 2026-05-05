@@ -114,7 +114,7 @@ class MarkItDownIngestTests(unittest.TestCase):
             mock_response.__exit__ = unittest.mock.MagicMock(return_value=False)
             mock_response.read.return_value = oversized_chunk
             with unittest.mock.patch("urllib.request.urlopen", return_value=mock_response):
-                with self.assertRaises(RuntimeError, msg="expected size-limit error"):
+                with self.assertRaises(RuntimeError):
                     mod.download_source("https://example.com/big.pdf", dest)
 
     def test_default_markitdown_with_includes_epub(self) -> None:
