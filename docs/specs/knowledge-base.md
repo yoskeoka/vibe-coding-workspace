@@ -127,7 +127,8 @@ Locale switching SHOULD keep the same relative page path when both locales exist
 
 ## Operations
 
-The repository-standard GitHub Actions checkout major is `actions/checkout@v6`.
+The repository-standard GitHub Actions checkout reference is the SHA-pinned
+`actions/checkout` entry managed through `pinact`.
 The `kb-pages` workflow MUST use that standard checkout action before building
 the rendered knowledge-base site on `ubuntu-latest`.
 

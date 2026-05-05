@@ -233,7 +233,8 @@ The cache MUST also expose ordered repo-option metadata:
   - `tools/pj/**`
   - `docs/specs/github-projects-task-cli.md`
   - `.github/workflows/check-pj.yml`
-- The workflow MUST check out the repository with `actions/checkout@v6`.
+- The workflow MUST check out the repository with the repository-standard
+  SHA-pinned `actions/checkout` reference managed through `pinact`.
 - The workflow MUST set up Go from `tools/pj/go.mod`.
 - The workflow Go module cache key SHOULD include `tools/pj/go.*` so a future `tools/pj/go.sum` change rotates the cache without another workflow change.
 - All Go checks MUST run with `tools/pj` as the working directory.
