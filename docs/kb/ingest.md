@@ -8,6 +8,10 @@ For video-heavy sources, the intended UX also includes:
 
 > Skim this video-backed source first, then ingest it if it looks KB-worthy.
 
+For unsupported file-like sources, the intended UX also includes:
+
+> Convert this PDF/DOCX/PPTX/XLSX into KB drafting input first, then use that output to write the curated source note.
+
 ## Expected agent behavior
 
 1. Read the given URLs or the provided source material.
@@ -23,6 +27,19 @@ For video-heavy sources, the intended UX also includes:
 Do not hand-maintain rendered `Sources` navigation or yearly source index pages during ingest. `tools/kb check`, `tools/kb build`, and `tools/kb serve` derive those artifacts automatically.
 
 English remains the canonical AI-facing corpus. Japanese mirror files improve the published site for humans, but QA/retrieval flows should continue to read `docs/kb/**` while excluding `docs/kb/ja/**` unless the user explicitly asks for Japanese mirror content.
+
+## Acquisition decision tree
+
+Choose the source-acquisition path before drafting the note:
+
+1. Use the normal conversational URL flow when the source is an ordinary web page the agent can read directly without heavy cleanup.
+2. Use the video-backed `skim` -> `ingest` flow when the source is a direct video or a thin article wrapper whose real value lives in the embedded video.
+3. Use the `markitdown` fallback when the source is file-like or otherwise awkward for direct reading:
+   - local PDF, DOCX, PPTX, XLSX, EPUB
+   - direct document-download URL
+   - other supported file-like inputs that clearly fit the same temporary-conversion contract
+
+Do not route normal article URLs through the `markitdown` fallback by default.
 
 ## Video-backed flow
 
@@ -54,6 +71,29 @@ For video-backed source notes, the durable body should also include:
 
 Full third-party verbatim transcripts should not be copied into `docs/kb/` unless the source license or user-provided material permits it. When captions are available but full copying is not appropriate, keep detailed segment notes, concrete names, commands, UI labels, and source links so the original can be revisited without repeating the whole ingest process.
 
+## Document-conversion fallback flow
+
+When the source is file-like:
+
+1. Run the skill-local `markitdown` fallback helper with `--check-deps` first when the environment is uncertain.
+2. Convert the source into temporary Markdown outside `docs/kb/`.
+3. Review the converted Markdown for obvious corruption, missing sections, attachment loss, or structure damage before drafting any durable note.
+4. Use the helper-generated source-context artifact as the drafting input boundary instead of feeding the full raw document blindly into the source note.
+5. Write the curated source note and wiki updates from the cleaned temporary output.
+
+The fallback helper should produce:
+- `outputs/converted.md`
+- `outputs/source-context.md`
+- `metadata.json`
+
+Use the fallback only as preprocessing. The durable outputs are still the curated KB note, wiki updates, and log entry.
+
+Stop and escalate to a higher-fidelity path when the base converter clearly loses too much meaning, especially for:
+- scanned PDFs
+- badly ordered multi-column PDFs
+- OCR-heavy slide decks
+- documents whose diagrams or tables carry most of the meaning
+
 ## Temporary vs durable outputs
 
 Temporary processing artifacts belong in OS temp storage or `.local/kb-ingest/<job-id>/` when resume/debug value matters.
@@ -67,6 +107,7 @@ Durable KB outputs remain limited to:
 - `docs/kb/assets/source-images/<year>/<source-slug>/` for selected screenshots only
 
 Raw transcripts, bulk OCR output, and full frame dumps must not be copied into `docs/kb/`.
+Converted Markdown, extracted attachments, and other raw document-preprocessing artifacts must also stay outside `docs/kb/`.
 
 ## Classification hints
 
@@ -77,6 +118,7 @@ Ask these questions during ingest:
 - Should it modify an existing page or create a new one?
 - If this is video-backed, which segments are actually durable enough to keep?
 - Does any screenshot add meaning that the text summary alone would miss?
+- If this is a converted document, did the fallback preserve the retrieval anchors and provenance well enough to trust the draft?
 
 ## Human review expectations
 

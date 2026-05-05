@@ -56,6 +56,11 @@ Read-only KB queries that do not write files may skip branch creation.
 
 Follow `docs/kb/ingest.md` for the ingest flow and `docs/kb/schema.md` for durable source-note and wiki-page formats. Do not duplicate or override those rules here.
 
+Choose the acquisition path before drafting:
+- Use the normal conversational ingest flow for ordinary article URLs the agent can read directly.
+- Use the video-backed workflow below for direct videos and thin article wrappers whose value lives in the video.
+- Use the `markitdown` fallback below for unsupported file-like sources such as local PDF, DOCX, PPTX, XLSX, EPUB, or direct document URLs.
+
 ## Video-backed workflow
 
 Use the skill-local pipeline when `docs/kb/ingest.md` calls for video-backed processing. Treat the generated artifacts as drafts; final durable output must still follow `docs/kb/schema.md` and `docs/kb/ingest.md`.
@@ -116,6 +121,61 @@ python3 skills/knowledge-base/scripts/kb_video_ingest.py \
 - `outputs/source-note-draft.md`
 - `outputs/wiki-update-draft.md`
 - `outputs/log-entry-draft.md`
+
+## MarkItDown fallback workflow
+
+Use this only for file-like sources that the normal conversational flow handles poorly. It is a preprocessing path, not a durable artifact format.
+
+### Dependency check
+
+Run:
+
+```sh
+python3 skills/knowledge-base/scripts/kb_markitdown_ingest.py --check-deps
+```
+
+The command passes when either:
+- `markitdown` is already installed as a local executable, or
+- `uv` is available so the helper can run `markitdown[pdf,docx,pptx,xlsx]` in an isolated environment
+
+The default fallback intentionally excludes OCR-heavy plugins and Document Intelligence paths. If the source is scanned or structurally complex, stop and choose a higher-fidelity path instead of forcing this helper.
+
+### Convert first
+
+For a local file:
+
+```sh
+python3 skills/knowledge-base/scripts/kb_markitdown_ingest.py \
+  convert \
+  path/to/source.pdf \
+  --workspace-relevance "why this matters here" \
+  --scratch-root .local/kb-ingest
+```
+
+For a direct document URL:
+
+```sh
+python3 skills/knowledge-base/scripts/kb_markitdown_ingest.py \
+  convert \
+  "https://example.com/files/source.docx" \
+  --workspace-relevance "why this matters here" \
+  --scratch-root .local/kb-ingest
+```
+
+`convert` writes:
+- `outputs/converted.md`
+- `outputs/source-context.md`
+- `metadata.json`
+
+Use `source-context.md` as the drafting boundary for the durable KB note. Do not commit `converted.md` or other raw conversion artifacts into `docs/kb/`.
+
+### Stop conditions
+
+Do not use this fallback as the final answer when:
+- the PDF is scanned and needs OCR
+- multi-column ordering is badly broken
+- slides, diagrams, or tables lose too much meaning
+- the source is actually better handled by the video-backed pipeline
 
 ## Query filing-back workflow
 

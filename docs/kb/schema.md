@@ -45,16 +45,23 @@ Source note frontmatter:
 ---
 title:
 source_url:
+source_file:
 source_type: article|post|docs|video|video_backed_article|repo|demo
 original_language: en|ja|...
 ingested_on:
 status: active|watch|superseded
 tags: []
 related_pages: []
+conversion_method:
+conversion_notes: []
 ---
 ```
 
 `original_language` records the language of the original source material, not the locale of the KB note file. A translated Japanese mirror note therefore keeps the same `original_language` as its canonical English counterpart.
+
+`source_file` is optional and should be used when the original source was a local file or another non-durable file identity instead of a stable public URL. Keep it descriptive enough for later human review without depending on a machine-specific absolute path when that path is not durable.
+
+`conversion_method` and `conversion_notes` are optional and should be used when a temporary preprocessing step such as `markitdown` materially affected how the durable source note was drafted.
 
 Video-oriented source notes SHOULD also preserve durable retrieval anchors when available:
 
@@ -103,6 +110,12 @@ When practical, also update the Japanese mirror under `ja/wiki/` and `ja/sources
 
 Do not hand-edit generated `Sources` navigation or yearly source landing pages.
 
+When the drafting input came from temporary converted Markdown:
+- preserve the original source URL when one exists
+- otherwise preserve a stable file identity in `source_file`
+- record the converter used and any important cleanup caveats
+- do not commit the raw converted Markdown itself
+
 When compressing a source, prefer this order of preservation:
 1. concrete product or document names
 2. selection criteria or trade-offs
@@ -121,6 +134,14 @@ When compressing a source, prefer this order of preservation:
 - For video-backed sources, add a visible `## Source` section in the source note body with the source URL, video URL when present, subtitle/transcript availability, and enough retrieval guidance for a human to revisit the source from the rendered wiki page.
 - If subtitles or transcripts are retrieved, preserve the durable result by segmenting notes under the same time anchors used in frontmatter. Do not commit full third-party verbatim transcripts unless the source license or user-provided text makes that permitted; keep detailed segment notes and short retrieval anchors instead.
 - When screenshots are useful for human skim, keep at least one selected screenshot per important time anchor unless the frame is blank, duplicative, or legally/sensitively unsuitable. In the source-note body, place each screenshot with its matching anchor notes rather than collecting all screenshots in a separate section.
+
+## Document-conversion fallback rules
+
+- Treat converted Markdown as temporary drafting input, not as a durable KB artifact.
+- Prefer `source_type: docs` for document-like sources unless another existing type is clearly more accurate.
+- Preserve the original file or document identity in frontmatter and, when useful, in a visible `## Source` section in the note body.
+- Record conversion caveats when the helper lost ordering, tables, slide structure, or attachments that materially affect interpretation.
+- If the base converter produces low-quality output, stop and escalate rather than laundering the damaged output into a durable KB note.
 
 ## During query filing-back
 
