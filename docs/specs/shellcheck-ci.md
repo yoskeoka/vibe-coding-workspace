@@ -46,12 +46,13 @@ tools/list-changed-bash-scripts.sh [base-ref]
 
 `.github/workflows/shellcheck.yml` defines a separate project lint workflow.
 
-The repository-standard GitHub Actions checkout major is `actions/checkout@v6`.
+The repository-standard GitHub Actions checkout reference is the SHA-pinned
+`actions/checkout` entry managed through `pinact`.
 
 ### Workflow Behavior
 
 - checks out the PR head
-- uses the repository-standard `actions/checkout@v6`
+- uses the repository-standard `actions/checkout` reference managed through `pinact`
 - checks out with full history (`fetch-depth: 0`) to resolve the merge-base used by `<base-ref>...HEAD`
 - explicitly fetches the PR base branch before diffing
 - installs a pinned ShellCheck release binary instead of assuming it is preinstalled
