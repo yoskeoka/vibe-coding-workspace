@@ -12,7 +12,7 @@ jobs:
       SHELLCHECK_ARCHIVE: shellcheck-v0.11.0.linux.x86_64.tar.xz
       SHELLCHECK_SHA256: 8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
 
