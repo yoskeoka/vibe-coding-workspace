@@ -8,6 +8,8 @@ Define the workflow contract after a pull request is created or updated. PR crea
 
 The `review-task` skill owns PR preparation and initial post-PR follow-up for every workflow step that routes through it.
 
+Caller skills such as `plan-execution` and `execute-task` must not report task completion before `review-task` reaches a documented stop condition for the current PR head SHA.
+
 This ownership applies when:
 
 - a new PR is created
@@ -17,6 +19,8 @@ This ownership applies when:
 Each newer head SHA restarts the required CI/check inspection loop. The longer advisory bot/agent review wait budget only runs when review-start activity is observed for the latest head SHA, on initial review startup, or when the human explicitly asks to wait.
 
 ## Monitoring Loop
+
+For a non-blocked PR creation or update flow, the minimum landing path is `commit -> push -> PR create/update -> 30-second wait -> initial follow-up poll`.
 
 For each PR head SHA, `review-task` must:
 
@@ -180,3 +184,5 @@ The bounded follow-up cycle may stop when:
 - the user explicitly asks to stop waiting
 
 The handoff must say which condition was reached.
+
+Caller skills that routed work into `review-task` must treat one of these stop conditions as the completion boundary for the current PR head SHA rather than reporting success immediately after local edits, local verification, commit creation, or PR creation.
