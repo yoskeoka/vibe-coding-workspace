@@ -63,6 +63,19 @@ Video ingest jobs MAY also use:
 
 for resumable repo-local scratch data. When the user does not need persistence, the video pipeline SHOULD default to OS temp storage instead.
 
+File-conversion fallback jobs MAY also use:
+
+```text
+.local/kb-ingest/
+  <job-id>/
+    metadata.json
+    outputs/
+      converted.md
+      source-context.md
+```
+
+for resumable repo-local scratch data. These converted artifacts are temporary preprocessing outputs and MUST NOT be committed under `docs/kb/`.
+
 ## Content Model
 
 ### 1. Source Notes
@@ -89,6 +102,10 @@ Video-backed sources MAY additionally include:
 - segment summaries with time anchors
 - named entities or tool names recovered from transcript/OCR
 - selected screenshot references when screenshots materially improve later human review
+
+Document-conversion fallback sources MAY additionally include:
+- original file identity when the input was a local file rather than a durable URL
+- conversion method and caveat notes when the Markdown draft required cleanup after preprocessing
 
 Source notes are source-oriented and append-only in spirit. They MAY be corrected, but they should not become general wiki pages.
 
@@ -134,9 +151,7 @@ the rendered knowledge-base site on `ubuntu-latest`.
 
 ### 1. Ingest
 
-The primary ingest UX is conversational:
-- The user gives one or more URLs and asks the AI to ingest them.
-- The AI uses the `knowledge-base` skill.
+The primary ingest UX is conversational. The user gives one or more sources and asks the AI to ingest them. The AI uses the `knowledge-base` skill.
 
 Ingest MUST:
 - create or update source notes
@@ -144,6 +159,11 @@ Ingest MUST:
 - create or update Japanese mirror pages under `docs/kb/ja/` when practical
 - update `docs/kb/wiki/index.md` if navigation changes
 - append a short entry to `docs/kb/wiki/log.md`
+
+The knowledge-base ingest flow MUST support three acquisition modes:
+- conversational article/document URL ingest for ordinary web pages already well-served by direct reading
+- `skim` and `ingest` video modes for direct videos and thin article wrappers whose substantive value lives in the video
+- a `markitdown`-based document-conversion fallback for unsupported file-like sources such as local PDF, DOCX, PPTX, XLSX, EPUB, or direct document URLs
 
 The knowledge-base ingest flow MUST support two video-oriented operating modes:
 - `skim`: produce a compact review artifact for deciding whether the source belongs in the KB
@@ -156,10 +176,18 @@ Ingest SHOULD:
 - keep Japanese mirror paths aligned with the English relative layout when translated pages are added
 - prefer subtitles over fresh transcription when the source provides usable subtitles
 - narrow AI context to structured segment summaries and representative frame candidates instead of passing full transcripts or all frames
+- preserve source provenance even when the drafting input came from temporary converted Markdown rather than direct page reading
 
 Ingest does NOT need to hand-maintain rendered `Sources` nav entries or yearly source index pages. Those are derived during build/check.
 
 For video-backed sources, ingest MUST keep raw transcripts, OCR dumps, extracted frame sets, and other bulky intermediates outside `docs/kb/`.
+
+For document-conversion fallback sources, ingest MUST keep converted Markdown, extracted attachments, and other raw preprocessing artifacts outside `docs/kb/`.
+
+The `markitdown` fallback MUST stay narrow:
+- use it for file-like sources that the normal conversational URL flow handles poorly
+- do not route ordinary article URLs through it by default
+- do not use it as a replacement for the dedicated video-backed pipeline
 
 ### 1a. Skill discovery
 
@@ -187,6 +215,29 @@ The implementation MUST orchestrate these stages:
 6. AI checkpoint preparation for segment summarization
 7. AI checkpoint preparation for representative-frame selection
 8. `skim` or `ingest` output compilation
+
+## Document-Conversion Fallback
+
+The skill-local entrypoint for file-like sources MUST provide:
+- `convert` to normalize a local file path or direct document URL into temporary Markdown for drafting
+- `--check-deps` to fail fast with actionable dependency guidance before conversion starts
+
+The initial fallback implementation MUST:
+- prefer `uv run --with ...` or an equivalent isolated runtime over adding a hard repo-wide runtime dependency
+- keep the dependency profile narrow to the formats the workspace currently needs
+- write converted Markdown and conversion metadata to OS temp storage or `.local/kb-ingest/<job-id>/`
+- generate a compact source-context artifact that preserves the original source identity, workspace relevance, and any conversion caveats for later source-note drafting
+
+The fallback MUST accept:
+- local document files
+- direct document URLs
+
+The fallback MUST NOT be treated as sufficient for:
+- scanned PDFs that need high-fidelity OCR
+- badly ordered multi-column PDFs
+- OCR-heavy slide decks where the base converter loses too much structure
+
+When the fallback output loses too much structure, the operator MUST stop and escalate to a higher-fidelity path instead of committing low-quality raw conversion output into the KB.
 
 ### Dependency model
 
