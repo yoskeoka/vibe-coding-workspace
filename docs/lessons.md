@@ -104,3 +104,10 @@
 - **Pattern**: Once the local change is correct, it is easy to narrate intended PR follow-up instead of treating `review-task` completion for the latest PR head SHA as part of the same task.
 - **Rule**: When a task routes into `review-task`, do not report completion before the latest pushed PR head SHA reaches a documented `review-task` stop condition; for non-blocked flows, that minimum landing path is `commit -> push -> PR create/update -> 30-second wait -> initial follow-up poll` with checks, timeline, review summaries, and inline comments inspected.
 - **Applied**: `AI_WORKFLOW.md`, `docs/specs/pr-follow-up-workflow.md`, `skills/plan-execution/SKILL.md`, `skills/execute-task/SKILL.md`, and any session handoff that claims a planning or execution task is complete.
+
+## Portable Docs Should Not Hard-Code Local Absolute Paths
+
+- **Mistake**: I updated workflow docs with `/home/yoske/...` absolute paths that matched this machine but were not portable to other workspace locations.
+- **Pattern**: When fixing a repo-local workflow gap, it is easy to optimize for the current checkout path and miss that the documentation is a reusable contract for other environments.
+- **Rule**: In durable docs and skills, describe workspace-relative paths with placeholders such as `<workspace-root>/...` unless the task explicitly requires a machine-specific path example.
+- **Applied**: Workflow docs, PR template fallback guidance, and any skill text that explains file locations across repos or workspaces.
