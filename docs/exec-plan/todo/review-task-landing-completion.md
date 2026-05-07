@@ -4,7 +4,7 @@
 
 ## Objective
 
-Strengthen the workflow contract so `plan-execution` and `execute-task` do not stop at local implementation or pre-commit narration when the user expects full workflow completion. After either skill hands work to `review-task`, the documented completion point should remain `commit -> push -> PR create/update -> 30-second wait -> initial CI/check inspection for the latest PR head SHA`, with any blocker or timeout explicitly reported.
+Strengthen the workflow contract so `plan-execution` and `execute-task` do not stop at local implementation or pre-commit narration when the user expects full workflow completion. After either skill hands work to `review-task`, the documented completion point should remain `commit -> push -> PR create/update -> 30-second wait -> initial follow-up poll and inspection for the latest PR head SHA`, with any blocker or timeout explicitly reported.
 
 ## Current State
 
@@ -23,7 +23,7 @@ Strengthen the workflow contract so `plan-execution` and `execute-task` do not s
 ### `docs/specs/pr-follow-up-workflow.md`
 
 - Add an explicit handoff rule that caller skills must not report task completion before `review-task` reaches a documented stop condition for the current PR head SHA.
-- Name the minimum landing path expected for non-blocked PR creation flows: `commit -> push -> PR create/update -> 30-second wait -> initial CI/check inspection`.
+- Name the minimum landing path expected for non-blocked PR creation flows as one initial `gh-pr-followup` poll after `commit -> push -> PR create/update -> 30-second wait`, including inspection of checks, timeline events, review summaries, and inline comments.
 
 ### `skills/plan-execution/SKILL.md`
 
@@ -37,7 +37,7 @@ Strengthen the workflow contract so `plan-execution` and `execute-task` do not s
 
 ### `docs/lessons.md`
 
-- Add a durable lesson that execution-oriented requests requiring branch lifecycle completion must not stop before `commit -> push -> PR create/update -> initial follow-up`, even if the agent already updated lessons or finished local verification.
+- Add a durable lesson that execution-oriented requests requiring branch lifecycle completion must not stop before `commit -> push -> PR create/update -> 30-second wait -> initial follow-up poll`, even if the agent already updated lessons or finished local verification.
 
 ## Code Changes
 
@@ -75,7 +75,7 @@ No ADR update is expected.
 
 - Confirm `AI_WORKFLOW.md`, `docs/specs/pr-follow-up-workflow.md`, `skills/plan-execution/SKILL.md`, and `skills/execute-task/SKILL.md` all describe the same completion boundary.
 - Confirm the workflow now says callers must not report completion before `review-task` reaches a documented stop condition for the latest PR head SHA.
-- Confirm the minimum non-blocked landing path is named explicitly as `commit -> push -> PR create/update -> 30-second wait -> initial CI/check inspection`.
+- Confirm the minimum non-blocked landing path is named explicitly as `commit -> push -> PR create/update -> 30-second wait -> initial follow-up poll`, with checks, timeline, reviews, and inline comments inspected from that poll.
 - Confirm the lesson entry states the same rule in operational language.
 
 ## Expected Outcome
