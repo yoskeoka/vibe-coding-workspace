@@ -97,3 +97,10 @@
 - **Pattern**: Drafting implementation details later in a plan can drift from earlier scope constraints unless they are rechecked for exact parity.
 - **Rule**: When a plan defines CI trigger scope or deterministic tool behavior, restate the same constraints in the workflow section (explicit `paths` filters and pinned tool versions) instead of leaving open-ended wording like unscoped triggers or `@latest`.
 - **Applied**: Execution-plan docs that introduce or modify GitHub Actions workflows, especially `docs/exec-plan/todo/pj-ci-checks.md`.
+
+## Workflow Tasks Must Land the Initial PR Follow-up Loop
+
+- **Mistake**: I treated a workflow implementation as complete after local edits, verification, or lesson updates, and stopped before the branch lifecycle reached `commit -> push -> PR create/update -> 30-second wait -> initial follow-up poll`.
+- **Pattern**: Once the local change is correct, it is easy to narrate intended PR follow-up instead of treating `review-task` completion for the latest PR head SHA as part of the same task.
+- **Rule**: When a task routes into `review-task`, do not report completion before the latest pushed PR head SHA reaches a documented `review-task` stop condition; for non-blocked flows, that minimum landing path is `commit -> push -> PR create/update -> 30-second wait -> initial follow-up poll` with checks, timeline, review summaries, and inline comments inspected.
+- **Applied**: `AI_WORKFLOW.md`, `docs/specs/pr-follow-up-workflow.md`, `skills/plan-execution/SKILL.md`, `skills/execute-task/SKILL.md`, and any session handoff that claims a planning or execution task is complete.
