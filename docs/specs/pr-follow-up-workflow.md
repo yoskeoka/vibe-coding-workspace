@@ -8,7 +8,7 @@ Define the workflow contract after a pull request is created or updated. PR crea
 
 The `review-task` skill owns PR preparation and initial post-PR follow-up for every workflow step that routes through it.
 
-Caller skills such as `plan-execution` and `execute-task` must not report task completion before `review-task` reaches a documented stop condition for the current latest PR head SHA.
+Caller skills such as `plan-execution` and `execute-task` must not report task completion before `review-task` reaches a documented stop condition for the current PR head SHA.
 
 This ownership applies when:
 
