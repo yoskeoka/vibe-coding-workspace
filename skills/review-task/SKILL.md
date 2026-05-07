@@ -126,9 +126,10 @@ Do not use a title that implies implementation when the branch is `docs/*` or `c
 
 Use the **PR template** when creating or repairing pull requests. Template priority:
 
-- If the child project has `.github/PULL_REQUEST_TEMPLATE.md`, use it.
+- If the current repo has `.github/PULL_REQUEST_TEMPLATE.md`, use it.
+- Otherwise, if working in a child repo inside this workspace, use the workspace root repo template at `/home/yoske/src/github.com/yoskeoka/vibe-coding-workspace/.github/PULL_REQUEST_TEMPLATE.md`.
 - Otherwise, if working in a child repo that vendors this workflow under `.claude/vendor/workflow`, use `.claude/vendor/workflow/.github/PULL_REQUEST_TEMPLATE.md`.
-- Otherwise, if working in the workflow repo itself, use `.github/PULL_REQUEST_TEMPLATE.md`.
+- Otherwise, use the workflow repo's `.github/PULL_REQUEST_TEMPLATE.md`.
 
 If no PR exists yet, determine which template path applies in the current repo, then run:
 
