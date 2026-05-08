@@ -111,3 +111,10 @@
 - **Pattern**: When fixing a repo-local workflow gap, it is easy to optimize for the current checkout path and miss that the documentation is a reusable contract for other environments.
 - **Rule**: In durable docs and skills, describe workspace-relative paths with placeholders such as `<workspace-root>/...` unless the task explicitly requires a machine-specific path example.
 - **Applied**: Workflow docs, PR template fallback guidance, and any skill text that explains file locations across repos or workspaces.
+
+## Parallel Git Writes Need Worktree-Level Serialization
+
+- **Mistake**: I ran `git add` and `git commit` against the same worktree in parallel and treated the resulting `index.lock` failure like a surprising worktree issue.
+- **Pattern**: In a multi-tool or multi-agent workflow, it is easy to parallelize Git commands that look independent even though they both mutate the same worktree index and refs.
+- **Rule**: Within a single worktree, serialize Git commands that write repository state such as `git add`, `git commit`, `git rebase`, `git merge`, `git cherry-pick`, `git checkout`, and similar operations. Restrict parallelism to read-only inspection, verification, or clearly separate worktrees.
+- **Applied**: `AGENTS.md`, `execute-task` / `review-task` style execution flows, and any Codex session that uses parallel tool calls or subagents around Git operations.
