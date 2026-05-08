@@ -41,6 +41,7 @@ At the start of a new session, if the user has not given a specific task, sugges
     - Create a fresh task worktree from `main` for every task with global `ww`: `ww create <type>/<description>` from the target repo, or `ww create --repo <repo> <type>/<description>` from the workspace root
     - Enter task worktrees with `ww cd` rather than guessing paths manually
     - Never reuse an existing feature branch or primary checkout silently; each active task should have its own `ww` worktree
+    - In the same worktree, do not run Git commands that write repository state in parallel. Serialize `git add`, `git commit`, `git rebase`, `git merge`, `git cherry-pick`, `git checkout`, and similar index/ref-updating commands to avoid `index.lock` conflicts.
     - Even for lightweight/no-plan changes, re-check `AI_WORKFLOW.md` before PR creation so the branch type and PR title match the actual scope (`docs`, `chore`, etc.)
     - **Before pushing to a PR branch**, always verify the PR is still OPEN: `gh pr view <number> --json state --jq '.state'`. Never push to a MERGED or CLOSED PR.
     - Workflow-linter findings must not be ignored. Resolve all `fixable` warnings before push/PR unless an explicit human instruction conflicts or the warning is a clear false positive.
@@ -115,6 +116,7 @@ Keep the main context window clean by delegating to subagents.
 - One task per subagent for focused execution
 - Clear, specific instructions with expected output format
 - Set scope boundaries — subagents must not modify files without explicit instruction
+- Keep Git write operations on the main path unless separate worktrees clearly own them; parallel subagent work is fine for read-only exploration and verification, but shared-worktree Git mutations should stay serialized.
 
 ## Workspace Task Tracking
 
