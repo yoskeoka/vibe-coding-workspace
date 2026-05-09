@@ -195,9 +195,9 @@ For each new PR, updated PR, or later push to the PR branch, monitor the latest 
 CI settling cadence by workflow step:
 
 - Step 2 (`plan-execution`) keeps the existing minimum path: after the first 30-second wait and poll, it may stop when no other stop-condition work remains.
-- Step 3 (`execute-task`) must treat required CI completion as part of the initial landing check. After the first 30-second wait and poll, if required checks for the latest head SHA are still pending, wait another 30 seconds and poll again. If required checks are still pending after that second poll, wait a third 30-second turn and poll once more.
+- Step 3 (`execute-task`) uses a bounded CI-settling window as part of the landing check. After the first 30-second wait and poll, if required checks for the latest head SHA are still pending, wait another 30 seconds and poll again. If required checks are still pending after that second poll, wait a third 30-second turn and poll once more.
 - Stop the extra Step 3 settling waits early when required checks finish, advisory reviewer activity starts and moves the flow into the advisory-review cadence, the helper fails, the head SHA changes, or the user explicitly asks to stop waiting.
-- This Step 3 CI-settling extension adds at most two extra 30-second wait turns beyond the startup wait, for a maximum of three 30-second polls before handoff when required checks are merely still running.
+- This Step 3 CI-settling extension adds at most two extra 30-second wait turns beyond the startup wait, for a maximum of three polls separated by 30-second waits before handoff when required checks are merely still running.
 
 Bounded advisory-review wait cadence:
 
@@ -250,7 +250,7 @@ The follow-up loop can stop when one of these is true:
 
 - required checks pass and no advisory bot/agent review-start activity appears after the 30-second startup wait
 - for Step 2 planning PRs, the initial follow-up poll completed and no other stop-condition work remains
-- for Step 3 execution PRs, the initial follow-up poll plus up to two additional 30-second CI-settling polls completed, and required checks are still pending with no advisory bot/agent review-start activity
+- for Step 3 execution PRs, the bounded CI-settling window ended after the initial follow-up poll plus up to two additional 30-second CI-settling polls, and required checks are still pending with no advisory bot/agent review-start activity
 - required checks pass and available advisory bot/agent findings have been summarized
 - CI is blocked or not actionable, and the blocker is documented
 - advisory bot/agent review remains pending after review-start activity and the 7-minute wait budget, and the timeout state is documented

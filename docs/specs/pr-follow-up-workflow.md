@@ -25,7 +25,7 @@ For a non-blocked PR creation or update flow, the minimum landing path is `commi
 Step-specific CI settling rule:
 
 - Step 2 (`plan-execution`) may stop after that initial poll when no other stop-condition work remains.
-- Step 3 (`execute-task`) must treat required CI completion as part of the landing check. If required checks are still pending after the initial poll for the latest PR head SHA, wait another 30 seconds and poll again. If required checks are still pending after that second poll, wait a third 30-second turn and poll once more.
+- Step 3 (`execute-task`) uses a bounded CI-settling window as part of the landing check. If required checks are still pending after the initial poll for the latest PR head SHA, wait another 30 seconds and poll again. If required checks are still pending after that second poll, wait a third 30-second turn and poll once more.
 - Stop the extra Step 3 settling polls early when required checks finish, advisory reviewer activity starts and the advisory-review cadence takes over, the helper fails, the PR head SHA changes, or the user explicitly asks to stop waiting.
 
 For each PR head SHA, `review-task` must:
@@ -186,7 +186,7 @@ The bounded follow-up cycle may stop when:
 
 - all required checks pass and no advisory bot/agent review-start activity appears after the 30-second startup wait
 - for Step 2 planning PRs, the initial follow-up poll completed and no other stop-condition work remains
-- for Step 3 execution PRs, the initial follow-up poll plus up to two additional 30-second CI-settling polls completed, and required checks are still pending with no advisory bot/agent review-start activity
+- for Step 3 execution PRs, the bounded CI-settling window ended after the initial follow-up poll plus up to two additional 30-second CI-settling polls, and required checks are still pending with no advisory bot/agent review-start activity
 - checks pass and available advisory bot/agent findings have been summarized for human review
 - CI fails but cannot be fixed automatically within scope, and the blocker is documented
 - advisory bot/agent review remains pending after review-start activity and the 7-minute wait budget, and the timeout state is documented
