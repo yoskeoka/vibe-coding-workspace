@@ -117,7 +117,7 @@ After all checks pass:
    - The plan file moved to `docs/exec-plan/done/`.
    - Verification artifacts (test results, screenshots, logs) for human review.
 4. Complete the initial CI/Copilot follow-up cycle through `review-task`, then wait for GitHub PR review approval before merging into `main`.
-5. Do not report execution complete after only finishing local implementation, updating `docs/lessons.md`, drafting a commit, or opening the PR. Execution is complete only after `review-task` reaches a documented stop condition for the latest pushed PR head SHA. For a non-blocked PR create/update flow, that minimum landing path is `commit -> push -> PR create/update -> 30-second wait -> initial follow-up poll`.
+5. Do not report execution complete after only finishing local implementation, updating `docs/lessons.md`, drafting a commit, or opening the PR. Execution is complete only after `review-task` reaches a documented stop condition for the latest pushed PR head SHA. For a non-blocked PR create/update flow, that minimum landing path is `commit -> push -> PR create/update -> 30-second wait -> initial follow-up poll`, and if required CI checks are still pending for that Step 3 PR head SHA, `review-task` must use a bounded CI-settling window with up to two more `30-second wait -> poll` turns before handoff.
 
 ### Verification Standards by Task Type
 
