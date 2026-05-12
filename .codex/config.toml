@@ -13,7 +13,7 @@ exclude_slash_tmp = false
 
 [features]
 shell_snapshot = true # Speed up repeated commands
-codex_hooks = true # Enable project-scoped Codex hooks
+hooks = true # Enable project-scoped Codex hooks
 
 [windows]
 sandbox = "elevated" # Recommended
