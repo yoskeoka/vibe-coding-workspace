@@ -151,13 +151,13 @@ This project follows the AI-Centered Development workflow.
 3. **Context Management**:
    - Your "memory" is the `docs/` directory.
    - `docs/project-plan.md` is your North Star.
-   - `docs/exec-plan/todo/` is your current task list.
+   - `docs/exec-plan/todo/` is your current task list. Active plan filenames use `<sequence>-<name>.md`.
    - `docs/design-decisions/` is your architectural conscience.
 
 4. **Execution Rules**:
-   - **Plan First**: Before writing code, ensure a plan exists in `docs/exec-plan/todo/`. If not, create one.
+   - **Plan First**: Before writing code, ensure a plan exists in `docs/exec-plan/todo/`. Active exec-plans use `<sequence>-<name>.md` and execution branches map by suffix. If not, create one.
    - **Spec First**: Update `docs/specs/` to reflect changes BEFORE modifying code.
-   - **Focus**: If you find unrelated issues, log them in `docs/issues/<name>.md` and ignore them for the current task (unless they are blockers).
+   - **Focus**: If you find unrelated issues, log them in `docs/issues/<sequence>-<name>.md` and ignore them for the current task (unless they are blockers).
    - **Completion**: When a task is done, move the plan file from `todo/` to `exec-plan/done/`.
 ```
 

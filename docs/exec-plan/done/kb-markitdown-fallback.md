@@ -6,7 +6,7 @@
 
 Add an explicit `markitdown`-based fallback path for KB ingest when the source format is not well handled by the current conversational URL flow or the existing video-backed pipeline.
 
-This plan assumes the comparison work in `kb-markitdown-comparison.md` has produced a positive enough result for narrow adoption.
+This plan assumes the comparison work in `0037-kb-markitdown-comparison.md` has produced a positive enough result for narrow adoption.
 
 ## Background
 

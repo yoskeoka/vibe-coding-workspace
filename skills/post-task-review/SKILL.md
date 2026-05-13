@@ -78,7 +78,7 @@ Present a prioritized summary to the user. Ask which items to log.
 
 ### 3. Log Issues in docs/issues/
 
-Create `docs/issues/<descriptive-name>.md` for each approved finding. Each file must include:
+Create `docs/issues/<sequence>-<descriptive-name>.md` for each approved finding. Each file must include:
 
 - **Summary**: What the problem is, with specific file paths and line numbers
 - **Proposed Solution**: Concrete direction, not vague suggestions
@@ -88,7 +88,7 @@ Create `docs/issues/<descriptive-name>.md` for each approved finding. Each file 
 
 ### 4. Update Lessons Learned
 
-Check if corrections occurred during the task. If so, create or update `docs/lessons.md` using this format:
+Check if corrections occurred during the task. If so, create or update `docs/lessons.md` using this format and append the new lesson at the end of the file:
 
 - **Mistake**: What went wrong (be specific)
 - **Pattern**: The underlying cause or anti-pattern

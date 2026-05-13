@@ -38,7 +38,7 @@ Implement the changes described in the active execution plan, following strict o
 
 1. **Spec First**: Update `docs/specs/` to reflect the intended changes _before_ modifying any code.
 2. **Implement**: Write the code to match the updated spec exactly.
-3. **Log Issues**: If unrelated problems are found during implementation, log them in `docs/issues/<name>.md`. Do **not** fix them within the current plan unless they are blockers.
+3. **Log Issues**: If unrelated problems are found during implementation, log them in `docs/issues/<sequence>-<name>.md`. Do **not** fix them within the current plan unless they are blockers.
 4. **Completion**: When all work in the plan is done, move the plan file from `docs/exec-plan/todo/` to `docs/exec-plan/done/`.
 
 ### Spec-Code Parity
@@ -51,7 +51,7 @@ Implement the changes described in the active execution plan, following strict o
 
 When encountering unrelated issues during execution:
 
-1. Create `docs/issues/<descriptive-name>.md`.
+1. Create `docs/issues/<sequence>-<descriptive-name>.md`.
 2. Document the issue clearly.
 3. Continue with the current plan — do not get sidetracked.
 4. These issues can become future execution plans.
@@ -60,7 +60,7 @@ When encountering unrelated issues during execution:
 
 When an issue in `docs/issues/` is resolved:
 
-1. Move the file from `docs/issues/<name>.md` to `docs/issues/done/<name>.md`.
+1. Move the file from `docs/issues/<sequence>-<name>.md` to `docs/issues/done/<sequence>-<name>.md`.
 2. Include the move in the same PR that fixes the issue.
 3. Trivial issues (single-line fixes, typos, doc-only) may be fixed directly without a formal execution plan — just branch, fix, and PR.
 
@@ -68,7 +68,7 @@ When an issue in `docs/issues/` is resolved:
 
 After ANY correction from the user:
 
-1. Create or update `docs/lessons.md` with the pattern.
+1. Create or update `docs/lessons.md` with the pattern, appending new lessons at the end of the file.
 2. Use this format:
    - **Mistake**: What went wrong (be specific)
    - **Pattern**: The underlying cause or anti-pattern
@@ -93,7 +93,7 @@ For non-trivial changes, pause and ask: **"Is there a more elegant way?"**
 When all tasks in the plan are done:
 
 1. Verify spec-code parity: `docs/specs/` matches the implementation.
-2. Move the plan file: `docs/exec-plan/todo/<name>.md` → `docs/exec-plan/done/<name>.md`.
+2. Move the numbered plan file: `docs/exec-plan/todo/<sequence>-<name>.md` → `docs/exec-plan/done/<sequence>-<name>.md`.
 3. Proceed to Verify & PR.
 
 ## Verify (Pre-PR Gate)

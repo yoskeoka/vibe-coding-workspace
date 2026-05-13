@@ -111,7 +111,7 @@ Read `setup.sh` in the workspace root to get the `REPOS` array. Launch one **rea
   "exec_plans": [
     {
       "title": "<task title>",
-      "source": "docs/exec-plan/todo/<name>.md",
+      "source": "docs/exec-plan/todo/<sequence>-<name>.md",
       "priority": "High|Medium|Low",
       "next": "execute-task",
       "goal": "<one sentence outcome>"
@@ -120,7 +120,7 @@ Read `setup.sh` in the workspace root to get the `REPOS` array. Launch one **rea
   "issues": [
     {
       "title": "<task title>",
-      "source": "docs/issues/<name>.md",
+      "source": "docs/issues/<sequence>-<name>.md",
       "priority": "High|Medium|Low",
       "next": "plan-execution",
       "goal": "<one sentence outcome>"
@@ -238,8 +238,8 @@ Use one `Read:` line unless the task truly needs multiple source references. Pre
 
 Tailor the body by item type:
 
-- Exec-plan item: use `Next: execute-task`; set `Source` and `Read` to `docs/exec-plan/todo/<name>.md`; set `Start` to the matching execution branch command based on the plan type: `ww create feat/<name>` then `cd "$(ww cd feat/<name>)"` or `ww create fix/<name>` then `cd "$(ww cd fix/<name>)"` from the target repo root, or the corresponding `--repo <repo>` form from the workspace root for child repos.
-- Local issue follow-up: use `Next: plan-execution` when the issue needs non-trivial work; set `Source` and `Read` to `docs/issues/<name>.md`; set `Start` to `ww create plan/<name>` then `cd "$(ww cd plan/<name>)"` from the target repo root, or the `--repo <repo>` form from the workspace root for child repos.
+- Exec-plan item: use `Next: execute-task`; set `Source` and `Read` to the exact numbered path under `docs/exec-plan/todo/`, such as `docs/exec-plan/todo/<sequence>-<name>.md`; set `Start` to the matching execution branch command based on the plan type: `ww create feat/<name>` then `cd "$(ww cd feat/<name>)"` or `ww create fix/<name>` then `cd "$(ww cd fix/<name>)"` from the target repo root, or the corresponding `--repo <repo>` form from the workspace root for child repos.
+- Local issue follow-up: use `Next: plan-execution` when the issue needs non-trivial work; set `Source` and `Read` to the exact numbered path under `docs/issues/`, such as `docs/issues/<sequence>-<name>.md`; set `Start` to `ww create plan/<name>` then `cd "$(ww cd plan/<name>)"` from the target repo root, or the `--repo <repo>` form from the workspace root for child repos.
 - Open PR review/follow-up: use `Next: Manual triage` unless the needed skill is clear; set `Source` and `Read` to the PR URL plus any relevant local plan/spec path; set `Start: Not yet specified` for pure review, approval, or post-review response items.
 - Open GitHub Issue: use `Next: Manual triage` unless the issue clearly maps to planning or execution; set `Source` and `Read` to the issue URL; set `Start: Not yet specified` unless there is a concrete local workflow branch to create.
 
@@ -288,7 +288,7 @@ Use skill: <plan-execution|execute-task|other explicit next-step skill>
 - If starting in the workspace root for a child repo: `ww create --repo <repo> <type>/<name>` then `cd "$(ww cd --repo <repo> <type>/<name>)"`
 **Context to read first**:
 - docs/project-plan.md
-- docs/exec-plan/todo/<relevant plan if any>
+- docs/exec-plan/todo/<sequence>-<relevant plan if any>
 - <other relevant files>
 
 **Goal**: <what to accomplish>

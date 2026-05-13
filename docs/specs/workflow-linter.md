@@ -55,9 +55,10 @@ tools/workflow-lint.sh --mode=ci [--pr-title=TITLE] [--pr-body=BODY]
 | 1 | Issue lifecycle | `fixable` | pre-push, ci | Files removed from `docs/issues/` must appear in `docs/issues/done/` (moved, not deleted) | AI_WORKFLOW.md Step 3: "Issue Resolution" |
 | 2 | Docs-change hint | `advisory` | ci only | If code files changed but no `docs/` files changed, and PR title/body does not contain `[trivial]`, emit warning | AI_WORKFLOW.md: "Spec-Code Parity" principle |
 | 3 | Branch naming | `fixable` | pre-push, ci | Branch name must match `<type>/<description>` where type is `plan\|feat\|fix\|chore\|docs` and description is non-empty kebab-case. `main` is exempt. | AI_WORKFLOW.md: "Branch Naming Convention" |
-| 4 | Exec-plan existence | `fixable` | pre-push, ci | For `feat/*` and `fix/*` branches, `docs/exec-plan/todo/<name>.md` or `docs/exec-plan/done/<name>.md` must exist, where `<name>` is the branch description. `plan/*`, `chore/*`, `docs/*` branches are exempt. | AI_WORKFLOW.md: "Exec-Plan Mapping" |
+| 4 | Exec-plan existence | `fixable` | pre-push, ci | For `feat/*` and `fix/*` branches, a matching exec-plan must exist whose basename suffix is `-<name>.md`, where `<name>` is the branch description. Historical completed plans may still use `docs/exec-plan/done/<name>.md`. `plan/*`, `chore/*`, `docs/*` branches are exempt. | AI_WORKFLOW.md: "Exec-Plan Mapping" |
 | 5 | Workflow startup wording | `fixable` | pre-push, ci | If changed migrated workflow-facing docs or skills reintroduce raw startup snippets like `git fetch origin` or `git switch -c`, emit a warning to keep global `ww` as the default operator path. Covered skills include `plan-execution`, `execute-task`, `triage-tasks`, `plan-project`, `review-task`, and `manage-workflow`. | docs/specs/ww-dogfooding-workflow.md: "Workflow lint guard" |
 | 6 | Linked local issue resolution | `fixable` | pre-push, ci | For `feat/*` and `fix/*` branches whose matching exec-plan is completed in `docs/exec-plan/done/` and whose `Addresses:` line names local issue paths under `docs/issues/`, each linked issue must also be moved to `docs/issues/done/` in the same branch unless the PR body explicitly justifies leaving it open (for example `remains open: <reason>`). | AI_WORKFLOW.md Step 3: "Issue Resolution" |
+| 7 | Active plan / issue naming | `fixable` | pre-push, ci | Active files under `docs/exec-plan/todo/` and `docs/issues/` must use `<sequence>-<name>.md`, with four-digit zero padding through `9999` and unpadded numbers at `10000+`. `README.md` is exempt. | AI_WORKFLOW.md: "Active Plan / Issue Naming" |
 
 The missing-base-ref and diff-failure advisories are environment-sensitive guardrail behavior, not repo-policy checks. They exist to keep shallow, partially fetched, or otherwise unusual repository states from producing a misleading "no changes" result while still preserving non-diff checks.
 
@@ -69,14 +70,15 @@ The missing-base-ref and diff-failure advisories are environment-sensitive guard
 - exit behavior stays non-blocking (`exit 0`)
 
 **Exec-plan filename convention:**
-- Active exec-plan filenames use descriptive kebab-case without numeric prefixes.
-- For execution branches, the filename stem must match the branch description exactly. For example, `feat/workflow-linter` maps to `docs/exec-plan/todo/workflow-linter.md` during execution and `docs/exec-plan/done/workflow-linter.md` after completion.
-- Numeric examples may appear in historical completed artifacts when documenting prior workflow state, but live workflow docs, templates, and active todo plans must use the non-numeric convention.
+- Active exec-plan filenames use `<sequence>-<name>.md`.
+- For execution branches, the exec-plan basename suffix must match the branch description. For example, `feat/workflow-linter` maps to `docs/exec-plan/todo/0042-workflow-linter.md` during execution and `docs/exec-plan/done/0042-workflow-linter.md` after completion.
+- Historical completed artifacts may still use older non-numbered filenames in `docs/exec-plan/done/`, and workflow-lint must keep tolerating them.
+- Active local issue filenames use the same `<sequence>-<name>.md` rule under `docs/issues/`.
 
 **`Addresses:` convention for local issues:**
 - Execution plans that expect to resolve tracked local issues should include a single `Addresses:` line.
-- That line lists one or more local issue paths under `docs/issues/`, for example `Addresses: docs/issues/bug-name.md`.
-- `workflow-lint` treats those paths as explicit completion metadata only for the matching `feat/<name>` or `fix/<name>` execution branch after the plan has moved to `docs/exec-plan/done/<name>.md`.
+- That line lists one or more local issue paths under `docs/issues/`, for example `Addresses: docs/issues/0019-bug-name.md`.
+- `workflow-lint` treats those paths as explicit completion metadata only for the matching `feat/<name>` or `fix/<name>` execution branch after the plan has moved to `docs/exec-plan/done/<sequence>-<name>.md` or a tolerated historical `docs/exec-plan/done/<name>.md`.
 - The linked-local-issue check stays narrow on purpose: it does not try to infer issue closure from arbitrary code changes or unrelated branches.
 
 **Exit codes:**
