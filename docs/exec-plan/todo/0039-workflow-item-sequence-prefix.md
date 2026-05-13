@@ -56,14 +56,15 @@ For this repository and each child repository:
 
 1. Count existing completed files under `docs/exec-plan/done/` and `docs/issues/done/`, excluding `README.md`.
 2. Collect only active files under `docs/exec-plan/todo/` and `docs/issues/`, excluding `README.md`.
-3. Sort active files by creation date from Git history (`git log --diff-filter=A --follow`).
-4. If two files share the same creation timestamp, break the tie lexicographically by current path.
-5. Assign new sequence numbers starting from `done_count + 1`, oldest active file first.
-6. Rename only active files; never rename files already in `done/`.
+3. For each active file, read the first-addition timestamp from Git history with a per-file command such as `git log --diff-filter=A --follow --format='%aI' -1 -- <path>`.
+4. Sort active files by that first-addition timestamp, oldest first.
+5. If two files share the same creation timestamp, break the tie lexicographically by current path.
+6. Assign new sequence numbers starting from `done_count + 1`, oldest active file first.
+7. Rename only active files; never rename files already in `done/`.
 
 Workspace current baseline at planning time:
 
-- exec-plan done count: `37`, so active plan numbering starts at `0038`
+- exec-plan done count: `36`, so active plan numbering starts at `0037`
 - issue done count: `18`, so active issue numbering starts at `0019`
 
 ## Relevant Prior Decisions
