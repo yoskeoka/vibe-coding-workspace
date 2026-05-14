@@ -64,6 +64,43 @@ current_branch() {
     git rev-parse --abbrev-ref HEAD 2>/dev/null || true
 }
 
+active_workflow_filename_regex() {
+    echo '^((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3,}))-[a-z0-9]([a-z0-9-]*[a-z0-9])?\.md$'
+}
+
+matching_exec_plan_files() {
+    local plan_name="$1"
+
+    find docs/exec-plan/todo docs/exec-plan/done -maxdepth 1 -type f \
+        \( -name "*-${plan_name}.md" -o -name "${plan_name}.md" \) \
+        | sort
+}
+
+resolve_exec_plan_paths() {
+    local plan_name="$1"
+    local todo_match=""
+    local done_match=""
+    local path=""
+
+    while IFS= read -r path; do
+        [ -z "$path" ] && continue
+        case "$path" in
+            docs/exec-plan/todo/*)
+                if [ -z "$todo_match" ]; then
+                    todo_match="$path"
+                fi
+                ;;
+            docs/exec-plan/done/*)
+                if [ -z "$done_match" ]; then
+                    done_match="$path"
+                fi
+                ;;
+        esac
+    done < <(matching_exec_plan_files "$plan_name")
+
+    printf '%s|%s\n' "$todo_match" "$done_match"
+}
+
 current_exec_plan_paths() {
     local branch
     branch=$(current_branch)
@@ -73,7 +110,7 @@ current_exec_plan_paths() {
     fi
 
     local plan_name="${branch#*/}"
-    echo "docs/exec-plan/todo/${plan_name}.md|docs/exec-plan/done/${plan_name}.md"
+    resolve_exec_plan_paths "$plan_name"
 }
 
 extract_linked_issue_paths_from_plan() {
@@ -92,8 +129,50 @@ extract_linked_issue_paths_from_plan() {
 
         /^Addresses:/ {
             emit_paths($0)
+            collect = 1
+            next
+        }
+
+        collect && /^#{1,6}[[:space:]]/ {
+            collect = 0
+        }
+
+        collect && /^[^[:space:]#-].*:[[:space:]]*$/ {
+            collect = 0
+        }
+
+        collect {
+            emit_paths($0)
         }
     ' "$plan_file"
+}
+
+check_ambiguous_exec_plan_mapping() {
+    local branch="$1"
+    local plan_name="$2"
+    local todo_matches=0
+    local done_matches=0
+    local path=""
+
+    while IFS= read -r path; do
+        [ -z "$path" ] && continue
+        case "$path" in
+            docs/exec-plan/todo/*)
+                todo_matches=$((todo_matches + 1))
+                ;;
+            docs/exec-plan/done/*)
+                done_matches=$((done_matches + 1))
+                ;;
+        esac
+    done < <(matching_exec_plan_files "$plan_name")
+
+    if [ "$todo_matches" -gt 1 ] || [ "$done_matches" -gt 1 ]; then
+        emit_warning \
+            "fixable" \
+            "Ambiguous exec-plan mapping for branch '${branch}'" \
+            "Multiple active or completed exec-plans share the same '-${plan_name}.md' suffix, so workflow-lint cannot reliably tell which file the branch should map to." \
+            "Keep only one matching file per directory for suffix '${plan_name}.md' by renaming or removing the duplicate plan entry."
+    fi
 }
 
 pr_body_justifies_open_issue() {
@@ -130,6 +209,29 @@ diff_includes_rename() {
             exit(found ? 0 : 1)
         }
     '
+}
+
+check_active_filename_format() {
+    local dir_path="$1"
+    local label="$2"
+    local file=""
+    local base_name=""
+    local pattern
+    pattern=$(active_workflow_filename_regex)
+
+    while IFS= read -r file; do
+        [ -z "$file" ] && continue
+        base_name=$(basename "$file")
+        [ "$base_name" = "README.md" ] && continue
+
+        if ! printf '%s\n' "$base_name" | grep -qE "$pattern"; then
+            emit_warning \
+                "fixable" \
+                "Active ${label} file '${file}' does not use the required <sequence>-<name>.md format" \
+                "Active workflow files carry durable ordering and branch-to-file mapping through the numbered filename convention (AI_WORKFLOW.md Active Plan / Issue Naming)." \
+                "Rename it to '<sequence>-<name>.md' using the next correct sequence while keeping the '-<name>.md' suffix stable."
+        fi
+    done < <(find "$dir_path" -maxdepth 1 -type f | sort)
 }
 
 # Parse arguments
@@ -341,15 +443,20 @@ check_exec_plan_existence() {
     fi
 
     local plan_name="${branch#*/}"
-    local todo_file="docs/exec-plan/todo/${plan_name}.md"
-    local done_file="docs/exec-plan/done/${plan_name}.md"
+    check_ambiguous_exec_plan_mapping "$branch" "$plan_name"
+    local plan_paths
+    local todo_file
+    local done_file
+    plan_paths=$(resolve_exec_plan_paths "$plan_name")
+    todo_file="${plan_paths%%|*}"
+    done_file="${plan_paths##*|}"
 
     if [ ! -f "$todo_file" ] && [ ! -f "$done_file" ]; then
         emit_warning \
             "fixable" \
             "Missing exec-plan for branch '${branch}'" \
             "feat/* and fix/* branches must have a plan before implementation (AI_WORKFLOW.md Exec-Plan Mapping)" \
-            "Create the matching plan first on plan/${plan_name}, then add docs/exec-plan/todo/${plan_name}.md"
+            "Create the matching numbered plan first on plan/${plan_name}, then add docs/exec-plan/todo/<sequence>-${plan_name}.md"
     fi
 }
 
@@ -446,6 +553,16 @@ check_linked_issue_resolution() {
     done
 }
 
+# =============================================================================
+# Check 7: Active plan / issue naming (pre-push + ci)
+# Active files under docs/exec-plan/todo/ and docs/issues/ must use
+# <sequence>-<name>.md, while README.md remains exempt.
+# =============================================================================
+check_active_workflow_file_naming() {
+    check_active_filename_format "docs/exec-plan/todo" "exec-plan"
+    check_active_filename_format "docs/issues" "issue"
+}
+
 # Run checks
 check_issue_lifecycle
 check_docs_change_hint
@@ -453,6 +570,7 @@ check_branch_naming
 check_exec_plan_existence
 check_workflow_doc_startup_commands
 check_linked_issue_resolution
+check_active_workflow_file_naming
 
 # Summary
 if [ "$WARN_COUNT" -gt 0 ]; then

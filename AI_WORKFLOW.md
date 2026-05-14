@@ -20,7 +20,7 @@ This document outlines the workflow for developing projects with AI as the centr
     - `todo/`: Active execution plans.
     - `done/`: Completed execution plans.
 - `docs/references/`: Context for external tools/protocols (e.g., `fastapi-llms.txt`).
-- `docs/lessons.md`: Accumulated lessons learned. Reviewed at session start.
+- `docs/lessons.md`: Accumulated lessons learned. Reviewed at session start, with new lessons appended at the end of the file.
 - `docs/issues/`: Local issue tracking. Avoids confusion with GitHub Issues during active "exec-plan" cycles.
     - `done/`: Resolved issues (moved here after fix is merged).
 - `.local/pj/`: Derived local cache for workspace-level GitHub Projects triage. This cache is non-canonical and must stay untracked.
@@ -68,14 +68,24 @@ Branch names MUST match the pattern `<type>/<description>`:
 | `chore`| Non-functional changes (CI, tooling, deps)  | `chore/update-ci`              |
 | `docs` | Documentation-only changes                  | `docs/update-readme`           |
 
-The `<description>` is free-form kebab-case. No numeric prefixes — priority and ordering are determined by plan file content, not by naming.
+The `<description>` is free-form kebab-case. Do not add workflow sequence numbers to branch names; ordering lives in active plan and issue filenames instead.
+
+#### Active Plan / Issue Naming
+
+- Active execution plans under `docs/exec-plan/todo/` MUST use `<sequence>-<name>.md`.
+- Active local issues under `docs/issues/` MUST use `<sequence>-<name>.md`.
+- Sequence numbers use four-digit zero padding from `0001` through `9999`.
+- Sequence numbers at `10000` or above MUST be written without zero padding.
+- `README.md` is exempt in both directories.
+- New active files should take the next available sequence number in their directory family so creation order remains visible without opening Git history.
 
 #### Exec-Plan Mapping
 
-The branch description and the exec-plan filename MUST share the same name:
+The branch description and the exec-plan basename suffix MUST share the same name:
 
-- `plan/<name>` branch creates `docs/exec-plan/todo/<name>.md`
-- `feat/<name>` or `fix/<name>` branch expects `docs/exec-plan/todo/<name>.md` to exist (or `done/<name>.md` if already completed)
+- `plan/<name>` branch creates `docs/exec-plan/todo/<sequence>-<name>.md`
+- `feat/<name>` or `fix/<name>` branch expects one matching active or completed plan whose basename suffix is `-<name>.md`
+- Historical completed plans in `docs/exec-plan/done/` may still use older non-numbered filenames and remain valid
 - After execution is complete, the plan file is moved from `todo/` to `done/`
 - Branches of type `chore` and `docs` are exempt (no exec-plan required)
 
@@ -110,7 +120,7 @@ PR creation is not the terminal workflow action. For every new PR, updated PR, o
 
 ### 2. Execution Plan (`docs/exec-plan/todo/`) — **requires PR**
 - Create a new `ww` worktree/branch (e.g., `ww create plan/initial-setup`).
-- Create a new plan file (e.g., `initial-setup.md`) in `todo/`.
+- Create a new numbered plan file (e.g., `0007-initial-setup.md`) in `todo/`.
 - Detail:
     - Code changes.
     - Spec changes (How `docs/specs/` will change).
@@ -123,7 +133,7 @@ PR creation is not the terminal workflow action. For every new PR, updated PR, o
 - Create a new `ww` worktree/branch (e.g., `ww create feat/initial-setup`).
 - **Spec First**: Update `docs/specs/` *before* modifying code.
 - **Implement**: Write the code to match the spec.
-- **Issues**: If unrelated problems are found, log them in `docs/issues/<name>.md`. Do not fix them within the current plan unless blocking.
+- **Issues**: If unrelated problems are found, log them in `docs/issues/<sequence>-<name>.md`. Do not fix them within the current plan unless blocking.
 - **Issue Resolution**: When an issue is resolved, move its file from `docs/issues/` to `docs/issues/done/`. If the matching execution plan declares that issue in `Addresses:`, the implementation branch should include the move unless the PR body explicitly explains why the issue remains open.
 - **Completion**: Move the plan file from `docs/exec-plan/todo/` to `docs/exec-plan/done/`.
 - Follow the **PR Workflow** above (Verify → Create PR → Review).
@@ -136,6 +146,11 @@ PR creation is not the terminal workflow action. For every new PR, updated PR, o
     - Post-PR follow-up status for the latest pushed head SHA.
 
 Repeat steps 1–3 until the Project Plan is complete.
+
+## Lessons Maintenance
+
+- `docs/lessons.md` is append-only in practice for new lessons: add new entries at the end of the file rather than inserting them near the top.
+- When a new rule is learned during planning, execution, or review follow-up, update `docs/lessons.md` in the same branch that captured the lesson.
 
 ## Workspace Task Tracking
 

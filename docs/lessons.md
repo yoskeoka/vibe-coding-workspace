@@ -17,8 +17,8 @@
 ## Issue-to-Implementation Requires Planning First
 
 - **Mistake**: I treated a non-trivial `docs/issues/` item as ready for `execute-task` even though no execution plan existed yet.
-- **Pattern**: An issue file can describe a useful fix, but it is not the same artifact as `docs/exec-plan/todo/<name>.md`; jumping straight to execution skips the workflow's planning review gate.
-- **Rule**: When the user points at a non-trivial `docs/issues/<name>.md` item and no matching `docs/exec-plan/todo/<name>.md` exists, start with `plan-execution`, create `docs/exec-plan/todo/<name>.md`, and only use `execute-task` after that plan PR is merged.
+- **Pattern**: An issue file can describe a useful fix, but it is not the same artifact as `docs/exec-plan/todo/<sequence>-<name>.md`; jumping straight to execution skips the workflow's planning review gate.
+- **Rule**: When the user points at a non-trivial `docs/issues/<sequence>-<name>.md` item and no matching `docs/exec-plan/todo/<sequence>-<name>.md` exists, start with `plan-execution`, create `docs/exec-plan/todo/<sequence>-<name>.md`, and only use `execute-task` after that plan PR is merged.
 - **Applied**: Workflow issue follow-ups, especially issues that change specs, skills, scripts, or multiple files.
 
 ## Skipped Detecting target project
@@ -118,3 +118,10 @@
 - **Pattern**: In a multi-tool or multi-agent workflow, it is easy to parallelize Git commands that look independent even though they both mutate the same worktree index and refs.
 - **Rule**: Within a single worktree, serialize Git commands that write repository state such as `git add`, `git commit`, `git rebase`, `git merge`, `git cherry-pick`, `git checkout`, and similar operations. Restrict parallelism to read-only inspection, verification, or clearly separate worktrees.
 - **Applied**: `AGENTS.md`, `execute-task` / `review-task` style execution flows, and any Codex session that uses parallel tool calls or subagents around Git operations.
+
+## New Lessons Append At The End
+
+- **Mistake**: I inserted new workflow lessons near the top of `docs/lessons.md`, which made recency and review order harder to trust across sessions.
+- **Pattern**: When a guidance file is read top-down for context, it is easy to optimize for visibility in the current session and accidentally turn the file into a manually re-sorted document.
+- **Rule**: Add every new `docs/lessons.md` entry at the end of the file. Do not insert new lessons above older ones unless the task is explicitly reorganizing the file.
+- **Applied**: `docs/lessons.md` maintenance across plan creation, execution, post-task review, and workflow-doc updates.

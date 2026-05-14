@@ -48,7 +48,7 @@ ww create --repo <repo> plan/<name>
 cd "$(ww cd --repo <repo> plan/<name>)"
 ```
 
-Use a descriptive kebab-case name that matches the exec-plan filename (e.g., `plan/initial-setup`, `plan/feature-name`).
+Use a descriptive kebab-case branch name whose matching active exec-plan will end with the same `-<name>.md` suffix (e.g., `plan/initial-setup`, `plan/feature-name`).
 
 ## What to Do
 
@@ -59,7 +59,7 @@ Create a new plan file in `docs/exec-plan/todo/` that details the work to be don
 1. **Read planning context before designing**: Read `docs/project-plan.md`, `docs/design-decisions/core-beliefs.md`, and `docs/design-decisions/adr.md` before drafting the plan or choosing an approach.
 2. **Discuss meaningful trade-offs before deciding**: If the plan has multiple viable approaches, list the options even when one option is common or conventional. Compare them against `docs/project-plan.md`, `docs/design-decisions/core-beliefs.md`, and `docs/design-decisions/adr.md`, identify the recommended option for the current project, then discuss that recommendation with the human before locking it into the plan.
 3. **One plan per logical unit of work**: Each plan file corresponds to a coherent, reviewable chunk of changes.
-4. **Naming convention**: For a single-file plan, name the file `<name>.md` so it matches the branch name `plan/<name>`, e.g., `initial-setup.md`, `feature-name.md`, `fix-bug-x.md`. If a large goal is split into multiple child plans, the branch MUST still use the shared parent/base name `plan/<major-item>`, and each child plan filename MUST derive from that same `<major-item>` base. When execution order matters across the child plans, use `<major-item>-<two-digit-sequence>-<minor-item>.md`, such as branch `plan/platform-phase2` with child plans `platform-phase2-01-foundation.md`, `platform-phase2-02-fixture-e2e.md`. If a plan is split into multiple child files with no meaningful order, continue using non-numeric, descriptive names derived from the same branch/base name, such as branch `plan/feature-name` with `feature-name-backend.md` and `feature-name-ui.md`; do not use unrelated numeric prefixes like `004a-feature-name.md`.
+4. **Naming convention**: For a single active plan, name the file `<workflow-sequence>-<name>.md` so it maps to branch `plan/<name>`, for example `0042-initial-setup.md`, `0043-feature-name.md`, or `0044-fix-bug-x.md`. Use the next available workflow sequence number so active backlog order stays visible. If a large goal is split into multiple child plans, the branch MUST still use the shared parent/base name `plan/<major-item>`, and each child plan filename MUST derive from that same `<major-item>` base. When execution order matters across the child plans, use `<workflow-sequence>-<major-item>-<two-digit-sequence>-<minor-item>.md`, such as branch `plan/platform-phase2` with child plans `0045-platform-phase2-01-foundation.md`, `0046-platform-phase2-02-fixture-e2e.md`. If a plan is split into multiple child files with no meaningful order, continue using descriptive names derived from the same branch/base name after the workflow sequence prefix, such as `0047-feature-name-backend.md` and `0048-feature-name-ui.md`; do not use unrelated prefixes like `004a-feature-name.md`.
 5. **Split-parent handling**: If one existing parent plan is being decomposed into multiple child plans, do not overwrite or rewrite that parent into another executable plan. Verify that all spec/code/verification scope has been moved into the child plans without gaps, then move the parent plan from `docs/exec-plan/todo/` to `docs/exec-plan/done/` as-is. The completion action is the move itself, not a content rewrite of the parent plan.
 6. **Check `docs/exec-plan/done/`** for completed plans to understand prior work and avoid duplication.
 
@@ -85,7 +85,7 @@ Design plans for maximum parallel execution:
 2. **Explicit dependency notation**: Use `depends on: <task>` for tasks that must wait for others.
 3. **Split plans when appropriate**: If a large plan contains 2+ fully independent streams of work, or if one large goal is clearer as ordered child plans, create separate plan files. For independent streams, use descriptive names derived from the work itself, such as branch `plan/feature-name` with `feature-name-backend.md` and `feature-name-ui.md`, or names like `api-endpoints.md` and `ui-components.md` when they share an obvious base in context. For ordered phases toward one larger goal, use the shared parent/base branch name plus `<major-item>-<two-digit-sequence>-<minor-item>.md`, and make the order explicit, e.g., branch `plan/platform-phase2` with `platform-phase2-01-foundation.md`, `platform-phase2-02-fixture-e2e.md`. For large goals with ordered child plans, this naming is required rather than optional.
 4. **When replacing one large executable plan with child plans, audit for migration completeness**: explicitly verify that every spec change, code change, verification item, and design note from the original parent plan has either moved into an appropriate child plan or been intentionally dropped with justification. After that audit, retire the parent by moving it from `todo/` to `done/` without editing the file contents.
-5. **When child plans reference a parent plan, use a path that survives completion**: parent plans move from `docs/exec-plan/todo/` to `docs/exec-plan/done/` after execution or split completion, so do not hardcode a `todo/`-only path in child-plan metadata. Prefer wording that references the filename and notes it may live at `docs/exec-plan/todo/<name>.md` or `docs/exec-plan/done/<name>.md`, without assuming the current directory.
+5. **When child plans reference a parent plan, use a path that survives completion**: parent plans move from `docs/exec-plan/todo/` to `docs/exec-plan/done/` after execution or split completion, so do not hardcode a `todo/`-only path in child-plan metadata. Prefer wording that references the filename and notes it may live at `docs/exec-plan/todo/<sequence>-<name>.md` or `docs/exec-plan/done/<sequence>-<name>.md`, without assuming the current directory.
 
 Example:
 
@@ -103,13 +103,13 @@ Example:
 ### For a New Feature
 
 1. Read `docs/project-plan.md`.
-2. Create `docs/exec-plan/todo/<feature-name>.md`.
+2. Create `docs/exec-plan/todo/<sequence>-<feature-name>.md`.
 3. Outline the spec and code changes.
 4. Wait for user confirmation or proceed if authorized.
 
 ### For a Bug Fix
 
-1. Create `docs/exec-plan/todo/<fix-bug-name>.md`.
+1. Create `docs/exec-plan/todo/<sequence>-<fix-bug-name>.md`.
 2. Include reproduction steps in the plan.
 3. Outline the fix approach, spec updates, and verification steps.
 
