@@ -179,6 +179,11 @@ extract_linked_github_issue_urls_from_plan() {
     [ -f "$plan_file" ] || return
 
     awk '
+        function is_addresses_continuation(line) {
+            return line ~ /^[[:space:]]*([-*][[:space:]]+)?https:\/\/github\.com\// \
+                || line ~ /^[[:space:]]*([-*][[:space:]]+)?`https:\/\/github\.com\//
+        }
+
         function emit_urls(text) {
             gsub(/`/, "", text)
             while (match(text, /https:\/\/github\.com\/[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+\/issues\/[0-9]+/)) {
@@ -197,7 +202,11 @@ extract_linked_github_issue_urls_from_plan() {
             collect = 0
         }
 
-        collect && /^[^[:space:]#-].*:[[:space:]]*$/ {
+        collect && /^$/ {
+            collect = 0
+        }
+
+        collect && !is_addresses_continuation($0) {
             collect = 0
         }
 
@@ -266,15 +275,40 @@ pr_body_closes_github_issue() {
     fi
 
     printf '%s\n' "$PR_BODY" | awk -v issue_url="$issue_url" -v same_repo_ref="$same_repo_ref" '
-        BEGIN {
-            IGNORECASE = 1
+        function regex_escape(text,    escaped) {
+            escaped = text
+            gsub(/[][(){}.^$*+?|\\-]/, "\\\\&", escaped)
+            return escaped
         }
 
-        /(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved):?[[:space:]]+/ {
-            if (index($0, issue_url)) {
-                found = 1
+        function line_closes_issue(line, escaped_issue_url, escaped_same_repo_ref, pattern) {
+            if (line !~ /(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved):?[[:space:]]+/) {
+                return 0
             }
-            if (same_repo_ref != "" && index($0, same_repo_ref)) {
+
+            pattern = escaped_issue_url "([^0-9]|$)"
+            if (line ~ pattern) {
+                return 1
+            }
+
+            if (escaped_same_repo_ref != "") {
+                pattern = escaped_same_repo_ref "([^0-9]|$)"
+                if (line ~ pattern) {
+                    return 1
+                }
+            }
+
+            return 0
+        }
+
+        BEGIN {
+            IGNORECASE = 1
+            escaped_issue_url = regex_escape(issue_url)
+            escaped_same_repo_ref = regex_escape(same_repo_ref)
+        }
+
+        {
+            if (line_closes_issue($0, escaped_issue_url, escaped_same_repo_ref)) {
                 found = 1
             }
         }
@@ -674,7 +708,9 @@ check_linked_github_issue_closure() {
     repo_slug=$(current_github_repo_slug)
 
     local issue_url
-    for issue_url in $linked_issue_urls; do
+    while IFS= read -r issue_url; do
+        [ -z "$issue_url" ] && continue
+
         if pr_body_justifies_open_issue "$issue_url"; then
             continue
         fi
@@ -693,7 +729,7 @@ check_linked_github_issue_closure() {
             "Completed exec-plan '${done_plan_file}' links external GitHub issue '${issue_url}' but the PR body does not include a matching closing keyword" \
             "Execution PRs should close explicitly linked external GitHub issues so repo-native feedback is resolved together with the implementation record (AI_WORKFLOW.md Step 3)." \
             "Add 'Closes ${same_repo_ref:-$issue_url}' to the PR body, or explain there why ${issue_url} remains open."
-    done
+    done <<< "$linked_issue_urls"
 }
 
 # =============================================================================
