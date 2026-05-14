@@ -282,7 +282,7 @@ pr_body_closes_github_issue() {
         }
 
         function line_closes_issue(line, escaped_issue_url, escaped_same_repo_ref, pattern) {
-            if (line !~ /(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved):?[[:space:]]+/) {
+            if (line !~ /(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved):?[[:space:]]*/) {
                 return 0
             }
 
