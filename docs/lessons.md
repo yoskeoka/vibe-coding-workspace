@@ -1,12 +1,5 @@
 # Lessons Learned
 
-## New Lessons Append At The End
-
-- **Mistake**: I inserted new workflow lessons near the top of `docs/lessons.md`, which made recency and review order harder to trust across sessions.
-- **Pattern**: When a guidance file is read top-down for context, it is easy to optimize for visibility in the current session and accidentally turn the file into a manually re-sorted document.
-- **Rule**: Add every new `docs/lessons.md` entry at the end of the file. Do not insert new lessons above older ones unless the task is explicitly reorganizing the file.
-- **Applied**: `docs/lessons.md` maintenance across plan creation, execution, post-task review, and workflow-doc updates.
-
 ## Video-Backed Notes Need Whole-Video Context
 
 - **Mistake**: I normalized a video-backed source note around only the article-highlighted segment and did not first capture the broader embedded video structure.
@@ -125,3 +118,10 @@
 - **Pattern**: In a multi-tool or multi-agent workflow, it is easy to parallelize Git commands that look independent even though they both mutate the same worktree index and refs.
 - **Rule**: Within a single worktree, serialize Git commands that write repository state such as `git add`, `git commit`, `git rebase`, `git merge`, `git cherry-pick`, `git checkout`, and similar operations. Restrict parallelism to read-only inspection, verification, or clearly separate worktrees.
 - **Applied**: `AGENTS.md`, `execute-task` / `review-task` style execution flows, and any Codex session that uses parallel tool calls or subagents around Git operations.
+
+## New Lessons Append At The End
+
+- **Mistake**: I inserted new workflow lessons near the top of `docs/lessons.md`, which made recency and review order harder to trust across sessions.
+- **Pattern**: When a guidance file is read top-down for context, it is easy to optimize for visibility in the current session and accidentally turn the file into a manually re-sorted document.
+- **Rule**: Add every new `docs/lessons.md` entry at the end of the file. Do not insert new lessons above older ones unless the task is explicitly reorganizing the file.
+- **Applied**: `docs/lessons.md` maintenance across plan creation, execution, post-task review, and workflow-doc updates.
