@@ -3,10 +3,28 @@
 <!-- Link the exec-plan, issue, or project-plan that triggered this PR. If none, write N/A.
 If the matching execution plan has an `Addresses:` line with local issue paths, list the same
 paths under Issues unless you are intentionally leaving one open. In that case, keep the path
-here and say `remains open: <reason>` somewhere in the PR body. -->
+here and say `remains open: <reason>` somewhere in the PR body.
+If the matching execution plan has an `Addresses:` line with external GitHub issues, list the
+same issues under Issues. For implementation PRs that resolve those issues, also fill in the
+Closes section below with explicit closing keywords. -->
 
 - **Plan**: <!-- e.g., docs/exec-plan/todo/0042-feature-name.md -->
 - **Issues**: <!-- e.g., docs/issues/0019-bug-name.md, or GitHub issue link -->
+
+## Closes
+
+<!--
+For Step 3 implementation PRs that resolve external GitHub issues declared in the plan's
+`Addresses:` line, add one explicit closing keyword per issue.
+
+Examples:
+- Closes #227
+- Closes https://github.com/yoskeoka/ww/issues/227
+
+Leave `N/A` when this PR does not close an external GitHub issue.
+-->
+
+N/A
 
 ## Type of Change
 
@@ -76,6 +94,7 @@ N/A
 - [ ] `docs/specs/` updated (Spec-Code Parity) — _if code changed_
 - [ ] Plan moved from `todo/` to `done/` — _if executing a plan_
 - [ ] Resolved linked local issues from the plan's `Addresses:` line were moved to `docs/issues/done/`, or this PR explains why they remain open
+- [ ] External GitHub issues declared in the plan's `Addresses:` line are linked under `Issues`, and implementation PRs include matching `Closes` entries or explain why they remain open
 - [ ] Workflow-linter warnings reviewed; all `fixable` warnings were resolved or explicitly justified in this PR
 - [ ] New issues logged in `docs/issues/` — _if discovered during work_
 - [ ] No unresolved blockers remain
