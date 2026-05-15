@@ -76,6 +76,7 @@ The PR contents depend on which workflow step produced it:
 
 - New plan file in `docs/exec-plan/todo/`.
 - Any `docs/design-decisions/` updates if architectural choices were made.
+- If the plan's `Addresses:` line lists external GitHub issues, the PR body links the same issues under `Issues`.
 
 ### For Step 3 (Execution) PRs
 
@@ -83,6 +84,7 @@ The PR contents depend on which workflow step produced it:
 2. **Spec updates**: The updated `docs/specs/` files that match the code.
 3. **Plan file moved to `done/`**: The execution plan in `docs/exec-plan/done/` proving the task was completed through the proper workflow.
 4. **Verification artifacts**: Test results, screenshots, logs, or other evidence for human reviewers. Human review happens _after_ mechanical tests and verification data are ready.
+5. **External issue closure metadata**: If the matching execution plan lists external GitHub issues in `Addresses:`, the PR body contains matching `Closes` entries or an explicit reason those issues remain open.
 
 ## Verification Standards by Task Type
 
@@ -107,6 +109,7 @@ Before creating or updating the PR, verify:
 - [ ] Plan file has been moved from `docs/exec-plan/todo/` to `docs/exec-plan/done/` — for Step 3 PRs.
 - [ ] All lint and test checks pass (non-AI tooling).
 - [ ] Any visual or behavioral changes have screenshots/logs attached.
+- [ ] External GitHub issues declared in the plan's `Addresses:` line are linked under `Issues` for Step 2 PRs and closed with explicit `Closes` entries for Step 3 PRs, or the PR body explains why they remain open.
 - [ ] The diff is not obviously over-scoped for the branch/plan; any out-of-scope changes are removed or called out before proceeding.
 - [ ] No unresolved blockers remain (non-blockers should be in `docs/issues/`).
 
@@ -154,15 +157,16 @@ If a PR already exists, do **not** treat PR creation as the next mandatory step.
 
 Whether the PR is new or existing, complete the template/body so these sections are correct:
 
-1. **Plan / Issues** — Link the exec-plan, issue, or project-plan that triggered this PR.
-2. **Type of Change** — Check the applicable box.
-3. **Instructions** — Fill in the execution command. Under "Additional Context from Instructing Human", record any human instructions, decisions, or intent NOT already captured in the plan/specs/code. Include the AI's question when the human's answer was brief (e.g., "Yes" or "A") so the context is self-contained.
-4. **Verification** — Check off and fill in the commands used.
-5. **Checklist** — Confirm all items.
-6. **Dependencies** — List PRs/issues that block or are blocked by this PR. N/A if none.
-7. **Reviewer Notes** — Highlight areas for review focus, known trade-offs, or intentional oddities. N/A if none.
-8. **Links** — External references (library docs, design references, discussions). N/A if none.
-9. **Breaking Changes / Screenshots** — Fill or delete as applicable.
+1. **Plan / Issues** — Link the exec-plan, issue, or project-plan that triggered this PR. If the matching plan `Addresses:` line lists external GitHub issues, repeat those issues here.
+2. **Closes** — For Step 3 PRs that resolve external GitHub issues from the plan's `Addresses:` line, add one explicit closing keyword per issue. Use `Closes #123` only when the issue is in the same repo as the PR; otherwise use the full issue URL.
+3. **Type of Change** — Check the applicable box.
+4. **Instructions** — Fill in the execution command. Under "Additional Context from Instructing Human", record any human instructions, decisions, or intent NOT already captured in the plan/specs/code. Include the AI's question when the human's answer was brief (e.g., "Yes" or "A") so the context is self-contained.
+5. **Verification** — Check off and fill in the commands used.
+6. **Checklist** — Confirm all items.
+7. **Dependencies** — List PRs/issues that block or are blocked by this PR. N/A if none.
+8. **Reviewer Notes** — Highlight areas for review focus, known trade-offs, or intentional oddities. N/A if none.
+9. **Links** — External references (library docs, design references, discussions). N/A if none.
+10. **Breaking Changes / Screenshots** — Fill or delete as applicable.
 
 After the PR is created or updated, continue into the post-PR follow-up loop below. Do not hand off immediately after PR creation unless the user explicitly asked to stop before monitoring.
 

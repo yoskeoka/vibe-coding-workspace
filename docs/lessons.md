@@ -119,6 +119,13 @@
 - **Rule**: Within a single worktree, serialize Git commands that write repository state such as `git add`, `git commit`, `git rebase`, `git merge`, `git cherry-pick`, `git checkout`, and similar operations. Restrict parallelism to read-only inspection, verification, or clearly separate worktrees.
 - **Applied**: `AGENTS.md`, `execute-task` / `review-task` style execution flows, and any Codex session that uses parallel tool calls or subagents around Git operations.
 
+## External GitHub Feedback Needs Explicit PR Closure Metadata
+
+- **Mistake**: I treated an external GitHub issue as if the workspace-local `docs/issues/` workflow alone was enough and failed to carry the closure target from the plan into the implementation PR body.
+- **Pattern**: When a task originates from repo-native feedback outside the workspace, the plan can capture the issue link, but the actual GitHub issue still stays open unless the implementation PR includes explicit closing keywords.
+- **Rule**: If a plan resolves an external GitHub issue, keep that issue as the canonical tracker, record it in the plan's `Addresses:` line using the full issue URL, link it in the plan PR body under `Issues`, and add a matching `Closes #<n>` or `Closes <full-url>` entry in the implementation PR body unless the PR explicitly explains why the issue remains open.
+- **Applied**: `AI_WORKFLOW.md`, workflow skills, PR template usage, and workflow-linter checks for implementation PRs.
+
 ## New Lessons Append At The End
 
 - **Mistake**: I inserted new workflow lessons near the top of `docs/lessons.md`, which made recency and review order harder to trust across sessions.

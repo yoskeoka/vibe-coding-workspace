@@ -64,6 +64,14 @@ When an issue in `docs/issues/` is resolved:
 2. Include the move in the same PR that fixes the issue.
 3. Trivial issues (single-line fixes, typos, doc-only) may be fixed directly without a formal execution plan — just branch, fix, and PR.
 
+When the matching execution plan resolves an external GitHub issue:
+
+1. Keep that GitHub issue as the canonical tracker when the feedback came from outside the workspace and already lives in the target repo issue tracker.
+2. Add a matching closing keyword to the implementation PR body:
+   - same repo: `Closes #<number>`
+   - cross repo: `Closes https://github.com/<owner>/<repo>/issues/<number>`
+3. If the issue should stay open after this PR, explain that explicitly in the PR body instead of omitting the linkage silently.
+
 ### Self-Improvement Loop
 
 After ANY correction from the user:
@@ -115,6 +123,7 @@ After all checks pass:
    - Code changes.
    - Spec updates (`docs/specs/`).
    - The plan file moved to `docs/exec-plan/done/`.
+   - `Closes` entries for any external GitHub issues declared in the plan's `Addresses:` line, or an explicit reason they remain open.
    - Verification artifacts (test results, screenshots, logs) for human review.
 4. Complete the initial CI/Copilot follow-up cycle through `review-task`, then wait for GitHub PR review approval before merging into `main`.
 5. Do not report execution complete after only finishing local implementation, updating `docs/lessons.md`, drafting a commit, or opening the PR. Execution is complete only after `review-task` reaches a documented stop condition for the latest pushed PR head SHA. For a non-blocked PR create/update flow, that minimum landing path is `commit -> push -> PR create/update -> 30-second wait -> initial follow-up poll`, and if required CI checks are still pending for that Step 3 PR head SHA, `review-task` must use a bounded CI-settling window with up to two more `30-second wait -> poll` turns before handoff.

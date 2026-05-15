@@ -21,7 +21,8 @@ This document outlines the workflow for developing projects with AI as the centr
     - `done/`: Completed execution plans.
 - `docs/references/`: Context for external tools/protocols (e.g., `fastapi-llms.txt`).
 - `docs/lessons.md`: Accumulated lessons learned. Reviewed at session start, with new lessons appended at the end of the file.
-- `docs/issues/`: Local issue tracking. Avoids confusion with GitHub Issues during active "exec-plan" cycles.
+- `docs/issues/`: Local issue tracking for people developing through this workspace workflow. Avoids confusion with GitHub Issues during active "exec-plan" cycles.
+    - When feedback comes from outside this workspace and naturally lives in the target repository's GitHub Issues, keep that GitHub issue as the canonical tracker instead of mirroring it into `docs/issues/` unless separate workspace-only follow-up is needed.
     - `done/`: Resolved issues (moved here after fix is merged).
 - `.local/pj/`: Derived local cache for workspace-level GitHub Projects triage. This cache is non-canonical and must stay untracked.
 
@@ -124,10 +125,14 @@ PR creation is not the terminal workflow action. For every new PR, updated PR, o
 - Detail:
     - Code changes.
     - Spec changes (How `docs/specs/` will change).
-    - `Addresses:` entries for any tracked local issues under `docs/issues/` that this execution work is expected to resolve.
+    - `Addresses:` entries for any tracked issues that this execution work is expected to resolve:
+      - local workspace issues under `docs/issues/`
+      - external GitHub issues when the canonical feedback lives in the target repo issue tracker
+    - Use full GitHub issue URLs in `Addresses:` for external issues, for example `Addresses: https://github.com/yoskeoka/ww/issues/227`.
     - Break down large tasks into smaller sub-plans if needed.
 - Review/Update `design-decisions/` if architectural choices are made.
 - Follow the **PR Workflow** above to merge the plan into `main`.
+- If the plan is driven by an external GitHub issue, the plan PR should link that issue in its PR body under `Issues` so reviewers can trace the execution target before implementation starts.
 
 ### 3. Execution — **requires PR**
 - Create a new `ww` worktree/branch (e.g., `ww create feat/initial-setup`).
@@ -135,6 +140,9 @@ PR creation is not the terminal workflow action. For every new PR, updated PR, o
 - **Implement**: Write the code to match the spec.
 - **Issues**: If unrelated problems are found, log them in `docs/issues/<sequence>-<name>.md`. Do not fix them within the current plan unless blocking.
 - **Issue Resolution**: When an issue is resolved, move its file from `docs/issues/` to `docs/issues/done/`. If the matching execution plan declares that issue in `Addresses:`, the implementation branch should include the move unless the PR body explicitly explains why the issue remains open.
+- **External GitHub Issue Resolution**: When the matching execution plan declares external GitHub issues in `Addresses:`, the implementation PR must include corresponding closing keywords unless the PR body explicitly explains why the issue remains open.
+  - For same-repo issues, use `Closes #<number>` such as `Closes #227`.
+  - For cross-repo issues, use the full URL such as `Closes https://github.com/yoskeoka/ww/issues/227`.
 - **Completion**: Move the plan file from `docs/exec-plan/todo/` to `docs/exec-plan/done/`.
 - Follow the **PR Workflow** above (Verify → Create PR → Review).
 - The PR must include:
@@ -142,6 +150,7 @@ PR creation is not the terminal workflow action. For every new PR, updated PR, o
     - Spec updates.
     - The plan file moved to `done/`.
     - Any resolved linked local issue files moved to `docs/issues/done/`, or an explicit PR-body justification for leaving them open.
+    - `Closes` entries for external GitHub issues declared in the plan's `Addresses:` line, or an explicit PR-body justification for leaving them open.
     - Verification artifacts (test results, screenshots, logs) for human review.
     - Post-PR follow-up status for the latest pushed head SHA.
 
