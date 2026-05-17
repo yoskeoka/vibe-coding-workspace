@@ -13,6 +13,7 @@ This repository acts as a meta-repository to manage other AI projects.
 ### Managed Projects
 - [reversi-adventure](https://github.com/yoskeoka/reversi-adventure) (AI Agent config & skills workspace)
 - [ai-arena](https://github.com/yoskeoka/ai-arena) (AI-vs-AI online game platform)
+- [dungeon-game-ai-arena](https://github.com/yoskeoka/dungeon-game-ai-arena) (Private dungeon game development repo for AI Arena)
 - [vim-learning-game](https://github.com/yoskeoka/vim-learning-game) (Learn Vim through gameplay)
 - [ww](https://github.com/yoskeoka/ww) (Workspace worktree manager for multi-repo parallel development)
 

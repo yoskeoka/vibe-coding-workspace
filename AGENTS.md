@@ -12,6 +12,7 @@ This is a **meta-repo** (parent workspace). Child projects are **subdirectories*
 vibe-coding-workspace/          # This repo (workspace root)
   ww/                           # Child: Workspace Worktree CLI (Go)
   ai-arena/                     # Child: AI Arena
+  dungeon-game-ai-arena/        # Child: Private dungeon game repo for AI Arena
   reversi-adventure/            # Child: Reversi Adventure
   vim-learning-game/            # Child: Vim Learning Game
   envdiff/                      # Child: envdiff (Go)
