@@ -8,6 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPOS=(
     "https://github.com/yoskeoka/reversi-adventure"
     "https://github.com/yoskeoka/ai-arena"
+    "https://github.com/yoskeoka/dungeon-game-ai-arena"
     "https://github.com/yoskeoka/vim-learning-game"
     "https://github.com/yoskeoka/ww"
     "https://github.com/yoskeoka/envdiff"
