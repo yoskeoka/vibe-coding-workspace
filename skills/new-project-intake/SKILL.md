@@ -69,6 +69,9 @@ Run a structured intake flow:
      - `setup.sh` (`REPOS`)
      - `.gitignore`
      - `README.md` Managed Projects
+     - `docs/project-plan.md` Managed Projects
+     - `AGENTS.md` workspace structure
+     - `.github/workflows/sync-workflow-to-child-repos.yml` when the new repo should receive workflow sync PRs
 
 7. **Handoff to Step 1**
    - After bootstrap, explicitly ask:
