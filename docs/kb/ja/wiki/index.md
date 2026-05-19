@@ -51,6 +51,7 @@ sources: []
 - 2026-04-24: 英語を `/`、日本語 mirror を `/ja/` に出す bilingual KB rendering を追加した
 - 2026-04-25: `Godot + Codex`、realtime AI shooting、`Next2D`、family-friendly co-op ARPG、UE 風 component architecture、Go transaction / container workflow に関するページとソースを日本語 mirror へ反映した
 - 2026-05-19: まめめもの 6x6 リバーシ記事を取り込み、`browser-perfect-play-games` パターンを追加し、`reversi-adventure` を更新した
+- 2026-05-19: y-tetsu の変形盤面リバーシ記事を取り込み、`Edax`、`hole` mask、custom board の authoring / replay を `browser-perfect-play-games` と `reversi-adventure` に反映した
 
 ## ログ
 
