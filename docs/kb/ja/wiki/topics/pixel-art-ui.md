@@ -22,7 +22,7 @@ pixel-art に特化した UI tooling は追っておく価値がある。汎用 
 
 ## 再利用できるアンカー
 
-- `PIXUI` は引き続き Phaser 側の widget work の主 anchor である。
+- `PixUI` は引き続き Phaser 側の widget work の主 anchor である。
 - `Agent Sprite Forge` は、sprite、map、prop pack を素早く用意して prototype を前に進めるときの anchor になる。
 - `Sprite Fusion Pixel Snapper` は、AI 出力が惜しいが grid / palette の規律を満たしていないときの post-processing anchor になる。
 

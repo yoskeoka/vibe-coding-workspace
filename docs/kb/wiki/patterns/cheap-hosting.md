@@ -30,3 +30,4 @@ For hobby projects, default to hosting combinations that preserve an easy path t
 ## Related pages
 
 - [deployment-options](../topics/deployment-options.md)
+- [user-owned-storage-webapps](./user-owned-storage-webapps.md)

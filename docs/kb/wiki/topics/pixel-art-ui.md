@@ -22,7 +22,7 @@ Pixel-art-specific UI tooling is worth tracking because generic UI stacks often 
 
 ## Reusable anchors
 
-- `PIXUI` remains the main UI-specific reference for Phaser-side widget work.
+- `PixUI` remains the main UI-specific reference for Phaser-side widget work.
 - `Agent Sprite Forge` is relevant when a prototype needs pixel-adjacent sprites, maps, or prop packs generated fast enough to unblock implementation.
 - `Sprite Fusion Pixel Snapper` is the post-processing anchor when AI outputs are visually close but fail actual grid or palette discipline.
 

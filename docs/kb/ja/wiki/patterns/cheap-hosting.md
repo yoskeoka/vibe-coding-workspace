@@ -30,3 +30,4 @@ sources:
 ## 関連ページ
 
 - [deployment-options](../topics/deployment-options.md)
+- [user-owned-storage-webapps](./user-owned-storage-webapps.md)

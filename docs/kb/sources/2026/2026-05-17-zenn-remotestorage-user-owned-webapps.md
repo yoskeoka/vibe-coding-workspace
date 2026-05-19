@@ -12,6 +12,7 @@ tags:
   - privacy
 related_pages:
   - ../../wiki/topics/deployment-options.md
+  - ../../wiki/patterns/cheap-hosting.md
   - ../../wiki/patterns/user-owned-storage-webapps.md
 ---
 
