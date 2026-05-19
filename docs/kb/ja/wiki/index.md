@@ -1,6 +1,6 @@
 ---
 title: ワークスペースナレッジベース
-last_reviewed: 2026-04-25
+last_reviewed: 2026-05-19
 status: seed
 sources: []
 ---
@@ -35,6 +35,7 @@ sources: []
 - [source-ingestion](patterns/source-ingestion.md)
 - [cheap-hosting](patterns/cheap-hosting.md)
 - [branching-narrative-authoring](patterns/branching-narrative-authoring.md)
+- [browser-perfect-play-games](patterns/browser-perfect-play-games.md)
 - [component-oriented-gameplay](patterns/component-oriented-gameplay.md)
 - [go-transaction-boundaries](patterns/go-transaction-boundaries.md)
 - [go-container-workflows](patterns/go-container-workflows.md)
@@ -49,6 +50,7 @@ sources: []
 - 2026-04-22: Unity の `Esoteric Ebb` 振り返りを、branching narrative authoring パターンとして取り込み、`Ink`、story variable、text search、validation risk をまとめた
 - 2026-04-24: 英語を `/`、日本語 mirror を `/ja/` に出す bilingual KB rendering を追加した
 - 2026-04-25: `Godot + Codex`、realtime AI shooting、`Next2D`、family-friendly co-op ARPG、UE 風 component architecture、Go transaction / container workflow に関するページとソースを日本語 mirror へ反映した
+- 2026-05-19: まめめもの 6x6 リバーシ記事を取り込み、`browser-perfect-play-games` パターンを追加し、`reversi-adventure` を更新した
 
 ## ログ
 

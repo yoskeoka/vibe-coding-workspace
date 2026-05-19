@@ -71,6 +71,7 @@ NAV_PATHS = {
         "wiki/patterns/source-ingestion.md",
         "wiki/patterns/cheap-hosting.md",
         "wiki/patterns/branching-narrative-authoring.md",
+        "wiki/patterns/browser-perfect-play-games.md",
         "wiki/patterns/component-oriented-gameplay.md",
         "wiki/patterns/go-transaction-boundaries.md",
         "wiki/patterns/go-container-workflows.md",

@@ -1,6 +1,6 @@
 ---
 title: ナレッジベースログ
-last_reviewed: 2026-04-25
+last_reviewed: 2026-05-19
 status: seed
 sources: []
 ---
@@ -16,3 +16,4 @@ sources: []
 - 2026-04-22: Unity の `Esoteric Ebb: tackling interactive writing challenges` を取り込み、`branching-narrative-authoring` ページを新設し、`Ink`、story-variable 命名、choice feedback、text search、事前 validation を anchor としてまとめた
 - 2026-04-24: `docs/kb/ja/` mirror、MkDocs static i18n 公開、locale-aware な source index、英語のみを retrieval 対象とするガイダンスを追加した
 - 2026-04-25: `Luminary`、shi3z の AI vertical shooter、`Godot + Codex`、`Next2D`、UE 風 component gameplay architecture、Go transaction-boundary design、modern Go container default を含む source note と wiki page の日本語 mirror を追加し、`ai-game-dev`、`wiki/index.md` も同期した
+- 2026-05-19: まめめもの `6x6リバーシの神` を取り込み、`sources/2021/2021-12-30-mametter-6x6-reversi-god.md`、`browser-perfect-play-games`、`reversi-adventure` の日本語 mirror を追加・更新した
