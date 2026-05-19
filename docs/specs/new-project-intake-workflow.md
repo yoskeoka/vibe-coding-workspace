@@ -33,7 +33,7 @@ Skill responsibilities:
    - create GitHub repository if missing
    - ensure local child repo exists
    - initialize docs/workflow scaffold in child repo
-   - ensure workspace meta config includes the new project (`setup.sh`, `.gitignore`, README Managed Projects)
+   - ensure workspace meta config includes the new project (`setup.sh`, `.gitignore`, `README.md` Managed Projects, `docs/project-plan.md` Managed Projects, `AGENTS.md` workspace structure, and `.github/workflows/sync-workflow-to-child-repos.yml` when the repo should receive workflow sync PRs)
 6. After bootstrap, explicitly propose continuing with `plan-project` in the new child repo.
 
 ### 2. Research-checkpoint handoff notes

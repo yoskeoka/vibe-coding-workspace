@@ -13,7 +13,7 @@ jobs:
       cancel-in-progress: true
     strategy:
       matrix:
-        repo: [ai-arena, reversi-adventure, vim-learning-game, ww, envdiff]
+        repo: [ai-arena, dungeon-game-ai-arena, reversi-adventure, reversi-ai-arena, vim-learning-game, ww, envdiff]
       fail-fast: false
 
     steps:

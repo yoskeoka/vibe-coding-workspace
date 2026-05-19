@@ -57,6 +57,14 @@ docs/
 1. Run `setup-workspace.sh` to set up submodule, symlinks, and docs/ templates (mechanical setup).
 2. Then follow the steps below to configure CLAUDE.md for this project.
 
+When adding a brand-new child repository to this workspace, also update the workspace-side registry files that describe managed repos:
+- `setup.sh`
+- `.gitignore`
+- `README.md` Managed Projects
+- `docs/project-plan.md` Managed Projects
+- `AGENTS.md` workspace structure
+- `.github/workflows/sync-workflow-to-child-repos.yml` if the child repo should receive automated workflow sync PRs
+
 ## Updating the Workflow Submodule
 
 Child repos that use `.claude/vendor/workflow` as a submodule will frequently see diffs like:

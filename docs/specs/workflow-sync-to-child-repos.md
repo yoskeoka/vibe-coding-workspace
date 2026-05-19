@@ -8,6 +8,8 @@ The `Sync Workflow to Child Repos` GitHub Actions workflow keeps the `.claude/ve
 
 ## Sync Rule
 
+The workflow matrix is the registry of managed child repositories that should receive automated workflow-sync PRs. When the workspace adds a new child repository that uses `setup-workspace.sh`, update `.github/workflows/sync-workflow-to-child-repos.yml` in the same change if that repository should receive this sync behavior.
+
 For each child repository:
 
 1. Read the current workflow submodule commit recorded in the child repo.
