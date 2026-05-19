@@ -1,6 +1,6 @@
 ---
 title: AI 補助ゲーム開発
-last_reviewed: 2026-04-25
+last_reviewed: 2026-05-19
 status: seed
 sources:
   - ../../sources/2026/2026-03-10-munimaru-component-oriented-gameplay.md
@@ -11,6 +11,7 @@ sources:
   - ../../sources/2026/2026-04-22-unity-interactive-writing-esoteric-ebb.md
   - ../../sources/2026/2026-04-10-sonicmoov-next2d-origin-story.md
   - ../../sources/2026/2026-04-13-gamespark-luminary-family-coop-arpg.md
+  - ../../sources/2026/2026-05-15-npaka-agent-sprite-forge.md
 ---
 
 # AI 補助ゲーム開発
@@ -32,6 +33,7 @@ sources:
 - `Next2D` の起源記事は、rendering architecture、production tooling、engine-specific `MCP` server が一体の stack である点で relevant。
 - `Luminary` interview はよい対照になる。AI が開発に入っても、よい game-design の参照は別途必要であり、shared solo / co-op progression や punishment の削減は残すべき具体アンカーである。
 - branching narrative system は固有の spec surface を要する。dialogue-heavy な game では、authoring tool、state-variable convention、feedback point、validation check を、content が膨らむ前に記録しておくべき。
+- `Agent Sprite Forge` は asset 側の signal を足す。自然言語から sprite や map の候補を作り、local cleanup と export を通して engine-usable な出力に整える流れが重要である。
 
 ## 再利用できるパターン
 
@@ -44,6 +46,7 @@ sources:
 - system-heavy な game では、設計が fixed script chain ではなく emergent interaction に依存するなら、architectural safety net と intent protocol を先に決める。
 - accessibility-first な RPG では、どの friction system を意図的に外すかを早めに決める。「accessible」は tuning だけでなく system choice である。
 - narrative-heavy な prototype では、authoring loop を plain-text で検索可能にし、launch 前に automated check を入れる。`Esoteric Ebb` の具体参照は `Ink` で、比較候補として `Yarn Spinner`、`Arcweave`、`articy:draft` を残しておく。
+- asset が不足しがちな prototype では、`generate -> local cleanup -> engine export` 自体を 1 つの milestone として扱う。速く生成できても、runtime に入れられなければ value が出ない。
 
 ## Open questions
 
@@ -59,6 +62,7 @@ sources:
 - [phaser](../tools/phaser.md)
 - [godot](../tools/godot.md)
 - [next2d](../tools/next2d.md)
+- [agent-sprite-forge](../tools/agent-sprite-forge.md)
 - [reversi-adventure](../projects/reversi-adventure.md)
 - [branching-narrative-authoring](../patterns/branching-narrative-authoring.md)
 - [component-oriented-gameplay](../patterns/component-oriented-gameplay.md)

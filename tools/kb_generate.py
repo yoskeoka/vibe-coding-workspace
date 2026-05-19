@@ -58,18 +58,22 @@ SECTION_LABELS = {
 NAV_PATHS = {
     "topics": [
         "wiki/topics/llm-knowledge-bases.md",
+        "wiki/topics/agentic-coding-workflows.md",
         "wiki/topics/ai-game-dev.md",
         "wiki/topics/deployment-options.md",
         "wiki/topics/pixel-art-ui.md",
     ],
     "tools": [
+        "wiki/tools/agent-sprite-forge.md",
         "wiki/tools/phaser.md",
         "wiki/tools/godot.md",
         "wiki/tools/next2d.md",
+        "wiki/tools/slopless.md",
     ],
     "patterns": [
         "wiki/patterns/source-ingestion.md",
         "wiki/patterns/cheap-hosting.md",
+        "wiki/patterns/user-owned-storage-webapps.md",
         "wiki/patterns/branching-narrative-authoring.md",
         "wiki/patterns/browser-perfect-play-games.md",
         "wiki/patterns/component-oriented-gameplay.md",
