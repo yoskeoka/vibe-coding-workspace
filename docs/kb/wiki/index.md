@@ -50,7 +50,7 @@ This is the compiled wiki for `vibe-coding-workspace`.
 - 2026-04-22: ingested Unity's `Esoteric Ebb` postmortem as a branching narrative authoring pattern covering `Ink`, story variables, choice feedback, text search, and validation risk
 - 2026-04-24: added bilingual KB rendering so English publishes at `/` and Japanese mirror pages publish at `/ja/` while retrieval stays English-only
 - 2026-04-25: ingested a mixed roundup covering `Godot + Codex`, realtime AI-in-the-loop shooting, `Next2D`, family-friendly co-op ARPG design, UE-style component architecture, and two Go backend/container workflow notes
-- 2026-05-19: ingested mametter's 6x6 Reversi post; added a `browser-perfect-play-games` pattern page and refreshed `reversi-adventure`
+- 2026-05-19: ingested Mametter's 6x6 Reversi post; added a `browser-perfect-play-games` pattern page and refreshed `reversi-adventure`
 
 ## Logs
 
