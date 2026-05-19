@@ -44,9 +44,13 @@ A personal vibe-coding workspace where AI agents do the heavy lifting to build g
 
 | Project | Description | Status |
 |---------|-------------|--------|
-| [reversi-adventure](https://github.com/yoskeoka/reversi-adventure) | Reversi game with AI opponent and move explanation | Phase 1 complete, Phase 2 next |
-| [ai-arena](https://github.com/yoskeoka/ai-arena) | AI competition platform with multiple game types | Phase 1 in planning |
-| [vim-learning-game](https://github.com/yoskeoka/vim-learning-game) | Gamified Vim learning experience | Greenfield, plan defined |
+| [reversi-adventure](https://github.com/yoskeoka/reversi-adventure) | Reversi game with AI opponent and move explanation | Active |
+| [reversi-ai-arena](https://github.com/yoskeoka/reversi-ai-arena) | Lightweight Reversi game for ai-arena dogfooding, visualizer experiments, and WASM-constrained AI practice | Workspace registration complete after this PR; child repo bootstrap next |
+| [ai-arena](https://github.com/yoskeoka/ai-arena) | AI competition platform with multiple game types | Active |
+| [dungeon-game-ai-arena](https://github.com/yoskeoka/dungeon-game-ai-arena) | Private dungeon game development repo for AI Arena | Active |
+| [vim-learning-game](https://github.com/yoskeoka/vim-learning-game) | Gamified Vim learning experience | Active |
+| [ww](https://github.com/yoskeoka/ww) | Workspace worktree manager for multi-repo parallel development | Active |
+| [envdiff](https://github.com/yoskeoka/envdiff) | Environment diff tooling in Go | Active |
 
 ## Milestones
 

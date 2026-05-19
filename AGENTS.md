@@ -14,6 +14,7 @@ vibe-coding-workspace/          # This repo (workspace root)
   ai-arena/                     # Child: AI Arena
   dungeon-game-ai-arena/        # Child: Private dungeon game repo for AI Arena
   reversi-adventure/            # Child: Reversi Adventure
+  reversi-ai-arena/             # Child: Reversi game repo for AI Arena
   vim-learning-game/            # Child: Vim Learning Game
   envdiff/                      # Child: envdiff (Go)
 ```
