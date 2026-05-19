@@ -20,20 +20,24 @@ sources: []
 ### トピック
 
 - [llm-knowledge-bases](topics/llm-knowledge-bases.md)
+- [agentic-coding-workflows](topics/agentic-coding-workflows.md)
 - [ai-game-dev](topics/ai-game-dev.md)
 - [deployment-options](topics/deployment-options.md)
 - [pixel-art-ui](topics/pixel-art-ui.md)
 
 ### ツール
 
+- [agent-sprite-forge](tools/agent-sprite-forge.md)
 - [godot](tools/godot.md)
 - [next2d](tools/next2d.md)
 - [phaser](tools/phaser.md)
+- [slopless](tools/slopless.md)
 
 ### パターン
 
 - [source-ingestion](patterns/source-ingestion.md)
 - [cheap-hosting](patterns/cheap-hosting.md)
+- [user-owned-storage-webapps](patterns/user-owned-storage-webapps.md)
 - [branching-narrative-authoring](patterns/branching-narrative-authoring.md)
 - [browser-perfect-play-games](patterns/browser-perfect-play-games.md)
 - [component-oriented-gameplay](patterns/component-oriented-gameplay.md)
@@ -52,6 +56,7 @@ sources: []
 - 2026-04-25: `Godot + Codex`、realtime AI shooting、`Next2D`、family-friendly co-op ARPG、UE 風 component architecture、Go transaction / container workflow に関するページとソースを日本語 mirror へ反映した
 - 2026-05-19: まめめもの 6x6 リバーシ記事を取り込み、`browser-perfect-play-games` パターンを追加し、`reversi-adventure` を更新した
 - 2026-05-19: y-tetsu の変形盤面リバーシ記事を取り込み、`Edax`、`hole` mask、custom board の authoring / replay を `browser-perfect-play-games` と `reversi-adventure` に反映した
+- 2026-05-19: `remoteStorage`、`slopless`、`Agent Sprite Forge`、低コスト AWS game server、`Sprite Fusion Pixel Snapper`、local `Claude Code` の 6 件を取り込み、`agentic-coding-workflows`、`slopless`、`agent-sprite-forge`、`user-owned-storage-webapps` を追加し、deployment / pixel-art 系ページを更新した
 
 ## ログ
 

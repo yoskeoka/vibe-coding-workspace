@@ -1,6 +1,6 @@
 ---
 title: AI-Assisted Game Development
-last_reviewed: 2026-04-25
+last_reviewed: 2026-05-19
 status: seed
 sources:
   - ../../sources/2026/2026-03-10-munimaru-component-oriented-gameplay.md
@@ -11,6 +11,7 @@ sources:
   - ../../sources/2026/2026-04-22-unity-interactive-writing-esoteric-ebb.md
   - ../../sources/2026/2026-04-10-sonicmoov-next2d-origin-story.md
   - ../../sources/2026/2026-04-13-gamespark-luminary-family-coop-arpg.md
+  - ../../sources/2026/2026-05-15-npaka-agent-sprite-forge.md
 ---
 
 # AI-Assisted Game Development
@@ -32,6 +33,7 @@ The `Esoteric Ebb` postmortem adds a non-agentic but important production signal
 - The `Next2D` origin story is relevant because it ties rendering architecture, production tooling, and an engine-specific `MCP` server into one stack.
 - The `Luminary` interview is a useful counterweight: good game-design references are still needed even when AI is part of development. Shared solo/co-op progression and reduced punishment are concrete design anchors worth keeping.
 - Branching narrative systems need their own spec surface. For dialogue-heavy games, record the authoring tool, state-variable conventions, feedback points, and validation checks before content scale makes branch debt hard to reason about.
+- `Agent Sprite Forge` adds a more production-minded asset angle: generate candidate sprites or maps from language, then run local cleanup and export steps until the results are engine-usable.
 
 ## Reusable pattern
 
@@ -44,6 +46,7 @@ The `Esoteric Ebb` postmortem adds a non-agentic but important production signal
 - For systems-heavy games, define the architectural safety net and the intent protocol up front if the design depends on emergent interactions rather than fixed scripted chains.
 - For accessibility-first RPGs, decide early which friction systems are intentionally removed; "accessible" is a systems choice, not only a tuning pass.
 - For narrative-heavy prototypes, keep the authoring loop plain-text-searchable and add automated checks before launch. `Ink` is the concrete reference from `Esoteric Ebb`, with `Yarn Spinner`, `Arcweave`, and `articy:draft` worth comparing.
+- For asset-starved prototypes, treat `generate -> local cleanup -> engine export` as its own milestone. Fast asset generation only helps if the outputs can actually enter the runtime without manual salvage work.
 
 ## Open questions
 
@@ -59,6 +62,7 @@ The `Esoteric Ebb` postmortem adds a non-agentic but important production signal
 - [phaser](../tools/phaser.md)
 - [godot](../tools/godot.md)
 - [next2d](../tools/next2d.md)
+- [agent-sprite-forge](../tools/agent-sprite-forge.md)
 - [reversi-adventure](../projects/reversi-adventure.md)
 - [branching-narrative-authoring](../patterns/branching-narrative-authoring.md)
 - [component-oriented-gameplay](../patterns/component-oriented-gameplay.md)
