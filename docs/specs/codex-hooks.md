@@ -1,11 +1,12 @@
 # Codex Hook Dispatch
 
-`vibe-coding-workspace` は、workspace root から child repo を編集する運用を前提に、project-scoped Codex hook を workspace 側で受ける。
+`vibe-coding-workspace` は、workspace root から child repo を編集する運用を前提に、project-scoped Codex hook を workspace 側で受ける。workspace 自身の English Markdown prose QA も同じ hook 入口で扱う。
 
 ## Scope
 
 - workspace root で開始した Codex session
 - child repo ごとの formatter / lint / test hook への dispatch
+- workspace 自身の English Markdown に対する prose lint
 - repo 固有 hook 実装の配置先の規約
 
 この spec は child repo 固有の formatter / lint / test の中身そのものは定義しない。各 child repo の `docs/specs/*` がその契約を持つ。
@@ -13,14 +14,28 @@
 ## Workspace Hook Entry Points
 
 - `vibe-coding-workspace/.codex/config.toml`
-  - `features.codex_hooks = true` を有効にする
+  - `features.hooks = true` を有効にする
 - `vibe-coding-workspace/.codex/hooks.json`
   - `PostToolUse`
   - `Stop`
 - `vibe-coding-workspace/.codex/hooks/dispatch_hook.py`
   - child repo 判定と委譲だけを担当する
+- `vibe-coding-workspace/.codex/hooks/slopless_post_tool_use.py`
+  - workspace 自身の English Markdown にだけ `slopless` を適用する
 
-workspace 側 hook は repo 固有の formatter / test 実装を持たず、child repo の script を呼び出すだけに留める。
+workspace 側 hook は child repo の formatter / test 実装を持たず、repo 固有の重い品質ゲートは child repo script に委譲する。workspace 自身で持つローカル判定は English Markdown 向け prose lint に限る。
+
+## Workspace Markdown Lint
+
+workspace root の `PostToolUse` は、`apply_patch`, `Edit`, `Write` で触れた file path のうち `*.md` にだけ `slopless` を適用してよい。
+
+- 実行タイミングは `Stop` ではなく `PostToolUse` とする
+- 理由は、Markdown 編集直後に対象 file 単位で失敗させた方が feedback が早く、session stop 時に repo 全体を再走査する必要もないため
+- 実行対象は file content に日本語文字が含まれない Markdown に限る
+- `slopless` は `npx` 実行を使うが、package version は固定し、対応する npm `gitHead` が期待する GitHub commit SHA と一致することを hook 側で確認してから起動する
+- npm cache は repo 外の一時 directory を使ってよい
+
+この lint は workspace 自身の prose QA 用であり、child repo 側 `Stop` hook のような広い lint/test gate の代替ではない。
 
 ## Child Repo Contract
 
