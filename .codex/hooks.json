@@ -5,6 +5,12 @@
       "hooks": [
         {
           "type": "command",
+          "command": "python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/slopless_post_tool_use.py\"",
+          "timeout": 120,
+          "statusMessage": "Running slopless on edited Markdown"
+        },
+        {
+          "type": "command",
           "command": "python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/dispatch_hook.py\" post-tool-use",
           "timeout": 30,
           "statusMessage": "Dispatching child-repo formatter hooks"
