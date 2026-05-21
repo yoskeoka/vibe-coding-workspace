@@ -32,7 +32,7 @@ jobs:
             https://x-access-token:${GH_TOKEN}@github.com/yoskeoka/${{ matrix.repo }}.git \
             child-repo
 
-      - name: Check if skills update is needed
+      - name: Check if child workflow asset update is needed
         id: check
         run: |
           cd child-repo
@@ -44,12 +44,18 @@ jobs:
           if [ "$CURRENT_SHA" = "$NEW_SHA" ]; then
             echo "skip=true" >> $GITHUB_OUTPUT
             echo "Submodule already at $NEW_SHA, skipping."
-          elif git -C .claude/vendor/workflow diff --quiet "$CURRENT_SHA" "$NEW_SHA" -- skills/; then
+          elif git -C .claude/vendor/workflow diff --quiet "$CURRENT_SHA" "$NEW_SHA" -- \
+            skills/ \
+            setup-workspace.sh \
+            tools/install-hooks.sh \
+            .githooks/pre-push \
+            tools/workflow-lint.sh \
+            .github/workflows/workflow-lint.yml; then
             echo "skip=true" >> $GITHUB_OUTPUT
-            echo "No changes under skills/ between $CURRENT_SHA and $NEW_SHA, skipping."
+            echo "No child-consumed workflow changes between $CURRENT_SHA and $NEW_SHA, skipping."
           else
             echo "skip=false" >> $GITHUB_OUTPUT
-            echo "Will update skills/: $CURRENT_SHA → $NEW_SHA"
+            echo "Will update child-consumed workflow assets: $CURRENT_SHA → $NEW_SHA"
           fi
 
       - name: Close stale sync PRs
@@ -86,7 +92,7 @@ jobs:
             --description "Automated workflow sync PRs" \
             --force
 
-      - name: Create sync PR for skills update
+      - name: Create sync PR for workflow asset update
         if: steps.check.outputs.skip == 'false'
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_SYNC_GITHUB_TOKEN }}
@@ -102,13 +108,20 @@ jobs:
           # Point submodule to the exact commit that triggered this workflow
           git -C .claude/vendor/workflow fetch origin
           git -C .claude/vendor/workflow checkout "${NEW_SHA}"
+          ./.claude/vendor/workflow/setup-workspace.sh .
 
-          git add .claude/vendor/workflow
+          git add -A
           COMMIT_SUBJECT=$(git -C .claude/vendor/workflow log -1 --format=%s "${NEW_SHA}")
-          COMMIT_LIST=$(git -C .claude/vendor/workflow log --format='- %h %s' "${CURRENT_SHA}..${NEW_SHA}" -- skills/)
-          DIFF_STAT=$(git -C .claude/vendor/workflow diff --stat "${CURRENT_SHA}" "${NEW_SHA}" -- skills/)
+          COMMIT_LIST=$(git -C .claude/vendor/workflow log --format='- %h %s' "${CURRENT_SHA}..${NEW_SHA}" -- \
+            skills/ \
+            setup-workspace.sh \
+            tools/install-hooks.sh \
+            .githooks/pre-push \
+            tools/workflow-lint.sh \
+            .github/workflows/workflow-lint.yml)
+          DIFF_STAT=$(git diff --stat --cached)
           COMMIT_MSG=$(cat << EOF
-          chore: update workflow skills to ${SHORT_SHA}
+          chore: sync workflow assets to ${SHORT_SHA}
 
           Automated sync from yoskeoka/vibe-coding-workspace@${NEW_SHA}
 
@@ -129,7 +142,7 @@ jobs:
           PR_BODY=$(cat << EOF
           ## Automated Workflow Sync
 
-          Updates the workflow submodule for changes under \`skills/\`.
+          Updates the workflow submodule and copied workflow runtime assets for child-consumed workflow changes.
 
           | | |
           |---|---|
@@ -157,7 +170,7 @@ jobs:
 
           gh pr create \
             --repo yoskeoka/${{ matrix.repo }} \
-            --title "chore: update workflow skills to ${SHORT_SHA}" \
+            --title "chore: sync workflow assets to ${SHORT_SHA}" \
             --body "${PR_BODY}" \
             --base main \
             --head "${BRANCH}" \

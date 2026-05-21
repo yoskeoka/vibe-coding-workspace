@@ -26,7 +26,7 @@ Main linter script.
 **Interface:**
 ```
 tools/workflow-lint.sh --mode=pre-push
-tools/workflow-lint.sh --mode=ci [--pr-title=TITLE] [--pr-body=BODY]
+tools/workflow-lint.sh --mode=ci [--pr-title=TITLE] [--pr-body=BODY] [--report-file=PATH]
 ```
 
 **Behavior:**
@@ -38,14 +38,26 @@ tools/workflow-lint.sh --mode=ci [--pr-title=TITLE] [--pr-body=BODY]
 - Runs branch / exec-plan checks even when diff-based checks are skipped
 - Runs checks based on mode
 - Outputs normalized warning blocks to stderr
+- When `--report-file` is provided, also writes machine-readable JSON Lines to that path for CI consumption
 - Each warning block includes:
   - warning class (`fixable` or `advisory`)
   - one primary finding message
   - rationale line prefixed with `WHY:`
   - remediation line prefixed with `FIX:` for `fixable` warnings
+- Each JSON Lines warning record includes:
+  - `type: "warning"`
+  - `class`
+  - `finding`
+  - `why`
+  - `fix`
 - Counts warnings by finding block, not by output line
 - Prints summary totals by warning class
 - Prints a final reminder when any `fixable` warnings remain
+- Appends one JSON Lines summary record when `--report-file` is provided:
+  - `type: "summary"`
+  - `total`
+  - `fixable`
+  - `advisory`
 - Always exits 0
 
 **Checks:**
@@ -114,12 +126,13 @@ tools/install-hooks.sh [repo-path]
 - Defaults to current directory if no path given
 - Copies `.githooks/pre-push` to the target repo's `.githooks/` directory
 - Copies `tools/workflow-lint.sh` to the target repo's `tools/` directory
+- Copies `.github/workflows/workflow-lint.yml` to the target repo's `.github/workflows/` directory
 - Sets `git config core.hooksPath .githooks` in the target repo
 - Idempotent (safe to run multiple times)
 
 ### `setup-workspace.sh` (renamed from `setup-skills.sh`)
 
-Adds a hook installation step after skill symlink setup:
+Adds a workflow-asset installation step after skill symlink setup:
 - Calls `tools/install-hooks.sh` for the child repo
 - All existing functionality preserved
 
@@ -131,6 +144,10 @@ GitHub Actions workflow that runs the linter on PRs targeting `main`.
 - Uses the repository-standard `actions/checkout` reference managed through `pinact`
 - Checks out with full history (`fetch-depth: 0`) so the resolved base ref exists locally and diff checks can run
 - Passes PR title and body from GitHub event context to `--pr-title` / `--pr-body`
+- Passes `--report-file` to capture JSON Lines warning output from the linter
+- Emits GitHub Actions warning annotations for each finding so reviewers can see `fixable` and `advisory` warnings without opening raw logs
+- Writes a step summary that includes warning counts and a short finding list
+- Keeps the job green when the linter only finds warnings; visibility changes, blocking behavior does not
 
 ## Non-Goals
 
