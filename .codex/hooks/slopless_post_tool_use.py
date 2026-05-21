@@ -3,8 +3,10 @@
 import json
 import os
 import re
+import stat
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 
@@ -12,6 +14,8 @@ POST_TOOL_NAMES = {"apply_patch", "Edit", "Write"}
 SLOPLESS_VERSION = "0.2.10"
 SLOPLESS_SHA = "c40c40f3127d0c61cbfc1c34cacf0a5f49ed7e26"
 SLOPLESS_PACKAGE = f"slopless@{SLOPLESS_VERSION}"
+NPM_VIEW_TIMEOUT_SECONDS = 15
+SLOPLESS_TIMEOUT_SECONDS = 100
 JAPANESE_TEXT_RE = re.compile(r"[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
 PATCH_PATH_RE = re.compile(r"^\*\*\* (?:Add|Delete|Update) File: (.+\.md)$", re.MULTILINE)
 MOVE_PATH_RE = re.compile(r"^\*\*\* Move to: (.+\.md)$", re.MULTILINE)
@@ -83,9 +87,24 @@ def is_english_markdown(path: Path) -> bool:
     return JAPANESE_TEXT_RE.search(content) is None
 
 
+def secure_runtime_dir() -> Path:
+    runtime_dir = Path(tempfile.gettempdir()) / f"vibe-coding-workspace-slopless-{os.getuid()}"
+    if runtime_dir.exists():
+        info = os.lstat(runtime_dir)
+        if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
+            raise RuntimeError(f"refusing insecure runtime dir: {runtime_dir}")
+        os.chmod(runtime_dir, 0o700)
+    else:
+        runtime_dir.mkdir(mode=0o700)
+    return runtime_dir
+
+
 def slopless_env() -> dict[str, str]:
+    runtime_dir = secure_runtime_dir()
+    cache_dir = runtime_dir / "npm-cache"
+    cache_dir.mkdir(mode=0o700, exist_ok=True)
     env = os.environ.copy()
-    env.setdefault("npm_config_cache", "/tmp/vibe-coding-workspace-slopless-npm-cache")
+    env.setdefault("npm_config_cache", str(cache_dir))
     env.setdefault("npm_config_update_notifier", "false")
     env.setdefault("npm_config_fund", "false")
     env.setdefault("npm_config_audit", "false")
@@ -93,7 +112,16 @@ def slopless_env() -> dict[str, str]:
 
 
 def sha_stamp_path() -> Path:
-    return Path(f"/tmp/vibe-coding-workspace-slopless-{SLOPLESS_VERSION}-{SLOPLESS_SHA}.stamp")
+    return secure_runtime_dir() / f"slopless-{SLOPLESS_VERSION}-{SLOPLESS_SHA}.stamp"
+
+
+def write_stamp_atomically(path: Path, content: str) -> None:
+    try:
+        fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+    except FileExistsError:
+        return
+    with os.fdopen(fd, "w", encoding="utf-8") as handle:
+        handle.write(content)
 
 
 def ensure_pinned_git_head(env: dict[str, str]) -> int:
@@ -101,12 +129,19 @@ def ensure_pinned_git_head(env: dict[str, str]) -> int:
     if stamp.exists():
         return 0
 
-    proc = subprocess.run(
-        ["npm", "view", SLOPLESS_PACKAGE, "gitHead"],
-        capture_output=True,
-        text=True,
-        env=env,
-    )
+    try:
+        proc = subprocess.run(
+            ["npm", "view", SLOPLESS_PACKAGE, "gitHead"],
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=NPM_VIEW_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired:
+        sys.stderr.write(
+            f"timed out resolving gitHead for {SLOPLESS_PACKAGE} after {NPM_VIEW_TIMEOUT_SECONDS}s\n"
+        )
+        return 124
     if proc.returncode != 0:
         sys.stderr.write(f"failed to resolve gitHead for {SLOPLESS_PACKAGE}\n")
         if proc.stdout:
@@ -122,28 +157,39 @@ def ensure_pinned_git_head(env: dict[str, str]) -> int:
         )
         return 2
 
-    stamp.write_text(actual, encoding="utf-8")
+    write_stamp_atomically(stamp, actual)
     return 0
 
 
 def run_slopless(path: Path) -> int:
-    env = slopless_env()
+    try:
+        env = slopless_env()
+    except RuntimeError as exc:
+        sys.stderr.write(f"{exc}\n")
+        return 2
     verify = ensure_pinned_git_head(env)
     if verify != 0:
         return verify
 
-    proc = subprocess.run(
-        [
-            "npx",
-            "--yes",
-            f"--package={SLOPLESS_PACKAGE}",
-            "slopless",
-            str(path),
-        ],
-        capture_output=True,
-        text=True,
-        env=env,
-    )
+    try:
+        proc = subprocess.run(
+            [
+                "npx",
+                "--yes",
+                f"--package={SLOPLESS_PACKAGE}",
+                "slopless",
+                str(path),
+            ],
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=SLOPLESS_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired:
+        sys.stderr.write(
+            f"slopless timed out for {path.relative_to(repo_root())} after {SLOPLESS_TIMEOUT_SECONDS}s\n"
+        )
+        return 124
     if proc.returncode != 0:
         sys.stderr.write(f"slopless failed for {path.relative_to(repo_root())}\n")
         if proc.stdout:
