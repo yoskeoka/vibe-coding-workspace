@@ -8,14 +8,11 @@ reads the emitted warning text.
 
 Relevant implementation points:
 
-- [tools/workflow-lint.sh](/home/yoske/src/github.com/yoskeoka/vibe-coding-workspace/tools/workflow-lint.sh:6)
-  documents `All checks are warnings only (exit 0)`.
-- [tools/workflow-lint.sh](/home/yoske/src/github.com/yoskeoka/vibe-coding-workspace/tools/workflow-lint.sh:761)
-  only prints a reminder when `FIXABLE_WARN_COUNT > 0`.
-- [tools/workflow-lint.sh](/home/yoske/src/github.com/yoskeoka/vibe-coding-workspace/tools/workflow-lint.sh:768)
-  exits with `0` unconditionally.
-- [docs/specs/workflow-linter.md](/home/yoske/src/github.com/yoskeoka/vibe-coding-workspace/docs/specs/workflow-linter.md:5)
-  and [docs/specs/workflow-linter.md](/home/yoske/src/github.com/yoskeoka/vibe-coding-workspace/docs/specs/workflow-linter.md:72)
+- `tools/workflow-lint.sh:6` documents `All checks are warnings only (exit 0)`.
+- `tools/workflow-lint.sh:761` only prints a reminder when
+  `FIXABLE_WARN_COUNT > 0`.
+- `tools/workflow-lint.sh:768` exits with `0` unconditionally.
+- `docs/specs/workflow-linter.md:5` and `docs/specs/workflow-linter.md:72`
   explicitly describe the CI contract as non-blocking.
 
 This makes `fixable` warnings easy to miss in PR review because the checks UI
