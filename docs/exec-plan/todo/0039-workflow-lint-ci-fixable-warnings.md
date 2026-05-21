@@ -11,7 +11,7 @@ Keep `tools/workflow-lint.sh` non-blocking while making `fixable` warnings visib
 This plan should produce:
 
 - one workspace implementation PR that updates the warning contract, CI presentation, and workflow-asset distribution rules
-- follow-up child-repo PRs for every managed repo that consumes the copied workflow-lint assets
+- merged child-repo rollout PRs for every managed repo that consumes the copied workflow-lint assets
 
 ## Background
 
@@ -126,7 +126,8 @@ Managed repos in scope:
 1. Create the workspace implementation PR with the spec, CI, and sync-contract changes.
 2. Merge that PR to `main`.
 3. Let the updated workspace sync flow create child-repo rollout PRs, or if one repo needs a documented exception, create that child PR manually and record why automation was insufficient.
-4. Verify that every in-scope child repo has an open PR carrying the updated copied workflow assets.
+4. Review and merge the child-repo rollout PRs after their repo-local checks and review gates are satisfied.
+5. Verify that every in-scope child repo has landed the updated copied workflow assets on `main`.
 
 ## Sub-tasks
 
@@ -140,6 +141,7 @@ Managed repos in scope:
 - [ ] [depends on: workspace implementation] Open and verify the workspace PR
 - [ ] [depends on: workspace PR merged] Open or confirm child rollout PRs for all managed repos
 - [ ] [depends on: child rollout PRs] Review each child PR for copied-file parity and obvious repo-specific breakage
+- [ ] [depends on: child PR verification] Merge each child rollout PR after checks and required review gates pass
 
 ## Parallelism
 
@@ -159,6 +161,7 @@ Managed repos in scope:
 
 - confirm the updated sync workflow detects runtime-asset changes, not just `skills/` changes
 - confirm each in-scope child repo receives a PR that includes the copied workflow-lint assets
+- confirm each in-scope child repo merges that PR cleanly without repo-specific workflow drift that requires a separate follow-up issue
 - confirm each child PR keeps the repo-local files aligned:
   - `tools/workflow-lint.sh`
   - `.githooks/pre-push`
@@ -170,4 +173,4 @@ Managed repos in scope:
 - `fixable` workflow-lint findings become visible in GitHub Actions review surfaces without converting the job into a hard blocker
 - the workflow contract stays robust against false positives because the linter remains non-blocking
 - workspace-owned automation can distribute workflow-lint runtime asset changes to child repos
-- every managed child repo ends the rollout with an open PR carrying the updated copied workflow assets
+- every managed child repo ends the rollout with the updated copied workflow assets merged to its default branch
