@@ -31,7 +31,7 @@ For each child repository:
 5. If the commit range includes at least one of those paths, continue with the existing sync flow:
    - close stale `workflow-sync` PRs
    - create a new PR that updates `.claude/vendor/workflow`
-   - run `setup-workspace.sh` from the updated submodule against the child repo so the copied runtime assets stay aligned with the new workflow commit
+   - run `tools/install-hooks.sh` from the updated submodule against the child repo so the copied runtime assets stay aligned with the new workflow commit without re-running full submodule/bootstrap setup
 
 ## PR Expectations
 

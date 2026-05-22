@@ -108,7 +108,7 @@ jobs:
           # Point submodule to the exact commit that triggered this workflow
           git -C .claude/vendor/workflow fetch origin
           git -C .claude/vendor/workflow checkout "${NEW_SHA}"
-          ./.claude/vendor/workflow/setup-workspace.sh .
+          ./.claude/vendor/workflow/tools/install-hooks.sh .
 
           git add -A
           COMMIT_SUBJECT=$(git -C .claude/vendor/workflow log -1 --format=%s "${NEW_SHA}")
