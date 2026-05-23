@@ -58,8 +58,8 @@ else
     CHILD_REPO="$(pwd)"
 fi
 
-# Verify we're in a git repo
-if [ ! -d "$CHILD_REPO/.git" ]; then
+# Verify we're in a git repo (regular checkout or git worktree)
+if ! git -C "$CHILD_REPO" rev-parse --git-dir >/dev/null 2>&1; then
     echo "Error: $CHILD_REPO is not a git repository."
     exit 1
 fi
@@ -179,13 +179,13 @@ elif [ ! -f "CLAUDE.md" ] && [ ! -f "AGENTS.md" ]; then
 fi
 
 # ----------------------------------------
-# Step 6: Install workflow hooks
+# Step 6: Install workflow runtime assets
 # ----------------------------------------
-echo "Installing workflow hooks..."
+echo "Installing workflow runtime assets..."
 "$SCRIPT_DIR/tools/install-hooks.sh" "$CHILD_REPO"
 
 echo "---"
-echo "Done! AI workflow skills and hooks are ready."
+echo "Done! AI workflow skills and runtime assets are ready."
 echo ""
 echo "Next steps:"
 echo "  1. Ask the AI agent to initialize the workflow (triggers manage-workflow skill)."
