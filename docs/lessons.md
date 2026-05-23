@@ -132,3 +132,10 @@
 - **Pattern**: When a guidance file is read top-down for context, it is easy to optimize for visibility in the current session and accidentally turn the file into a manually re-sorted document.
 - **Rule**: Add every new `docs/lessons.md` entry at the end of the file. Do not insert new lessons above older ones unless the task is explicitly reorganizing the file.
 - **Applied**: `docs/lessons.md` maintenance across plan creation, execution, post-task review, and workflow-doc updates.
+
+## Issue Logging Must Use docs/issues First
+
+- **Mistake**: I created follow-up GitHub issues directly when the user asked to "issue化", even though this workspace uses `docs/issues/` as the default issue-tracking artifact for in-flight workflow work.
+- **Pattern**: When PR review surfaces low-priority follow-up items, it is easy to default to repo-native GitHub issues and skip the repo-tracked `docs/issues/` artifact the workflow expects.
+- **Rule**: In this workspace, interpret "issue化" as creating a `docs/issues/<sequence>-<name>.md` file and including it in the active PR unless the user explicitly asks for a GitHub issue as the canonical tracker.
+- **Applied**: Workflow follow-up logging during `execute-task`, `review-task`, and post-review cleanup across the workspace and child repos.
