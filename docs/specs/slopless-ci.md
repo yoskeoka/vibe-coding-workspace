@@ -2,7 +2,7 @@
 
 ## Goal
 
-Run `slopless` in CI for Markdown files changed by a pull request targeting `main`, and surface prose findings as GitHub Actions warnings and step-summary output.
+Run `slopless` in CI for Markdown files changed by a pull request targeting `main`, surface prose findings as GitHub Actions warnings, and keep a single upserted PR comment with the latest findings and repair guidance.
 
 ## Scope
 
@@ -57,7 +57,10 @@ tools/list-changed-markdown.sh [base-ref]
 - pins `slopless` to version `0.2.10`
 - verifies the npm `gitHead` for `slopless@0.2.10` matches commit `c40c40f3127d0c61cbfc1c34cacf0a5f49ed7e26` before linting
 - converts `slopless` findings into GitHub Actions warning annotations
+- appends rule-specific repair hints to each warning annotation message
 - writes a step summary with the number of checked files, the number of findings, and a compact findings table when warnings exist
+- upserts one PR comment identified by a stable marker instead of posting a new comment on every rerun or push
+- includes the latest checked file count, findings table, and rule-specific repair hints in that PR comment
 - keeps the job green when `slopless` reports prose findings, but fails the job if the pinned package cannot be verified or the tool output is malformed
 
 ## Reporting Contract
@@ -69,12 +72,19 @@ Each `slopless` finding should be surfaced as a GitHub Actions warning annotatio
 - column
 - `ruleId` as the warning title
 - lint message text
+- a short repair hint derived from the matching readability rule
 
 The step summary should include:
 
 - number of checked files
 - number of findings
 - per-finding table when findings exist
+
+The workflow should also maintain one PR comment per pull request:
+
+- comment body includes a stable hidden marker so reruns can detect and update it
+- comment body includes the latest file count, finding count, findings table, and per-rule repair hints
+- reruns after new pushes update the existing comment instead of creating another one
 
 ## Local Verification
 

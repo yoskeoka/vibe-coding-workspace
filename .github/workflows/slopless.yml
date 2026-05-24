@@ -13,6 +13,10 @@ name: Slopless
 jobs:
   slopless:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
     env:
       SLOPLESS_VERSION: 0.2.10
       SLOPLESS_SHA: c40c40f3127d0c61cbfc1c34cacf0a5f49ed7e26
@@ -31,6 +35,10 @@ jobs:
       - name: Run slopless for changed Markdown files
         env:
           BASE_REF: origin/${{ github.base_ref }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_API_URL: ${{ github.api_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           set -euo pipefail
 
@@ -55,11 +63,24 @@ jobs:
           import os
           import subprocess
           import sys
+          import urllib.error
+          import urllib.request
           from pathlib import Path
 
           version = os.environ["SLOPLESS_VERSION"]
           summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
           repo_root = Path.cwd()
+          github_token = os.environ.get("GITHUB_TOKEN")
+          github_api_url = os.environ.get("GITHUB_API_URL", "https://api.github.com")
+          github_repository = os.environ.get("GITHUB_REPOSITORY")
+          pr_number = os.environ.get("PR_NUMBER")
+          comment_marker = "<!-- slopless-ci-comment -->"
+
+          rule_hints = {
+              "slopless/coleman-liau": "Use shorter words and split dense sentences so the average letters per word and sentence length both drop.",
+              "slopless/flesch-kincaid": "Shorten sentences, prefer simpler wording, and turn dense paragraphs into bullets where that keeps the meaning intact.",
+              "slopless/gunning-fog": "Keep each sentence to one idea and replace multi-syllable jargon with plainer alternatives when accuracy allows.",
+          }
 
           findings = []
           linted_files = []
@@ -102,13 +123,19 @@ jobs:
                   except ValueError:
                       display_path = str(file_path)
                   for message in record.get("messages", []):
+                      rule = message.get("ruleId", "slopless")
+                      hint = rule_hints.get(
+                          rule,
+                          "Shorten sentences and simplify wording until the prose becomes easier to scan.",
+                      )
                       findings.append(
                           {
                               "file": display_path,
                               "line": message.get("line", 1),
                               "column": message.get("column", 1),
-                              "rule": message.get("ruleId", "slopless"),
+                              "rule": rule,
                               "message": message.get("message", "slopless finding"),
+                              "hint": hint,
                           }
                       )
 
@@ -130,23 +157,85 @@ jobs:
                       line=finding["line"],
                       column=finding["column"],
                       title=escape_property(title),
-                      message=escape_data(finding["message"]),
+                      message=escape_data(f"{finding['message']} Hint: {finding['hint']}"),
                   )
               )
 
+          def build_comment_body() -> str:
+              lines = [
+                  comment_marker,
+                  "## Slopless Findings",
+                  "",
+                  f"- Files checked: {len(linted_files)}",
+                  f"- Findings: {len(findings)}",
+                  "",
+              ]
+              if findings:
+                  lines.extend(
+                      [
+                          "| File | Line | Rule | Warning | Repair hint |",
+                          "| --- | --- | --- | --- | --- |",
+                      ]
+                  )
+                  for finding in findings:
+                      file_name = finding["file"].replace("|", "\\|")
+                      rule = finding["rule"].replace("|", "\\|")
+                      message = finding["message"].replace("\n", " ").replace("|", "\\|")
+                      hint = finding["hint"].replace("\n", " ").replace("|", "\\|")
+                      lines.append(
+                          f"| {file_name} | {finding['line']} | {rule} | {message} | {hint} |"
+                      )
+              else:
+                  lines.append("No slopless warnings.")
+              return "\n".join(lines) + "\n"
+
+          def github_request(method: str, url: str, payload: dict | None = None) -> dict | list:
+              if not github_token:
+                  raise RuntimeError("GITHUB_TOKEN is required for PR comment upsert")
+              headers = {
+                  "Accept": "application/vnd.github+json",
+                  "Authorization": f"Bearer {github_token}",
+                  "X-GitHub-Api-Version": "2022-11-28",
+                  "User-Agent": "slopless-ci",
+              }
+              data = None
+              if payload is not None:
+                  headers["Content-Type"] = "application/json"
+                  data = json.dumps(payload).encode("utf-8")
+              request = urllib.request.Request(url, data=data, headers=headers, method=method)
+              with urllib.request.urlopen(request) as response:
+                  body = response.read().decode("utf-8")
+              return json.loads(body) if body else {}
+
+          def upsert_pr_comment(body: str) -> None:
+              if not github_repository or not pr_number:
+                  print("Skipping PR comment upsert because repository or PR number is missing.")
+                  return
+              comments_url = (
+                  f"{github_api_url}/repos/{github_repository}/issues/{pr_number}/comments?per_page=100"
+              )
+              try:
+                  comments = github_request("GET", comments_url)
+                  for comment in comments:
+                      if comment_marker in comment.get("body", ""):
+                          update_url = f"{github_api_url}/repos/{github_repository}/issues/comments/{comment['id']}"
+                          github_request("PATCH", update_url, {"body": body})
+                          print(f"Updated slopless PR comment: {comment['html_url']}")
+                          return
+                  created = github_request("POST", comments_url, {"body": body})
+                  print(f"Created slopless PR comment: {created.get('html_url', comments_url)}")
+              except urllib.error.HTTPError as exc:
+                  details = exc.read().decode("utf-8", errors="replace")
+                  print(
+                      f"Skipping PR comment upsert due to GitHub API error {exc.code}: {details}",
+                      file=sys.stderr,
+                  )
+
+          comment_body = build_comment_body()
+
           if summary_path:
               with open(summary_path, "a", encoding="utf-8") as fh:
-                  fh.write("## Slopless Findings\n\n")
-                  fh.write(f"- Files checked: {len(linted_files)}\n")
-                  fh.write(f"- Findings: {len(findings)}\n\n")
-                  if findings:
-                      fh.write("| File | Line | Rule | Message |\n")
-                      fh.write("| --- | --- | --- | --- |\n")
-                      for finding in findings:
-                          file_name = finding["file"].replace("|", "\\|")
-                          rule = finding["rule"].replace("|", "\\|")
-                          message = finding["message"].replace("\n", " ").replace("|", "\\|")
-                          fh.write(f"| {file_name} | {finding['line']} | {rule} | {message} |\n")
-                  else:
-                      fh.write("No slopless warnings.\n")
+                  fh.write(comment_body.removeprefix(f"{comment_marker}\n"))
+
+          upsert_pr_comment(comment_body)
           PY
