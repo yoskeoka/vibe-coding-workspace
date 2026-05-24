@@ -112,18 +112,25 @@ jobs:
                           }
                       )
 
-          def escape(value: str) -> str:
+          def escape_data(value: str) -> str:
               return value.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+
+          def escape_property(value: str) -> str:
+              return (
+                  escape_data(value)
+                  .replace(":", "%3A")
+                  .replace(",", "%2C")
+              )
 
           for finding in findings:
               title = finding["rule"]
               print(
                   "::warning file={file},line={line},col={column},title={title}::{message}".format(
-                      file=escape(finding["file"]),
+                      file=escape_property(finding["file"]),
                       line=finding["line"],
                       column=finding["column"],
-                      title=escape(title),
-                      message=escape(finding["message"]),
+                      title=escape_property(title),
+                      message=escape_data(finding["message"]),
                   )
               )
 
