@@ -1,0 +1,145 @@
+name: Slopless
+
+"on":
+  pull_request:
+    branches: [main]
+    paths:
+      - "**/*.md"
+      - ".github/workflows/slopless.yml"
+      - "tools/list-changed-markdown.sh"
+      - "docs/specs/slopless-ci.md"
+      - "docs/specs/README.md"
+
+jobs:
+  slopless:
+    runs-on: ubuntu-latest
+    env:
+      SLOPLESS_VERSION: 0.2.10
+      SLOPLESS_SHA: c40c40f3127d0c61cbfc1c34cacf0a5f49ed7e26
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Fetch PR base branch
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
+        run: |
+          git fetch --no-tags origin \
+            "+refs/heads/${BASE_BRANCH}:refs/remotes/origin/${BASE_BRANCH}"
+
+      - name: Run slopless for changed Markdown files
+        env:
+          BASE_REF: origin/${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+
+          actual_git_head="$(npm view "slopless@${SLOPLESS_VERSION}" gitHead | tr -d '\n')"
+          if [ "$actual_git_head" != "$SLOPLESS_SHA" ]; then
+            echo "slopless gitHead mismatch: expected ${SLOPLESS_SHA}, got ${actual_git_head}" >&2
+            exit 1
+          fi
+
+          mapfile -t files < <(./tools/list-changed-markdown.sh "$BASE_REF")
+
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No changed Markdown files found."
+            exit 0
+          fi
+
+          printf 'Changed Markdown files:\n'
+          printf '  %s\n' "${files[@]}"
+
+          python3 - "${files[@]}" <<'PY'
+          import json
+          import os
+          import subprocess
+          import sys
+          from pathlib import Path
+
+          version = os.environ["SLOPLESS_VERSION"]
+          summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+          repo_root = Path.cwd()
+
+          findings = []
+          linted_files = []
+
+          for raw_path in sys.argv[1:]:
+              path = Path(raw_path)
+              proc = subprocess.run(
+                  [
+                      "npx",
+                      "--yes",
+                      f"--package=slopless@{version}",
+                      "slopless",
+                      str(path),
+                  ],
+                  capture_output=True,
+                  text=True,
+              )
+
+              stdout = proc.stdout.strip()
+              if not stdout:
+                  if proc.returncode == 0:
+                      linted_files.append(str(path))
+                      continue
+                  if proc.stderr:
+                      sys.stderr.write(proc.stderr)
+                  raise SystemExit(f"slopless returned {proc.returncode} without JSON output for {path}")
+
+              try:
+                  records = json.loads(stdout)
+              except json.JSONDecodeError as exc:
+                  if proc.stderr:
+                      sys.stderr.write(proc.stderr)
+                  raise SystemExit(f"failed to parse slopless JSON for {path}: {exc}") from exc
+
+              linted_files.append(str(path))
+              for record in records:
+                  file_path = Path(record.get("filePath", str(path)))
+                  try:
+                      display_path = str(file_path.resolve().relative_to(repo_root))
+                  except ValueError:
+                      display_path = str(file_path)
+                  for message in record.get("messages", []):
+                      findings.append(
+                          {
+                              "file": display_path,
+                              "line": message.get("line", 1),
+                              "column": message.get("column", 1),
+                              "rule": message.get("ruleId", "slopless"),
+                              "message": message.get("message", "slopless finding"),
+                          }
+                      )
+
+          def escape(value: str) -> str:
+              return value.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+
+          for finding in findings:
+              title = finding["rule"]
+              print(
+                  "::warning file={file},line={line},col={column},title={title}::{message}".format(
+                      file=escape(finding["file"]),
+                      line=finding["line"],
+                      column=finding["column"],
+                      title=escape(title),
+                      message=escape(finding["message"]),
+                  )
+              )
+
+          if summary_path:
+              with open(summary_path, "a", encoding="utf-8") as fh:
+                  fh.write("## Slopless Findings\n\n")
+                  fh.write(f"- Files checked: {len(linted_files)}\n")
+                  fh.write(f"- Findings: {len(findings)}\n\n")
+                  if findings:
+                      fh.write("| File | Line | Rule | Message |\n")
+                      fh.write("| --- | --- | --- | --- |\n")
+                      for finding in findings:
+                          file_name = finding["file"].replace("|", "\\|")
+                          rule = finding["rule"].replace("|", "\\|")
+                          message = finding["message"].replace("\n", " ").replace("|", "\\|")
+                          fh.write(f"| {file_name} | {finding['line']} | {rule} | {message} |\n")
+                  else:
+                      fh.write("No slopless warnings.\n")
+          PY
