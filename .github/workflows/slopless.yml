@@ -4,7 +4,10 @@ name: Slopless
   pull_request:
     branches: [main]
     paths:
-      - "**/*.md"
+      - "docs/specs/**/*.md"
+      - "docs/design-decisions/**/*.md"
+      - "docs/kb/**/*.md"
+      - "docs/references/**/*.md"
       - ".github/workflows/slopless.yml"
       - "tools/list-changed-markdown.sh"
       - "docs/specs/slopless-ci.md"

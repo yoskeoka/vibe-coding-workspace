@@ -10,7 +10,7 @@ Keep one PR comment up to date with the latest findings and repair hints.
 
 - Repository: `vibe-coding-workspace`
 - Trigger: GitHub Actions `pull_request` events targeting `main`
-- Files considered: changed `*.md` files added, modified, or renamed in the PR diff
+- Files considered: changed Markdown under `docs/specs/`, `docs/design-decisions/`, `docs/kb/`, and `docs/references/`
 - Non-goal: linting every historical Markdown file on every pull request
 - Non-goal: reproducing the local Codex hook behavior inside CI
 
@@ -20,10 +20,14 @@ A file counts as changed Markdown when all of these are true:
 
 1. The file appears in `git diff --name-only --diff-filter=AMR <base-ref>...HEAD`.
 2. The file still exists in the worktree after checkout.
-3. The path ends with `.md`.
+3. The path is under one of these directories:
+   - `docs/specs/`
+   - `docs/design-decisions/`
+   - `docs/kb/`
+   - `docs/references/`
+4. The path ends with `.md`.
 
-CI does not filter by language.
-Any changed `*.md` file is eligible.
+CI does not filter by language inside those directories.
 
 ## Helper Script
 
@@ -41,7 +45,7 @@ tools/list-changed-markdown.sh [base-ref]
 - compares `${base_ref}...HEAD`
 - emits one matching path per line
 - ignores deleted files
-- treats every changed `*.md` path as eligible
+- limits eligibility to Markdown under `docs/specs/`, `docs/design-decisions/`, `docs/kb/`, and `docs/references/`
 
 ## GitHub Actions Workflow
 
@@ -50,7 +54,7 @@ tools/list-changed-markdown.sh [base-ref]
 ### Workflow Behavior
 
 - triggers on pull requests targeting `main`
-- starts only for Markdown-related paths and the workflow/helper/spec files
+- starts only for the scoped long-lived Markdown paths and the workflow/helper/spec files
 - uses the repository-standard `actions/checkout` reference managed through `pinact`
 - provisions a pinned Node runtime before calling `npm view` or `npx`
 - checks out with full history (`fetch-depth: 0`) so `<base-ref>...HEAD` resolves cleanly
