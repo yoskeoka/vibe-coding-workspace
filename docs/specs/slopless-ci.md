@@ -103,7 +103,7 @@ tools/list-changed-markdown.sh origin/main
 
 For a focused local CI-style check, run:
 
-```sh
+```bash
 actual_git_head="$(npm view "slopless@0.2.10" gitHead | tr -d '\n')"
 test "$actual_git_head" = "c40c40f3127d0c61cbfc1c34cacf0a5f49ed7e26"
 mapfile -t files < <(tools/list-changed-markdown.sh origin/main)
