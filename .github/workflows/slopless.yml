@@ -16,6 +16,7 @@ jobs:
     permissions:
       contents: read
       issues: write
+      pull-requests: write
     env:
       NODE_VERSION: "22.19"
       SLOPLESS_VERSION: 0.2.10
@@ -247,14 +248,14 @@ jobs:
                           return
                   created = github_request("POST", comments_url, {"body": body})
                   print(f"Created slopless PR comment: {created.get('html_url', comments_url)}")
-              except (socket.timeout, TimeoutError, urllib.error.URLError) as exc:
-                  print(f"Skipping PR comment upsert due to GitHub API timeout/error: {exc}", file=sys.stderr)
               except urllib.error.HTTPError as exc:
                   details = exc.read().decode("utf-8", errors="replace")
                   print(
                       f"Skipping PR comment upsert due to GitHub API error {exc.code}: {details}",
                       file=sys.stderr,
                   )
+              except (socket.timeout, TimeoutError, urllib.error.URLError) as exc:
+                  print(f"Skipping PR comment upsert due to GitHub API timeout/error: {exc}", file=sys.stderr)
 
           comment_body = build_comment_body()
 

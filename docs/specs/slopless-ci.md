@@ -67,7 +67,8 @@ tools/list-changed-markdown.sh [base-ref]
 - includes the latest file count, findings table, and rule-specific repair hints in that PR comment
 - paginates PR comment reads before deciding whether to create or update the marker comment
 - uses explicit timeouts for both the `slopless` subprocess and GitHub API requests
-- requests only `contents: read` and `issues: write` permissions
+- requests `contents: read`, `issues: write`, and `pull-requests: write` permissions for PR comment upsert
+- logs the GitHub API response body for HTTP failures so permission errors remain diagnosable
 - keeps the job green when `slopless` reports prose findings, but fails the job if the pinned package cannot be verified or the tool output is malformed
 
 ## Reporting Contract
