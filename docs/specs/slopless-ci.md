@@ -73,6 +73,8 @@ tools/list-changed-markdown.sh [base-ref]
 - uses explicit timeouts for both the `slopless` subprocess and GitHub API requests
 - requests `contents: read`, `issues: write`, and `pull-requests: write` permissions for PR comment upsert
 - logs the GitHub API response body for HTTP failures so permission errors remain diagnosable
+- treats `slopless` exit code `0` with empty stdout as a valid zero-findings result
+- treats missing `filePath` fields in tool output defensively so the workflow never annotates the repository root as the target file
 - keeps the job green when `slopless` reports prose findings, but fails the job if the pinned package cannot be verified or the tool output is malformed
 
 ## Reporting Contract
