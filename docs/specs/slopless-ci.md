@@ -52,11 +52,12 @@ tools/list-changed-markdown.sh [base-ref]
 - triggers on pull requests targeting `main`
 - starts only for Markdown-related paths and the workflow/helper/spec files
 - uses the repository-standard `actions/checkout` reference managed through `pinact`
+- provisions a pinned Node runtime before calling `npm view` or `npx`
 - checks out with full history (`fetch-depth: 0`) so `<base-ref>...HEAD` resolves cleanly
 - explicitly fetches the PR base branch before diffing
 - calls `tools/list-changed-markdown.sh` with the fetched base ref
 - exits successfully with a clear message when no changed Markdown files are found
-- runs `slopless` against every changed Markdown file
+- runs one `slopless` command over the full changed Markdown file set
 - pins `slopless` to version `0.2.10`
 - verifies the npm `gitHead` for `slopless@0.2.10` matches commit `c40c40f3127d0c61cbfc1c34cacf0a5f49ed7e26` before linting
 - converts `slopless` findings into GitHub Actions warning annotations
@@ -64,6 +65,9 @@ tools/list-changed-markdown.sh [base-ref]
 - writes a step summary with the file count, finding count, and a compact findings table
 - upserts one PR comment with a stable marker instead of posting a new comment on every rerun or push
 - includes the latest file count, findings table, and rule-specific repair hints in that PR comment
+- paginates PR comment reads before deciding whether to create or update the marker comment
+- uses explicit timeouts for both the `slopless` subprocess and GitHub API requests
+- requests only `contents: read` and `issues: write` permissions
 - keeps the job green when `slopless` reports prose findings, but fails the job if the pinned package cannot be verified or the tool output is malformed
 
 ## Reporting Contract
@@ -102,8 +106,6 @@ For a focused local CI-style check, run:
 ```sh
 actual_git_head="$(npm view "slopless@0.2.10" gitHead | tr -d '\n')"
 test "$actual_git_head" = "c40c40f3127d0c61cbfc1c34cacf0a5f49ed7e26"
-tools/list-changed-markdown.sh origin/main | while IFS= read -r path; do
-  [ -n "$path" ] || continue
-  npx --yes --package=slopless@0.2.10 slopless "$path" || true
-done
+mapfile -t files < <(tools/list-changed-markdown.sh origin/main)
+[ "${#files[@]}" -eq 0 ] || npx --yes --package=slopless@0.2.10 slopless "${files[@]}" || true
 ```
