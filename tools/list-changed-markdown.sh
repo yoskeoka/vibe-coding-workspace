@@ -8,7 +8,7 @@ while IFS= read -r path; do
     [ -f "$path" ] || continue
 
     case "$path" in
-        docs/specs/*.md|docs/specs/**/*.md|docs/design-decisions/*.md|docs/design-decisions/**/*.md|docs/kb/*.md|docs/kb/**/*.md|docs/references/*.md|docs/references/**/*.md)
+        docs/specs/*.md|docs/design-decisions/*.md|docs/kb/*.md|docs/references/*.md)
             printf '%s\n' "$path"
             ;;
     esac
