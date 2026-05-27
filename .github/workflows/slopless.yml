@@ -17,7 +17,7 @@ jobs:
       contents: read
       issues: write
     env:
-      NODE_VERSION: 22.19
+      NODE_VERSION: "22.19"
       SLOPLESS_VERSION: 0.2.10
       SLOPLESS_SHA: c40c40f3127d0c61cbfc1c34cacf0a5f49ed7e26
     steps:
