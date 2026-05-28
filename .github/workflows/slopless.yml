@@ -6,6 +6,7 @@ name: Slopless
     paths:
       - "docs/specs/**/*.md"
       - "docs/design-decisions/**/*.md"
+      - "docs/development/**/*.md"
       - "docs/kb/**/*.md"
       - "docs/references/**/*.md"
       - ".github/workflows/slopless.yml"
