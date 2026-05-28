@@ -10,7 +10,7 @@ Keep one PR comment up to date with the latest findings and repair hints.
 
 - Repository: `vibe-coding-workspace`
 - Trigger: GitHub Actions `pull_request` events targeting `main`
-- Files considered: changed Markdown under `docs/specs/`, `docs/design-decisions/`, `docs/kb/`, and `docs/references/`
+- Files considered: changed Markdown under `docs/specs/`, `docs/design-decisions/`, `docs/development/`, `docs/kb/`, and `docs/references/`
 - Non-goal: linting every historical Markdown file on every pull request
 - Non-goal: reproducing the local Codex hook behavior inside CI
 
@@ -23,6 +23,7 @@ A file counts as changed Markdown when all of these are true:
 3. The path is under one of these directories:
    - `docs/specs/`
    - `docs/design-decisions/`
+   - `docs/development/`
    - `docs/kb/`
    - `docs/references/`
 4. The path ends with `.md`.
@@ -45,7 +46,7 @@ tools/list-changed-markdown.sh [base-ref]
 - compares `${base_ref}...HEAD`
 - emits one matching path per line
 - ignores deleted files
-- limits eligibility to Markdown under `docs/specs/`, `docs/design-decisions/`, `docs/kb/`, and `docs/references/`
+- limits eligibility to Markdown under `docs/specs/`, `docs/design-decisions/`, `docs/development/`, `docs/kb/`, and `docs/references/`
 
 ## GitHub Actions Workflow
 
