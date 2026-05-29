@@ -27,8 +27,7 @@ A file counts as changed Markdown when all of these are true:
    - `docs/kb/`
    - `docs/references/`
 4. The path ends with `.md`.
-
-CI does not filter by language inside those directories.
+5. The file content does not contain Japanese characters, so English-targeted prose checks skip Japanese-main documents without depending on path naming.
 
 ## Helper Script
 
@@ -47,6 +46,7 @@ tools/list-changed-markdown.sh [base-ref]
 - emits one matching path per line
 - ignores deleted files
 - limits eligibility to Markdown under `docs/specs/`, `docs/design-decisions/`, `docs/development/`, `docs/kb/`, and `docs/references/`
+- skips files whose content contains Japanese characters, even if they also contain ASCII, punctuation, or emoji
 
 ## GitHub Actions Workflow
 
