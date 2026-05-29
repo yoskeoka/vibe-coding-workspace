@@ -27,8 +27,13 @@ A file counts as changed Markdown when all of these are true:
    - `docs/kb/`
    - `docs/references/`
 4. The path ends with `.md`.
-
-CI does not filter by language inside those directories.
+5. The file content does not contain characters from the helper's Japanese-writing ranges:
+   - Hiragana and fullwidth Katakana (`U+3040`-`U+30FF`)
+   - Katakana Phonetic Extensions (`U+31F0`-`U+31FF`)
+   - CJK Unified Ideographs Extension A (`U+3400`-`U+4DBF`)
+   - CJK Unified Ideographs (`U+4E00`-`U+9FFF`)
+   - CJK Compatibility Ideographs (`U+F900`-`U+FAFF`)
+   - Halfwidth Katakana (`U+FF65`-`U+FF9F`)
 
 ## Helper Script
 
@@ -47,6 +52,7 @@ tools/list-changed-markdown.sh [base-ref]
 - emits one matching path per line
 - ignores deleted files
 - limits eligibility to Markdown under `docs/specs/`, `docs/design-decisions/`, `docs/development/`, `docs/kb/`, and `docs/references/`
+- skips files whose content contains any character from those Japanese-writing ranges, even if they also contain ASCII, punctuation, or emoji
 
 ## GitHub Actions Workflow
 
