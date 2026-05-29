@@ -15,9 +15,16 @@ This plan should end with:
 
 ## Background
 
-Workspace PRs added a Japanese-content exclusion rule to `tools/list-changed-markdown.sh` and documented the exact Unicode ranges in `docs/specs/slopless-ci.md`.
+The desired child-repo behavior is to exclude changed Markdown files that contain any character from these Japanese-writing ranges before invoking `slopless`:
 
-That change does not automatically reach child repos because the child `slopless` workflows still inline their changed-Markdown detection inside `.github/workflows/slopless.yml` instead of calling the workspace helper. A child rollout therefore needs workflow-file edits even if the intended behavior stays aligned with the workspace source of truth.
+- Hiragana and fullwidth Katakana (`U+3040`-`U+30FF`)
+- Katakana Phonetic Extensions (`U+31F0`-`U+31FF`)
+- CJK Unified Ideographs Extension A (`U+3400`-`U+4DBF`)
+- CJK Unified Ideographs (`U+4E00`-`U+9FFF`)
+- CJK Compatibility Ideographs (`U+F900`-`U+FAFF`)
+- Halfwidth Katakana (`U+FF65`-`U+FF9F`)
+
+The child `slopless` workflows still inline their changed-Markdown detection inside `.github/workflows/slopless.yml` instead of calling a shared helper. A child rollout therefore needs workflow-file edits even when the intended behavior matches the latest workspace-side proposal.
 
 The rollout remains narrow:
 
@@ -27,9 +34,9 @@ The rollout remains narrow:
 
 ## Design Decisions
 
-### 1. Keep the workspace behavior as the policy source, but port it into child workflow-local detection
+### 1. Keep the rollout behavior explicit in this plan, then port it into child workflow-local detection
 
-- the workspace helper and spec define the behavior to mirror
+- this plan itself defines the Japanese-writing ranges to mirror, so execution does not depend on an unmerged workspace branch
 - child repos do not ship `tools/list-changed-markdown.sh`, so the rollout should update each workflow's inline detection block rather than adding a new shared script in this task
 - preserve each child repo's current path scope such as `docs/development/` where present
 
@@ -80,7 +87,7 @@ Target repos:
 
 ## PR / Rollout Plan
 
-1. Capture the current workspace behavior that child repos need to mirror.
+1. Capture the current child workflow shape and apply the Japanese-writing ranges defined in this plan.
 2. Inspect each child repo's current `slopless` workflow and preserve any repo-local path-scope differences.
 3. Update the inline changed-Markdown detection in each child workflow.
 4. Run lightweight workflow validation in each child repo.
@@ -89,7 +96,7 @@ Target repos:
 
 ## Sub-tasks
 
-- [ ] Capture the current workspace `slopless` filtering behavior and the child repos' current inline detector shape
+- [ ] Capture the current child repos' inline detector shape and map the plan's Japanese-writing ranges into it
 - [ ] [parallel] Update `ai-arena` to exclude Japanese-writing Markdown before `slopless`
 - [ ] [parallel] Update `dungeon-game-ai-arena` to exclude Japanese-writing Markdown before `slopless`
 - [ ] [parallel] Update `envdiff` to exclude Japanese-writing Markdown before `slopless`
