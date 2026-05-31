@@ -36,10 +36,10 @@ Implement the changes described in the active execution plan, following strict o
 
 ### Rules — Execution Order
 
-1. **Spec First**: Update `docs/specs/` to reflect the intended changes _before_ modifying any code.
-2. **Implement**: Write the code to match the updated spec exactly.
-3. **Log Issues**: If unrelated problems are found during implementation, log them in `docs/issues/<sequence>-<name>.md`. Do **not** fix them within the current plan unless they are blockers.
-4. **Completion**: When all work in the plan is done, move the plan file from `docs/exec-plan/todo/` to `docs/exec-plan/done/`.
+1. Spec First: Update `docs/specs/` to reflect the intended changes _before_ modifying any code.
+2. Implement: Write the code to match the updated spec exactly.
+3. Log Issues: If unrelated problems are found during implementation, log them in `docs/issues/<sequence>-<name>.md`. Do **not** fix them within the current plan unless they are blockers.
+4. Completion: When all work in the plan is done, move the plan file from `docs/exec-plan/todo/` to `docs/exec-plan/done/`.
 
 ### Spec-Code Parity
 
@@ -78,10 +78,10 @@ After ANY correction from the user:
 
 1. Create or update `docs/lessons.md` with the pattern, appending new lessons at the end of the file.
 2. Use this format:
-   - **Mistake**: What went wrong (be specific)
-   - **Pattern**: The underlying cause or anti-pattern
-   - **Rule**: Concrete, actionable rule to prevent recurrence
-   - **Applied**: Where this rule applies (specific files, patterns, situations)
+   - Mistake: What went wrong (be specific)
+   - Pattern: The underlying cause or anti-pattern
+   - Rule: Concrete, actionable rule to prevent recurrence
+   - Applied: Where this rule applies (specific files, patterns, situations)
 3. Review `docs/lessons.md` at session start for relevant learnings.
 
 > "Be more careful" is not a rule. Rules must be specific and testable.

@@ -12,9 +12,9 @@ A personal vibe-coding workspace where AI agents do the heavy lifting to build g
 
 ## Significance
 
-- **Workflow as product**: The AI-Centered Development workflow (AI_WORKFLOW.md, skills, tooling) is a first-class deliverable. Child projects are both the point and the proving ground.
-- **One human, many projects**: Structured plans, specs, and mechanical enforcement let a single reviewer manage multiple projects in parallel without burning out.
-- **Reusable patterns**: What works here can be carried to other repos or shared publicly.
+- Workflow as product: The AI-Centered Development workflow (AI_WORKFLOW.md, skills, tooling) is a first-class deliverable. Child projects are both the point and the proving ground.
+- One human, many projects: Structured plans, specs, and mechanical enforcement let a single reviewer manage multiple projects in parallel without burning out.
+- Reusable patterns: What works here can be carried to other repos or shared publicly.
 
 ## Requirements
 

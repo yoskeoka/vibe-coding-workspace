@@ -12,11 +12,11 @@ AI agents repeatedly violated workflow rules during development (e.g., misusing 
 
 ### What the linter does NOT check
 
-- **Spec-sync**: Whether code changes require spec updates is context-dependent (bug fixes, refactors may not need spec changes). This is fundamentally undecidable by a shell script. Left to human review.
-- **Trivial detection**: Whether a change is "trivial" is a human declaration (via PR title/body `[trivial]`), not mechanically detectable.
-- **Project-specific lint**: `cargo clippy`, `eslint`, etc. are separate concerns managed per-project. Not in scope.
-- **Branch naming convention**: Now formalized in AI_WORKFLOW.md (see "Branch Naming Convention" section). Linter enforcement is unblocked — implement in a future plan.
-- **Exec plan existence / completion**: Now formalized in AI_WORKFLOW.md (see "Exec-Plan Mapping" section). Linter enforcement is unblocked — implement in a future plan.
+- Spec-sync: Whether code changes require spec updates is context-dependent (bug fixes, refactors may not need spec changes). This is fundamentally undecidable by a shell script. Left to human review.
+- Trivial detection: Whether a change is "trivial" is a human declaration (via PR title/body `[trivial]`), not mechanically detectable.
+- Project-specific lint: `cargo clippy`, `eslint`, etc. are separate concerns managed per-project. Not in scope.
+- Branch naming convention: Now formalized in AI_WORKFLOW.md (see "Branch Naming Convention" section). Linter enforcement is unblocked — implement in a future plan.
+- Exec plan existence / completion: Now formalized in AI_WORKFLOW.md (see "Exec-Plan Mapping" section). Linter enforcement is unblocked — implement in a future plan.
 
 ### Pre-commit hooks
 
@@ -24,8 +24,8 @@ AI agents repeatedly violated workflow rules during development (e.g., misusing 
 
 ### Hook placement
 
-- **Local**: pre-push only (sees full branch diff via `origin/main..HEAD`)
-- **CI**: Same checks as pre-push + PR metadata checks (has access to PR title/body)
+- Local: pre-push only (sees full branch diff via `origin/main..HEAD`)
+- CI: Same checks as pre-push + PR metadata checks (has access to PR title/body)
 
 ## Checks
 
@@ -49,9 +49,9 @@ All checks are **warnings** (non-blocking). The goal is visibility, not gatekeep
 
 These checks are now implementable — the branch naming convention and exec-plan mapping rules have been formalized in AI_WORKFLOW.md:
 
-- **Branch naming convention**: Enforce `<type>/<description>` pattern where type is plan|feat|fix|chore|docs.
-- **Exec plan existence**: For `feat/*` and `fix/*` branches, verify `docs/exec-plan/todo/<name>.md` or `done/<name>.md` exists.
-- **Exec plan completion (todo→done)**: For merged `feat/*`/`fix/*` PRs, verify plan moved to `done/`.
+- Branch naming convention: Enforce `<type>/<description>` pattern where type is plan|feat|fix|chore|docs.
+- Exec plan existence: For `feat/*` and `fix/*` branches, verify `docs/exec-plan/todo/<name>.md` or `done/<name>.md` exists.
+- Exec plan completion (todo→done): For merged `feat/*`/`fix/*` PRs, verify plan moved to `done/`.
 
 ## File Structure
 

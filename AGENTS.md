@@ -66,13 +66,13 @@ At the start of a new session, if the user has not given a specific task, sugges
     - **Before making a design decision**, read `docs/design-decisions/core-beliefs.md` and relevant entries in `docs/design-decisions/adr.md`. Present what you found (e.g., "Past decision: X was chosen because Y. Apply the same reasoning here?") before proposing a new direction.
 
 4.  **Execution Rules**:
-    - **Plan First**: Before writing code, ensure a plan exists in `docs/exec-plan/todo/`. Active exec-plans use `<sequence>-<name>.md` and execution branches map by the `-<name>.md` suffix. If no matching plan exists, create one first.
-    - **Spec First**: Update `docs/specs/` to reflect changes BEFORE modifying code.
-    - **Focus**: if you find unrelated issues, log them in `docs/issues/<sequence>-<name>.md` and ignore them for the current task (unless they are blockers).
+    - Plan First: Before writing code, ensure a plan exists in `docs/exec-plan/todo/`. Active exec-plans use `<sequence>-<name>.md` and execution branches map by the `-<name>.md` suffix. If no matching plan exists, create one first.
+    - Spec First: Update `docs/specs/` to reflect changes BEFORE modifying code.
+    - Focus: if you find unrelated issues, log them in `docs/issues/<sequence>-<name>.md` and ignore them for the current task (unless they are blockers).
     - If `ww` fails or behaves unexpectedly during normal workflow use, capture it as a first-class workflow output per `docs/specs/ww-dogfooding-workflow.md` instead of silently dropping to raw git. Record the command, cwd, target repo, expected vs actual behavior, relevant output, fallback usage, and impact.
-    - **Issue Resolution**: When an issue in `docs/issues/` is resolved, move the file to `docs/issues/done/`.
-    - **Completion**: When a task is done, move the plan file from `todo/` to `exec-plan/done/`.
-    - **Post-Task Review**: After completing significant work, run `post-task-review` to log issues, update lessons learned, and propose CLAUDE.md/AGENTS.md updates before creating a PR. Add new `docs/lessons.md` entries at the end of the file.
+    - Issue Resolution: When an issue in `docs/issues/` is resolved, move the file to `docs/issues/done/`.
+    - Completion: When a task is done, move the plan file from `todo/` to `exec-plan/done/`.
+    - Post-Task Review: After completing significant work, run `post-task-review` to log issues, update lessons learned, and propose CLAUDE.md/AGENTS.md updates before creating a PR. Add new `docs/lessons.md` entries at the end of the file.
 
 ## When asked to "Start a new feature":
 1.  Create a planning worktree with global `ww`: `ww create plan/feature-name`, then enter it with `cd "$(ww cd plan/feature-name)"`

@@ -24,15 +24,15 @@ Every change goes through: **Branch from latest `main`** → **Work** → **Veri
 
 ### Process Principles
 
-1. **AI-Centric Context**: All necessary information must be immediately accessible to AI in the `docs/` directory. Files should be structured for easy parsing and context retrieval.
-2. **Spec-Code Parity**: `docs/specs/` must strictly match the actual code. No PR is reviewable without verification that specs and code are in sync.
-3. **Verification First**: Human review happens _after_ mechanical tests and "visual" verification data are ready.
+1. AI-Centric Context: All necessary information must be immediately accessible to AI in the `docs/` directory. Files should be structured for easy parsing and context retrieval.
+2. Spec-Code Parity: `docs/specs/` must strictly match the actual code. No PR is reviewable without verification that specs and code are in sync.
+3. Verification First: Human review happens _after_ mechanical tests and "visual" verification data are ready.
 
 ### Code Quality Principles
 
-4. **Simplicity First**: Make every change as simple as possible. Prefer the straightforward approach.
-5. **No Laziness**: Find root causes. No temporary fixes. Maintain senior developer standards.
-6. **Minimal Impact**: Only touch what's necessary. Avoid introducing bugs through unnecessary changes.
+4. Simplicity First: Make every change as simple as possible. Prefer the straightforward approach.
+5. No Laziness: Find root causes. No temporary fixes. Maintain senior developer standards.
+6. Minimal Impact: Only touch what's necessary. Avoid introducing bugs through unnecessary changes.
 
 ## Directory Structure to Initialize
 
@@ -108,9 +108,9 @@ done
 
 ### When to update
 
-- **Before starting a new task**: ensures skills and hooks are current.
-- **When you see a dirty submodule diff**: run `--update` to apply and commit it cleanly.
-- **After pushing changes to the workflow repo**: update child repos to pick up the new version.
+- Before starting a new task: ensures skills and hooks are current.
+- When you see a dirty submodule diff: run `--update` to apply and commit it cleanly.
+- After pushing changes to the workflow repo: update child repos to pick up the new version.
 
 ## Configuring AGENTS.md and CLAUDE.md
 
@@ -118,8 +118,8 @@ done
 
 ### Symlink strategy
 
-- **`AGENTS.md`**: The canonical file. All workflow instructions go here.
-- **`CLAUDE.md`**: A symlink to `AGENTS.md`. Do NOT create as a separate file.
+- `AGENTS.md`: The canonical file. All workflow instructions go here.
+- `CLAUDE.md`: A symlink to `AGENTS.md`. Do NOT create as a separate file.
 
 When initializing the workflow:
 
@@ -144,29 +144,29 @@ This project follows the AI-Centered Development workflow.
 
 ### Core Responsibilities
 
-1. **Workflow Adherence**:
+1. Workflow Adherence:
    - NEVER skip the "Execution Plan" phase for non-trivial changes.
    - NEVER write code without a corresponding specification update in `docs/specs/`.
    - ALWAYS create a new branch from the latest `main` before starting any work.
    - ALWAYS go through GitHub PR review for every change — including doc-only changes.
 
-2. **Branch & PR Rules**:
+2. Branch & PR Rules:
    - Create a fresh worktree from `main` for every task with global `ww`: `ww create <type>/<description>` from the target repo, or `ww create --repo <repo> <type>/<description>` from the workspace root
    - Never reuse an existing feature branch.
    - Run all lint and test checks (non-AI tooling) before creating a PR.
    - Route PR preparation and bounded post-PR follow-up through `review-task`; use the **PR template** with this fallback order: current repo `.github/PULL_REQUEST_TEMPLATE.md` → workspace root repo `<workspace-root>/.github/PULL_REQUEST_TEMPLATE.md` → child repo `.claude/vendor/workflow/.github/PULL_REQUEST_TEMPLATE.md` → workflow repo `.github/PULL_REQUEST_TEMPLATE.md`
 
-3. **Context Management**:
+3. Context Management:
    - Your "memory" is the `docs/` directory.
    - `docs/project-plan.md` is your North Star.
    - `docs/exec-plan/todo/` is your current task list. Active plan filenames use `<sequence>-<name>.md`.
    - `docs/design-decisions/` is your architectural conscience.
 
-4. **Execution Rules**:
-   - **Plan First**: Before writing code, ensure a plan exists in `docs/exec-plan/todo/`. Active exec-plans use `<sequence>-<name>.md` and execution branches map by suffix. If not, create one.
-   - **Spec First**: Update `docs/specs/` to reflect changes BEFORE modifying code.
-   - **Focus**: If you find unrelated issues, log them in `docs/issues/<sequence>-<name>.md` and ignore them for the current task (unless they are blockers).
-   - **Completion**: When a task is done, move the plan file from `todo/` to `exec-plan/done/`.
+4. Execution Rules:
+   - Plan First: Before writing code, ensure a plan exists in `docs/exec-plan/todo/`. Active exec-plans use `<sequence>-<name>.md` and execution branches map by suffix. If not, create one.
+   - Spec First: Update `docs/specs/` to reflect changes BEFORE modifying code.
+   - Focus: If you find unrelated issues, log them in `docs/issues/<sequence>-<name>.md` and ignore them for the current task (unless they are blockers).
+   - Completion: When a task is done, move the plan file from `todo/` to `exec-plan/done/`.
 ```
 
 #### 2. Subagent Strategy (recommended)
