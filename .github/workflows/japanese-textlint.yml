@@ -38,9 +38,6 @@ jobs:
           git fetch --no-tags origin \
             "+refs/heads/${BASE_BRANCH}:refs/remotes/origin/${BASE_BRANCH}"
 
-      - name: Install textlint dependencies
-        run: npm ci
-
       - name: Run textlint for changed Japanese Markdown files
         env:
           BASE_REF: origin/${{ github.base_ref }}
@@ -60,6 +57,8 @@ jobs:
 
           printf 'Changed Japanese Markdown files:\n'
           printf '  %s\n' "${files[@]}"
+
+          npm ci
 
           python3 - "${files[@]}" <<'PY'
           import json

@@ -139,3 +139,10 @@
 - **Pattern**: When PR review surfaces low-priority follow-up items, it is easy to default to repo-native GitHub issues and skip the repo-tracked `docs/issues/` artifact the workflow expects.
 - **Rule**: In this workspace, interpret "issue化" as creating a `docs/issues/<sequence>-<name>.md` file and including it in the active PR unless the user explicitly asks for a GitHub issue as the canonical tracker.
 - **Applied**: Workflow follow-up logging during `execute-task`, `review-task`, and post-review cleanup across the workspace and child repos.
+
+## CI Workflows Should Gate Expensive Setup Behind Eligibility Checks
+
+- **Mistake**: I installed `textlint` dependencies before checking whether the PR actually changed any eligible Japanese Markdown files.
+- **Pattern**: When adapting an existing workflow, it is easy to keep setup steps in their old order even if the new helper can cheaply prove the job has nothing to do.
+- **Rule**: If a workflow can cheaply determine that no target files need processing, run that eligibility check before expensive dependency installation or tool bootstrap.
+- **Applied**: GitHub Actions workflows that lint only changed files, especially `.github/workflows/japanese-textlint.yml`.

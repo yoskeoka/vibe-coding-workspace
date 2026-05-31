@@ -82,12 +82,12 @@ The workflow must fail for malformed JSONL or invalid regular expressions.
 - triggers on pull requests targeting `main`
 - starts for changed Markdown and the workflow/helper/config/spec/runtime files that control this CI
 - uses the repository-standard `actions/checkout` reference managed through `pinact`
-- provisions a pinned Node runtime before installing dependencies
+- provisions a pinned Node runtime before changed-file detection and any dependency install
 - checks out with full history (`fetch-depth: 0`) so `<base-ref>...HEAD` resolves cleanly
 - explicitly fetches the PR base branch before diffing
-- installs dependencies with `npm ci`
 - calls `tools/list-changed-japanese-markdown.sh` with the fetched base ref
 - exits successfully with a clear message when no changed Japanese Markdown files are found
+- installs dependencies with `npm ci` only after at least one eligible changed Japanese Markdown file is found
 - runs one `textlint --rulesdir ./tools/textlint-rules --format json` command over the full changed-file set
 - converts `textlint` findings into GitHub Actions warning annotations
 - writes a step summary with the file count, finding count, and a compact findings table
