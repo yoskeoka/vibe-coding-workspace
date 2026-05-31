@@ -27,9 +27,9 @@ Skill responsibilities:
    - personal motivation / hobby value
    - reason users would care
 4. Branch on decision:
-   - YES: proceed to project creation/bootstrap
-   - NO: summarize findings and append to rejected-ideas log
-5. For YES case, execute project bootstrap:
+   - GO: proceed to project creation/bootstrap
+   - NO-GO: summarize findings and append to rejected-ideas log
+5. For GO case, execute project bootstrap:
    - create GitHub repository if missing
    - ensure local child repo exists
    - initialize docs/workflow scaffold in child repo
