@@ -56,6 +56,53 @@ If global `ww` fails during normal workflow startup, treat that as a first-class
 
 For a new project, run `./skills/manage-workflow/run.sh <project-dir>` to apply this structure.
 
+## Japanese textlint
+
+The workspace runs `textlint` in CI for changed Japanese Markdown files.
+
+The repo-local replacement dictionary lives at `config/textlint/terms.jsonl`.
+Use one JSON object per line:
+
+```json
+{"pattern":"\\btaxonomy\\b","replacement":"分類"}
+```
+
+`pattern` is JavaScript regular-expression source text stored inside JSON.
+The example above uses `\\b`, which means "word boundary", so it matches the standalone word `taxonomy` but not `taxonomyMap`.
+
+Common pattern building blocks:
+
+- `\\bword\\b`: match a standalone English word
+- `^text$`: match a whole line exactly
+- `foo.*bar`: match text from `foo` through the next `bar` on the same line
+- `[0-9]`: one digit
+- `[A-Za-z0-9_-]+`: one or more ASCII letters, digits, `_`, or `-`
+- `\\.` `\\(` `\\)` `\\\\`: match literal `.`, `(`, `)`, and `\`
+
+Notes:
+
+- This dictionary uses JavaScript regex syntax, not shell glob syntax.
+- `pattern` is compiled with the global `g` flag by the custom rule.
+- Because the rule currently fixes flags internally, add separate dictionary entries when you need distinct case-sensitive patterns rather than relying on inline flag syntax.
+
+Add a new dictionary entry by:
+
+1. Appending one JSON line to `config/textlint/terms.jsonl`
+2. Running `pnpm install --frozen-lockfile`
+3. Running `pnpm run textlint:file -- <target.md>`
+
+To run the same changed-file selection locally after committing your branch changes:
+
+```bash
+mapfile -t files < <(./tools/list-changed-japanese-markdown.sh origin/main)
+[ "${#files[@]}" -eq 0 ] || pnpm run textlint:file -- "${files[@]}"
+```
+
+Available scripts:
+
+- `pnpm run textlint`: run against all tracked `*.md`
+- `pnpm run textlint:file -- README.md`: run against specific Markdown files
+
 ## Workspace Task Triage CLI
 
 The workspace task triage spike lives under `tools/pj/` and uses `gh auth token` for GitHub Projects API access.
