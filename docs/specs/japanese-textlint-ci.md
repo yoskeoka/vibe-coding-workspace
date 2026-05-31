@@ -51,10 +51,13 @@ tools/list-changed-japanese-markdown.sh [base-ref]
 
 ## textlint Runtime
 
-- `package.json` pins `textlint` and `textlint-rule-preset-ai-writing` as devDependencies
+- `package.json` pins `textlint` and `textlint-rule-preset-ai-writing` as devDependencies and declares a pinned `pnpm` package-manager version
 - `.textlintrc.json` enables `preset-ai-writing`
 - the workflow and local verification commands load one repo-local custom rule with `--rulesdir ./tools/textlint-rules`
 - the repo-local custom rule reads replacement terms from `config/textlint/terms.jsonl`
+- `package.json` scripts include:
+  - `pnpm run textlint` for all tracked Markdown files in the repo
+  - `pnpm run textlint:file -- <target.md>...` for targeted file checks
 
 ### Replacement Dictionary Contract
 
@@ -87,8 +90,8 @@ The workflow must fail for malformed JSONL or invalid regular expressions.
 - explicitly fetches the PR base branch before diffing
 - calls `tools/list-changed-japanese-markdown.sh` with the fetched base ref
 - exits successfully with a clear message when no changed Japanese Markdown files are found
-- installs dependencies with `npm ci` only after at least one eligible changed Japanese Markdown file is found
-- runs one `textlint --rulesdir ./tools/textlint-rules --format json` command over the full changed-file set
+- installs a pinned `pnpm` version, then runs `pnpm install --frozen-lockfile` only after at least one eligible changed Japanese Markdown file is found
+- runs one `pnpm run textlint:file -- <changed files...>` command over the full changed-file set
 - converts `textlint` findings into GitHub Actions warning annotations
 - writes a step summary with the file count, finding count, and a compact findings table
 - upserts one PR comment with a stable marker instead of posting a new comment on every rerun or push
@@ -132,7 +135,7 @@ tools/list-changed-japanese-markdown.sh origin/main
 For a focused local CI-style check, run:
 
 ```bash
-npm ci
+pnpm install --frozen-lockfile
 mapfile -t files < <(tools/list-changed-japanese-markdown.sh origin/main)
-[ "${#files[@]}" -eq 0 ] || npx textlint --rulesdir ./tools/textlint-rules --format json "${files[@]}"
+[ "${#files[@]}" -eq 0 ] || pnpm run textlint:file -- "${files[@]}"
 ```

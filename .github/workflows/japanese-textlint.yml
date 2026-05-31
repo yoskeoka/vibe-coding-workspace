@@ -11,7 +11,8 @@ name: Japanese textlint
       - "config/textlint/**/*.jsonl"
       - ".textlintrc.json"
       - "package.json"
-      - "package-lock.json"
+      - "pnpm-lock.yaml"
+      - "tools/run-textlint.sh"
 
 jobs:
   japanese-textlint:
@@ -22,6 +23,7 @@ jobs:
       pull-requests: write
     env:
       NODE_VERSION: "22.19"
+      PNPM_VERSION: "10.11.1"
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -58,7 +60,8 @@ jobs:
           printf 'Changed Japanese Markdown files:\n'
           printf '  %s\n' "${files[@]}"
 
-          npm ci
+          npm install -g "pnpm@${PNPM_VERSION}"
+          pnpm install --frozen-lockfile
 
           python3 - "${files[@]}" <<'PY'
           import json
@@ -84,12 +87,10 @@ jobs:
           try:
               proc = subprocess.run(
                   [
-                      "npx",
-                      "textlint",
-                      "--rulesdir",
-                      "./tools/textlint-rules",
-                      "--format",
-                      "json",
+                      "pnpm",
+                      "run",
+                      "textlint:file",
+                      "--",
                       *linted_files,
                   ],
                   capture_output=True,

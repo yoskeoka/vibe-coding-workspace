@@ -70,15 +70,20 @@ Use one JSON object per line:
 Add a new dictionary entry by:
 
 1. Appending one JSON line to `config/textlint/terms.jsonl`
-2. Running `npm ci`
-3. Running `npx textlint --rulesdir ./tools/textlint-rules --format json <target.md>`
+2. Running `pnpm install --frozen-lockfile`
+3. Running `pnpm run textlint:file -- <target.md>`
 
 To run the same changed-file selection locally after committing your branch changes:
 
 ```bash
 mapfile -t files < <(./tools/list-changed-japanese-markdown.sh origin/main)
-[ "${#files[@]}" -eq 0 ] || npx textlint --rulesdir ./tools/textlint-rules --format json "${files[@]}"
+[ "${#files[@]}" -eq 0 ] || pnpm run textlint:file -- "${files[@]}"
 ```
+
+Available scripts:
+
+- `pnpm run textlint`: run against all tracked `*.md`
+- `pnpm run textlint:file -- README.md`: run against specific Markdown files
 
 ## Workspace Task Triage CLI
 
