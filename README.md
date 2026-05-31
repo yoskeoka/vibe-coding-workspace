@@ -56,6 +56,30 @@ If global `ww` fails during normal workflow startup, treat that as a first-class
 
 For a new project, run `./skills/manage-workflow/run.sh <project-dir>` to apply this structure.
 
+## Japanese textlint
+
+The workspace runs `textlint` in CI for changed Japanese Markdown files.
+
+The repo-local replacement dictionary lives at `config/textlint/terms.jsonl`.
+Use one JSON object per line:
+
+```json
+{"pattern":"\\btaxonomy\\b","replacement":"分類"}
+```
+
+Add a new dictionary entry by:
+
+1. Appending one JSON line to `config/textlint/terms.jsonl`
+2. Running `npm ci`
+3. Running `npx textlint --rulesdir ./tools/textlint-rules --format json <target.md>`
+
+To run the same changed-file selection locally after committing your branch changes:
+
+```bash
+mapfile -t files < <(./tools/list-changed-japanese-markdown.sh origin/main)
+[ "${#files[@]}" -eq 0 ] || npx textlint --rulesdir ./tools/textlint-rules --format json "${files[@]}"
+```
+
 ## Workspace Task Triage CLI
 
 The workspace task triage spike lives under `tools/pj/` and uses `gh auth token` for GitHub Projects API access.

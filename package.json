@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "devDependencies": {
+    "textlint": "15.7.1",
+    "textlint-rule-preset-ai-writing": "1.1.0"
+  }
+}
