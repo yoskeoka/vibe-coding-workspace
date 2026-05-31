@@ -91,7 +91,7 @@ The workflow must fail for malformed JSONL or invalid regular expressions.
 - calls `tools/list-changed-japanese-markdown.sh` with the fetched base ref
 - exits successfully with a clear message when no changed Japanese Markdown files are found
 - installs a pinned `pnpm` version, then runs `pnpm install --frozen-lockfile` only after at least one eligible changed Japanese Markdown file is found
-- runs one `pnpm run textlint:file -- <changed files...>` command over the full changed-file set
+- runs one `pnpm exec textlint --rulesdir ./tools/textlint-rules --format json <changed files...>` command over the full changed-file set
 - converts `textlint` findings into GitHub Actions warning annotations
 - writes a step summary with the file count, finding count, and a compact findings table
 - upserts one PR comment with a stable marker instead of posting a new comment on every rerun or push

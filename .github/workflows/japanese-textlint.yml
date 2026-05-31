@@ -88,9 +88,12 @@ jobs:
               proc = subprocess.run(
                   [
                       "pnpm",
-                      "run",
-                      "textlint:file",
-                      "--",
+                      "exec",
+                      "textlint",
+                      "--rulesdir",
+                      "./tools/textlint-rules",
+                      "--format",
+                      "json",
                       *linted_files,
                   ],
                   capture_output=True,
