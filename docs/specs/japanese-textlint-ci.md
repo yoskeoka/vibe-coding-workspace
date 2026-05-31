@@ -74,6 +74,17 @@ Example:
 {"pattern":"\\btaxonomy\\b","replacement":"分類"}
 ```
 
+`pattern` is stored as JSON string content and compiled with JavaScript `RegExp(..., "g")`.
+Important examples:
+
+- `\\b`: word boundary, so `\\btaxonomy\\b` matches the standalone word `taxonomy`
+- `^...$`: start and end of a line
+- `.`: any single character except newline
+- `[A-Z]`, `[0-9]`, `[ぁ-ん]`: character classes
+- `\\.` `\\(` `\\)` `\\\\`: escaped literal characters
+
+The custom rule does not add flags beyond global matching, so case-insensitive or multiline matching must be expressed in the pattern itself only when JavaScript regular-expression syntax allows it.
+
 The workflow must fail for malformed JSONL or invalid regular expressions.
 
 ## GitHub Actions Workflow

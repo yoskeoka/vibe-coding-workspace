@@ -67,6 +67,24 @@ Use one JSON object per line:
 {"pattern":"\\btaxonomy\\b","replacement":"分類"}
 ```
 
+`pattern` is JavaScript regular-expression source text stored inside JSON.
+The example above uses `\\b`, which means "word boundary", so it matches the standalone word `taxonomy` but not `taxonomyMap`.
+
+Common pattern building blocks:
+
+- `\\bword\\b`: match a standalone English word
+- `^text$`: match a whole line exactly
+- `foo.*bar`: match text from `foo` through the next `bar` on the same line
+- `[0-9]`: one digit
+- `[A-Za-z0-9_-]+`: one or more ASCII letters, digits, `_`, or `-`
+- `\\.` `\\(` `\\)` `\\\\`: match literal `.`, `(`, `)`, and `\`
+
+Notes:
+
+- This dictionary uses JavaScript regex syntax, not shell glob syntax.
+- `pattern` is compiled with the global `g` flag by the custom rule.
+- Because the rule currently fixes flags internally, add separate dictionary entries when you need distinct case-sensitive patterns rather than relying on inline flag syntax.
+
 Add a new dictionary entry by:
 
 1. Appending one JSON line to `config/textlint/terms.jsonl`
