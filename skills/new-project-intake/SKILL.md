@@ -47,8 +47,8 @@ Run a structured intake flow:
      - personal motivation (hobby/learning value)
      - user-facing payoff
    - Make the decision explicit:
-     - **GO**: proceed to bootstrap.
-     - **NO-GO**: log and stop.
+     - GO: proceed to bootstrap.
+     - NO-GO: log and stop.
 
 5. **NO-GO path**
    - Ensure the latest checkpoint is captured in `docs/issues/<descriptive-name>.md` before stopping.

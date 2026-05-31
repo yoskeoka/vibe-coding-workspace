@@ -41,7 +41,7 @@ This document outlines the workflow for developing projects with AI as the centr
 > **Rule**: Every step that produces changes MUST go through a GitHub PR review — including doc-only changes like Project Plan and Execution Plan updates. AI Agents must always create a new clean branch from the latest `main` before starting any work.
 
 ### Branch Setup (applies to every step below)
-- **Default operator path**: use the globally installed `ww` CLI for normal plan/execution startup instead of raw git branch creation.
+- Default operator path: use the globally installed `ww` CLI for normal plan/execution startup instead of raw git branch creation.
 - From the target repo root:
     ```sh
     ww create <type>/<description>
@@ -136,14 +136,14 @@ PR creation is not the terminal workflow action. For every new PR, updated PR, o
 
 ### 3. Execution — **requires PR**
 - Create a new `ww` worktree/branch (e.g., `ww create feat/initial-setup`).
-- **Spec First**: Update `docs/specs/` *before* modifying code.
-- **Implement**: Write the code to match the spec.
-- **Issues**: If unrelated problems are found, log them in `docs/issues/<sequence>-<name>.md`. Do not fix them within the current plan unless blocking.
-- **Issue Resolution**: When an issue is resolved, move its file from `docs/issues/` to `docs/issues/done/`. If the matching execution plan declares that issue in `Addresses:`, the implementation branch should include the move unless the PR body explicitly explains why the issue remains open.
-- **External GitHub Issue Resolution**: When the matching execution plan declares external GitHub issues in `Addresses:`, the implementation PR must include corresponding closing keywords unless the PR body explicitly explains why the issue remains open.
+- Spec First: Update `docs/specs/` *before* modifying code.
+- Implement: Write the code to match the spec.
+- Issues: If unrelated problems are found, log them in `docs/issues/<sequence>-<name>.md`. Do not fix them within the current plan unless blocking.
+- Issue Resolution: When an issue is resolved, move its file from `docs/issues/` to `docs/issues/done/`. If the matching execution plan declares that issue in `Addresses:`, the implementation branch should include the move unless the PR body explicitly explains why the issue remains open.
+- External GitHub Issue Resolution: When the matching execution plan declares external GitHub issues in `Addresses:`, the implementation PR must include corresponding closing keywords unless the PR body explicitly explains why the issue remains open.
   - For same-repo issues, use `Closes #<number>` such as `Closes #227`.
   - For cross-repo issues, use the full URL such as `Closes https://github.com/yoskeoka/ww/issues/227`.
-- **Completion**: Move the plan file from `docs/exec-plan/todo/` to `docs/exec-plan/done/`.
+- Completion: Move the plan file from `docs/exec-plan/todo/` to `docs/exec-plan/done/`.
 - Follow the **PR Workflow** above (Verify → Create PR → Review).
 - The PR must include:
     - Code changes.

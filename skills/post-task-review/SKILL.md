@@ -49,10 +49,10 @@ Review the session for user knowledge that was expressed or implied but NOT yet 
 
 **What to look for:**
 
-- **Context injections**: The user provided background, motivation, or "why" that guided the work — is it captured in project docs?
-- **Unexplained choices**: The user selected an option (e.g., "skip this", "use approach A") without stating the reasoning. Ask: "You chose X over Y — what was your reasoning?" and persist the answer.
-- **Corrected assumptions**: The user corrected the agent's understanding of goals, scope, or priorities — is the corrected understanding now reflected in project memory?
-- **Implicit goals**: Objectives or constraints that the user "just knows" but that don't appear anywhere in `docs/` or `CLAUDE.md`. These surfaced naturally during conversation but would be lost at session end.
+- Context injections: The user provided background, motivation, or "why" that guided the work — is it captured in project docs?
+- Unexplained choices: The user selected an option (e.g., "skip this", "use approach A") without stating the reasoning. Ask: "You chose X over Y — what was your reasoning?" and persist the answer.
+- Corrected assumptions: The user corrected the agent's understanding of goals, scope, or priorities — is the corrected understanding now reflected in project memory?
+- Implicit goals: Objectives or constraints that the user "just knows" but that don't appear anywhere in `docs/` or `CLAUDE.md`. These surfaced naturally during conversation but would be lost at session end.
 
 **Process:**
 
@@ -67,12 +67,12 @@ Review the session for user knowledge that was expressed or implied but NOT yet 
 
 Identify issues discovered during work. Categories to check:
 
-- **Spec-code parity gaps**: Public APIs listed, Input/Output mismatches and behavior inconsistencies between `docs/specs/` and code
-- **Duplicated logic**: Same business logic in multiple files
-- **Inconsistent patterns**: Different approaches to the same problem across files
-- **Missing tests**: Untested critical paths found during investigation
-- **Tight coupling**: Components that should be separated
-- **Dependency concerns**: Version mismatches, deprecated APIs
+- Spec-code parity gaps: Public APIs listed, Input/Output mismatches and behavior inconsistencies between `docs/specs/` and code
+- Duplicated logic: Same business logic in multiple files
+- Inconsistent patterns: Different approaches to the same problem across files
+- Missing tests: Untested critical paths found during investigation
+- Tight coupling: Components that should be separated
+- Dependency concerns: Version mismatches, deprecated APIs
 
 Present a prioritized summary to the user. Ask which items to log.
 
@@ -80,9 +80,9 @@ Present a prioritized summary to the user. Ask which items to log.
 
 Create `docs/issues/<sequence>-<descriptive-name>.md` for each approved finding. Each file must include:
 
-- **Summary**: What the problem is, with specific file paths and line numbers
-- **Proposed Solution**: Concrete direction, not vague suggestions
-- **Priority**: Why it matters (data integrity, performance, maintainability)
+- Summary: What the problem is, with specific file paths and line numbers
+- Proposed Solution: Concrete direction, not vague suggestions
+- Priority: Why it matters (data integrity, performance, maintainability)
 
 **Important**: `docs/issues/` is the AI's primary memory for issue tracking. Always create files here first. Optionally ask the user if they also want GitHub Issues created via `gh issue create`.
 
@@ -90,10 +90,10 @@ Create `docs/issues/<sequence>-<descriptive-name>.md` for each approved finding.
 
 Check if corrections occurred during the task. If so, create or update `docs/lessons.md` using this format and append the new lesson at the end of the file:
 
-- **Mistake**: What went wrong (be specific)
-- **Pattern**: The underlying cause or anti-pattern
-- **Rule**: Concrete, actionable rule to prevent recurrence
-- **Applied**: Where this rule applies (specific files, patterns, situations)
+- Mistake: What went wrong (be specific)
+- Pattern: The underlying cause or anti-pattern
+- Rule: Concrete, actionable rule to prevent recurrence
+- Applied: Where this rule applies (specific files, patterns, situations)
 
 > "Be more careful" is not a rule. Rules must be specific and testable.
 
@@ -101,12 +101,12 @@ Check if corrections occurred during the task. If so, create or update `docs/les
 
 Check if the work revealed knowledge that would reduce future investigation time:
 
-- **Project-specific insights**: Non-obvious information about the codebase, architecture, or design decisions
+- Project-specific insights: Non-obvious information about the codebase, architecture, or design decisions
   - Use "Step 1. Capture Unrecorded User Intent" result and refer to `docs/design-decisions/adr.md` and `docs/design-decisions/core-beliefs.md` for existing design knowledge
-- **Build/test commands**: New crates, test targets, or lint configurations
-- **Architecture notes**: How subsystems connect, data flow, key design decisions
-- **Duplication risks**: List of files that must be updated together
-- **Tech stack changes**: New dependencies, version requirements
+- Build/test commands: New crates, test targets, or lint configurations
+- Architecture notes: How subsystems connect, data flow, key design decisions
+- Duplication risks: List of files that must be updated together
+- Tech stack changes: New dependencies, version requirements
 
 Think where is the best place to document these knowledge items and propose specific additions to the user before editing.
 

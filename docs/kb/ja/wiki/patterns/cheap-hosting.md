@@ -20,7 +20,7 @@ sources:
 - 最初の公開では、耐久的な free tier を持つ managed service を優先する。
 - Cloudflare Pages、Render、Cloud Run、TiDB Cloud Starter、Supabase、Neon、Upstash のような具体名を残し、次回の再確認を既知候補から始められるようにする。
 - 価格前提には日付を添える。
-- 「最高の DX」と「趣味予算に対する最良の既定値」を分けて考える。
+- 「DX を最優先する案」と「趣味予算に対する最良の既定値」を分けて考える。
 - app が user-owned personal data だけで成立するなら、hosted stack を比べる前に `remoteStorage` で backend 自体を消せないか試す。
 - 単一サービスでは足りないときの具体 fallback として、`Cloudflare DNS Proxy + Cloud Connector` を front に置き、`Cloud Run` と `Cloud Storage`、DB に `TiDB Serverless` を組み合わせる構成を覚えておく。
 - bursty な multiplayer backend には、event trigger で on-demand `EC2` spot を起動し、idle uptime ではなく session 時間に主に課金される構成も別系統として覚えておく。

@@ -13,7 +13,9 @@ sources:
 
 ## 現在の既定姿勢
 
-まずコストの downside を最小化し、その次に setup friction を最小化し、最後に scale を最適化する順で deployment を選ぶ。
+1. まずコストの downside を最小化する。
+2. 次に setup friction を最小化する。
+3. 最後に scale の最適化を考える。
 
 ## 使いやすい既定値
 
