@@ -1,5 +1,5 @@
 # GH PR Follow-up Output Tiers
-> **Execution**: Use `/execute-task` to implement this plan.
+**Execution**: Use `/execute-task` to implement this plan.
 
 ## Objective
 
@@ -42,11 +42,24 @@ output at the source.
   - `pr`
   - `head_sha`
   - `review_decision`
-  - compact required-check summary
-  - advisory-review-start detection data
-  - newly observed inline comments only when present
+  - `checks` as a required-check summary array containing only
+    `name`, `status`, and `conclusion`
+  - `timeline_events` as an advisory-review-start detection array containing
+    only new events and only the fields needed to detect start/finish signals:
+    `id`, `event`, `actor`, `reviewer`, `team`, `app`, `created_at`,
+    `commit_id`, `review_state`
+  - `inline_comments` only when new inline comments exist, using the current
+    compact comment shape
+  - `state` containing only `changed_head` and `last_checked_at`
+- State that the compact tier must omit verbose-only top-level data instead of
+  returning empty placeholders for it.
 - Define an opt-in verbose tier for detailed review bodies, expanded timeline
-  context, and full compact check entries.
+  context, full compact check entries, and state-marker detail.
+- Define verbose-only top-level data explicitly:
+  - `reviews` with compact review bodies
+  - `checks` expanded to include `workflow` and `details_url`
+  - `state.file`, `state.last_timeline_event_id`, and
+    `state.last_review_comment_id`
 - Clarify when `review-task` should use default mode versus verbose mode.
 
 ### `skills/review-task/SKILL.md`
@@ -66,6 +79,12 @@ output at the source.
   `gh-pr-followup poll <owner/repo> <pr-number>`.
 - Add an opt-in verbose path that emits the richer review/timeline/check detail
   currently returned by default.
+- Keep the compact tier schema explicit:
+  - top-level keys must be `repo`, `pr`, `head_sha`, `review_decision`,
+    `checks`, `timeline_events`, `inline_comments`, and `state`
+  - `reviews` must be verbose-only
+  - `checks` in compact mode must omit `workflow` and `details_url`
+  - `state` in compact mode must omit marker-file and marker-ID fields
 - Ensure marker updates and head-SHA reset behavior remain identical across
   tiers.
 - Keep failure behavior unchanged: helper errors still stop automatic follow-up
@@ -121,7 +140,7 @@ pattern for tiered helper output beyond `gh-pr-followup`.
 - [ ] [depends on: helper update] Add focused verification for default versus
       verbose output shape and unchanged marker-reset behavior.
 - [ ] [depends on: all above] Run workflow lint and relevant shell/script checks,
-      then prepare the planning PR through `review-task`.
+      then prepare the execution PR through `review-task`.
 
 ## Parallelism
 
