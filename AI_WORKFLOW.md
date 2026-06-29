@@ -123,13 +123,18 @@ PR creation is not the terminal workflow action. For every new PR, updated PR, o
 - Create a new `ww` worktree/branch (e.g., `ww create plan/initial-setup`).
 - Create a new numbered plan file (e.g., `0007-initial-setup.md`) in `todo/`.
 - Detail:
-    - Code changes.
-    - Spec changes (How `docs/specs/` will change).
+    - Objective with a concrete external completion boundary.
+    - Existing implementation references: file paths, symbols, and line ranges for the code reviewed during planning and expected to be re-read during execution.
+    - Code Change Map: files marked `(NEW)`, `(MODIFY)`, or `(DELETE)` plus the symbols/modules to touch and a one-line change summary.
+    - Spec changes (How `docs/specs/` will change), limited to black-box product behavior and production infrastructure contracts for operated services rather than local harness/CI details.
     - `Addresses:` entries for any tracked issues that this execution work is expected to resolve:
       - local workspace issues under `docs/issues/`
       - external GitHub issues when the canonical feedback lives in the target repo issue tracker
     - Use full GitHub issue URLs in `Addresses:` for external issues, for example `Addresses: https://github.com/yoskeoka/ww/issues/227`.
     - Break down large tasks into smaller sub-plans if needed.
+- If the file is intentionally a high-level parent plan and those details are not yet knowable, write `N/A - detail required before execution` instead of vague placeholders, then split into child plans before implementation.
+- Immediately below the H1 title in every executable plan file, add:
+  - `> **Execution**: Use \`/execute-task\` to implement this plan. After implementation is complete, use \`/review-task\` to prepare and create the PR.`
 - Review/Update `design-decisions/` if architectural choices are made.
 - Follow the **PR Workflow** above to merge the plan into `main`.
 - If the plan is driven by an external GitHub issue, the plan PR should link that issue in its PR body under `Issues` so reviewers can trace the execution target before implementation starts.

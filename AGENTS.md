@@ -67,7 +67,8 @@ At the start of a new session, if the user has not given a specific task, sugges
 
 4.  **Execution Rules**:
     - Plan First: Before writing code, ensure a plan exists in `docs/exec-plan/todo/`. Active exec-plans use `<sequence>-<name>.md` and execution branches map by the `-<name>.md` suffix. If no matching plan exists, create one first.
-    - Spec First: Update `docs/specs/` to reflect changes BEFORE modifying code.
+    - Plan quality: Executable plans should define an external completion boundary, list existing implementation references with file/symbol/line-range detail, and include a concrete Code Change Map. If the work is only a high-level parent plan and those details are not yet knowable, write `N/A - detail required before execution` instead of vague filler and split/refine before implementation.
+    - Spec First: Update `docs/specs/` to reflect changes BEFORE modifying code. Specs should describe black-box product behavior and production infrastructure contracts for operated services, not local harness/CI/bootstrap details unless those are the product-facing contract.
     - Focus: if you find unrelated issues, log them in `docs/issues/<sequence>-<name>.md` and ignore them for the current task (unless they are blockers).
     - If `ww` fails or behaves unexpectedly during normal workflow use, capture it as a first-class workflow output per `docs/specs/ww-dogfooding-workflow.md` instead of silently dropping to raw git. Record the command, cwd, target repo, expected vs actual behavior, relevant output, fallback usage, and impact.
     - Issue Resolution: When an issue in `docs/issues/` is resolved, move the file to `docs/issues/done/`.
@@ -78,7 +79,7 @@ At the start of a new session, if the user has not given a specific task, sugges
 1.  Create a planning worktree with global `ww`: `ww create plan/feature-name`, then enter it with `cd "$(ww cd plan/feature-name)"`
 2.  Read `docs/project-plan.md`.
 3.  Create a new numbered file in `docs/exec-plan/todo/`, such as `0007-feature-name.md`.
-4.  Outline the changes to specs and code in that plan.
+4.  Outline the objective, existing implementation references, code change map, and black-box spec changes in that plan.
 5.  Create a PR for the plan and wait for review.
 6.  After plan PR is merged, create an execution worktree with global `ww`: `ww create feat/feature-name`, then enter it with `cd "$(ww cd feat/feature-name)"`
 7.  Execute the plan following **Spec First** rule.
@@ -95,7 +96,7 @@ At the start of a new session, if the user has not given a specific task, sugges
 3.  Reproduction steps go into the plan.
 4.  Create a PR for the plan and wait for review.
 5.  After plan PR is merged, create an execution worktree with global `ww`: `ww create fix/fix-bug-x`, then enter it with `cd "$(ww cd fix/fix-bug-x)"`
-6.  Execute the fix following the **Spec First** rule.
+6.  Execute the fix following **Spec First** and use the approved plan's implementation references and Code Change Map rather than rediscovering scope from scratch.
 7.  Run lint/tests, fix any failures, then create a PR.
 8.  Move plan to `done/`.
 
