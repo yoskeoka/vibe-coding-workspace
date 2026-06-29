@@ -67,18 +67,49 @@ Create a new plan file in `docs/exec-plan/todo/` that details the work to be don
 
 Each plan file in `docs/exec-plan/todo/` must detail:
 
-- Objective: What this plan accomplishes (linked to project requirements).
-- Code changes: What files/modules will be created or modified.
-- Spec changes: How `docs/specs/` will be updated to reflect the changes.
+- Objective: What this plan accomplishes (linked to project requirements), with a concrete completion boundary stated in user-visible or operator-visible terms rather than implementation-only intent.
+- Existing implementation references: The concrete code that was read during planning and should be re-read during execution. List file paths plus symbol names and line ranges. If one file has multiple relevant regions, list each region separately. Bias toward a broader, safety-first inventory of genuinely related code rather than a minimal list; if a file meaningfully informed the plan, include it.
+- Code Change Map: What files/modules will be created, modified, or deleted. For each entry, label the file as `(NEW)`, `(MODIFY)`, or `(DELETE)`, then name the symbols or modules to touch and give a one-line change summary.
+- Spec changes: How `docs/specs/` will be updated to reflect the product's external contract. Specs should describe black-box behavior visible from the shipped binary, production service, or public API/UI. Do not use this section for local harnesses, CI design, bootstrap steps, or other implementation support details unless they are part of the production infrastructure contract for an operated service.
 - Issue linkage: When the work resolves tracked issues, add an `Addresses:` line:
   - local workspace issues as `docs/issues/<sequence>-<name>.md`
   - external GitHub issues as full issue URLs such as `https://github.com/yoskeoka/ww/issues/227`
-- Sub-tasks: Break large tasks into smaller steps if needed.
+- Sub-tasks: Break large tasks into smaller steps when the execution shape is already concrete enough to do so.
 - Design decisions: If architectural choices are being made, note them for `docs/design-decisions/adr.md`.
 - Parallelism: Identify which sub-tasks are independent (see below).
 - Execution instruction: Place the following line immediately below the H1 title in every executable plan file:
-  > **Execution**: Use `/execute-task` to implement this plan.
+  > **Execution**: Use `/execute-task` to implement this plan. After implementation is complete, use `/review-task` to prepare and create the PR.
 - Split-parent exception: When a parent plan is only being retired because its scope was split into child plans, do not edit the parent plan body to turn it into a new record document. Verify migration completeness separately, then move the parent plan to `docs/exec-plan/done/` without adding a new execution instruction or rewriting its contents.
+
+When the plan is intentionally a high-level parent or pre-split planning artifact and the implementation details are not yet knowable, do not fill these sections with vague guesses. Write `N/A - detail required before execution` for `Existing implementation references`, `Code Change Map`, `Spec changes`, `Sub-tasks`, and `Parallelism` as appropriate, then make the dependency on later child-plan refinement explicit.
+
+Detailed executable plans should generally use section headings and explicit bullets, for example:
+
+```markdown
+## Existing Implementation References
+
+- `server/auth/session.go`
+  - `LoadSession`, lines 40-118
+  - `RequireActor`, lines 140-212
+- `operator-ui/src/routes/settings.tsx`
+  - `SettingsPage`, lines 12-180
+- `operator-ui/src/routes/settings.tsx`
+  - `settingsLoader`, lines 220-278
+
+## Code Change Map
+
+- `server/auth/session.go` (MODIFY)
+  - `LoadSession`, `RequireActor` - tighten actor lookup and return the new permission error
+- `server/auth/permissions.go` (NEW)
+  - `CanManageSettings` - centralize the permission check used by the handler and UI gate
+- `operator-ui/src/routes/settings.tsx` (MODIFY)
+  - `SettingsPage`, `settingsLoader` - surface the denied state and updated API contract
+
+## Spec Changes
+
+- `docs/specs/operator-settings.md`
+  - Document the user-visible denied-state behavior and the production authorization contract for the settings page
+```
 
 ### Parallel Execution Planning
 
@@ -86,19 +117,29 @@ Design plans for maximum parallel execution:
 
 1. Identify independent tasks: Mark sub-tasks that have no dependencies on each other with `[parallel]`.
 2. Explicit dependency notation: Use `depends on: <task>` for tasks that must wait for others.
-3. Split plans when appropriate: If a large plan contains 2+ fully independent streams of work, or if one large goal is clearer as ordered child plans, create separate plan files. For independent streams, use descriptive names derived from the work itself, such as branch `plan/feature-name` with `feature-name-backend.md` and `feature-name-ui.md`, or names like `api-endpoints.md` and `ui-components.md` when they share an obvious base in context. For ordered phases toward one larger goal, use the shared parent/base branch name plus `<major-item>-<two-digit-sequence>-<minor-item>.md`, and make the order explicit, e.g., branch `plan/platform-phase2` with `platform-phase2-01-foundation.md`, `platform-phase2-02-fixture-e2e.md`. For large goals with ordered child plans, this naming is required rather than optional.
-4. When replacing one large executable plan with child plans, audit for migration completeness: explicitly verify that every spec change, code change, verification item, and design note from the original parent plan has either moved into an appropriate child plan or been intentionally dropped with justification. After that audit, retire the parent by moving it from `todo/` to `done/` without editing the file contents.
-5. When child plans reference a parent plan, use a path that survives completion: parent plans move from `docs/exec-plan/todo/` to `docs/exec-plan/done/` after execution or split completion, so do not hardcode a `todo/`-only path in child-plan metadata. Prefer wording that references the filename and notes it may live at `docs/exec-plan/todo/<sequence>-<name>.md` or `docs/exec-plan/done/<sequence>-<name>.md`, without assuming the current directory.
+3. Match sub-task detail to plan detail. If the plan has a concrete `Code Change Map`, the sub-tasks should usually map cleanly onto those file/symbol slices or the concrete verification steps that unlock them. If the plan is intentionally still a high-level parent, detailed sub-tasks are optional and may be replaced with `N/A - detail required before execution`.
+4. Split plans when appropriate: If a large plan contains 2+ fully independent streams of work, or if one large goal is clearer as ordered child plans, create separate plan files. For independent streams, use descriptive names derived from the work itself, such as branch `plan/feature-name` with `feature-name-backend.md` and `feature-name-ui.md`, or names like `api-endpoints.md` and `ui-components.md` when they share an obvious base in context. For ordered phases toward one larger goal, use the shared parent/base branch name plus `<major-item>-<two-digit-sequence>-<minor-item>.md`, and make the order explicit, e.g., branch `plan/platform-phase2` with `platform-phase2-01-foundation.md`, `platform-phase2-02-fixture-e2e.md`. For large goals with ordered child plans, this naming is required rather than optional.
+5. When replacing one large executable plan with child plans, audit for migration completeness: explicitly verify that every spec change, code change, verification item, and design note from the original parent plan has either moved into an appropriate child plan or been intentionally dropped with justification. After that audit, retire the parent by moving it from `todo/` to `done/` without editing the file contents.
+6. When child plans reference a parent plan, use a path that survives completion: parent plans move from `docs/exec-plan/todo/` to `docs/exec-plan/done/` after execution or split completion, so do not hardcode a `todo/`-only path in child-plan metadata. Prefer wording that references the filename and notes it may live at `docs/exec-plan/todo/<sequence>-<name>.md` or `docs/exec-plan/done/<sequence>-<name>.md`, without assuming the current directory.
 
-Example:
+Detailed example:
 
 ```markdown
 ## Sub-tasks
 
-- [ ] [parallel] Create API schema types
-- [ ] [parallel] Set up database migration
-- [ ] [depends on: API schema, DB migration] Implement API handlers
-- [ ] [depends on: API handlers] Write integration tests
+- [ ] [parallel] Draft the denied-state spec update for `docs/specs/operator-settings.md`
+- [ ] [parallel] Implement the shared permission helper in `server/auth/permissions.go`
+- [ ] [depends on: shared permission helper] Update `LoadSession` and `RequireActor` in `server/auth/session.go`
+- [ ] [depends on: denied-state spec update, shared permission helper] Update `SettingsPage` and `settingsLoader` in `operator-ui/src/routes/settings.tsx`
+- [ ] [depends on: session + UI updates] Run the targeted auth verification and capture the PR-ready result
+```
+
+High-level parent-plan example:
+
+```markdown
+## Sub-tasks
+
+N/A - detail required before execution. This parent plan exists only to define the split into child plans.
 ```
 
 **Why**: Independent tasks can be delegated to subagents for parallel execution, reducing total time and keeping the main context clean.
@@ -107,14 +148,14 @@ Example:
 
 1. Read `docs/project-plan.md`.
 2. Create `docs/exec-plan/todo/<sequence>-<feature-name>.md`.
-3. Outline the spec and code changes.
+3. Outline the objective, existing implementation references, code change map, and black-box spec changes.
 4. Wait for user confirmation or proceed if authorized.
 
 ### For a Bug Fix
 
 1. Create `docs/exec-plan/todo/<sequence>-<fix-bug-name>.md`.
 2. Include reproduction steps in the plan.
-3. Outline the fix approach, spec updates, and verification steps.
+3. Outline the fix approach, existing implementation references, code change map, black-box spec updates, and verification steps.
 
 ### Architectural Decisions
 
@@ -142,4 +183,4 @@ After the plan file is created:
 
 ## Next Step
 
-After the execution plan PR is merged into `main`, invoke **`/execute-task`** to start implementation. Do not proceed without invoking the skill — it defines the execution workflow (spec-first, branch setup, PR gate, etc.).
+After the execution plan PR is merged into `main`, invoke **`/execute-task`** to start implementation. Once implementation is complete, invoke **`/review-task`** to prepare and create the execution PR if that has not already been done by the execution flow. Do not skip those workflow skills — they define the execution and PR-gate contract.
