@@ -36,6 +36,12 @@ N/A
 - [ ] Documentation only
 - [ ] Chore (CI, tooling, deps)
 
+## Change Summary
+
+<!--
+Overall change summary. Recommended to use bullet list. Each explanations should be concise.
+-->
+
 ## Human Instructions / Intent
 
 <!--
