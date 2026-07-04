@@ -41,14 +41,14 @@ For each PR head SHA, `review-task` must:
    If the helper is missing or fails, report the failure reason and stop automatic follow-up for this PR head SHA. Do not automatically fall back to raw `gh` reads.
 4. Inspect required CI/check status from the helper output and continue the CI failure loop below when checks fail or expose actionable logs. This CI/check inspection happens for every pushed PR head SHA.
 5. Inspect the PR issue timeline from the helper output.
-6. Inspect review summaries and inline review comments from the helper output.
+6. Inspect inline review comments from the compact helper output, and inspect review summaries by rerunning the helper in verbose mode when review activity needs triage.
 7. Detect advisory bot/agent reviewer activity from timeline events, including:
    - `copilot_work_started`
    - `review_requested` events where `requested_reviewer.login` or `requested_team.name` identifies Copilot, Claude, `gh aw`, agent workflow, or another configured bot/agent reviewer
    - timeline events from bot or agent actors that indicate review work has started
 8. If advisory reviewer activity has started for the latest head SHA but no final review/comments are visible yet, wait for submitted review/comments using the bounded advisory-review cadence below.
 9. If no advisory reviewer activity is present, do not spend the advisory-review wait budget; record that no advisory review start was observed.
-10. Before handoff, use the latest helper output for review summaries and inline review comments. If the helper failed, hand off the failure reason and tell the user that PR follow-up should be checked later rather than spending extra context on raw GitHub API output.
+10. Before handoff, use the latest compact helper output for inline review comments and the latest verbose helper output for review summaries when verbose mode was needed. If the helper failed, hand off the failure reason and tell the user that PR follow-up should be checked later rather than spending extra context on raw GitHub API output.
 11. Triage substantive advisory bot/agent findings from the implementation context and decide whether each item should be fixed in the current PR, deferred, or treated as no action.
 12. Before handoff, verify the PR head SHA did not change during monitoring. If it changed, restart from step 1 for the new head SHA.
 
@@ -75,11 +75,12 @@ Interface:
 
 ```sh
 skills/review-task/scripts/gh-pr-followup poll <owner/repo> <pr-number>
+skills/review-task/scripts/gh-pr-followup poll --verbose <owner/repo> <pr-number>
 ```
 
 Behavior:
 
-- Reads PR head, review decision, review summaries, issue timeline, inline review comments, and status checks through GitHub CLI.
+- Reads PR head, review decision, issue timeline, inline review comments, and status checks through GitHub CLI, plus review summaries when verbose mode is requested.
 - Stores non-canonical local polling markers under `.local/gh-pr-followup/`.
 - Keys state by owner, repo, and PR number using a filesystem-safe filename.
 - Records at least:
@@ -94,35 +95,24 @@ Behavior:
 
 If the helper is missing or fails during automatic PR follow-up, agents must not switch to raw `gh api` polling by default. The low-token behavior is to report the helper failure, stop the automatic CI/advisory-review monitoring loop for that head SHA, and leave later PR inspection to a human or a separately requested follow-up. Raw `gh` inspection remains available only when the user explicitly asks for it or when a targeted, bounded command is needed to diagnose the helper itself.
 
-The helper output must include:
+The default compact poll output must include only:
 
 - `repo`
 - `pr`
 - `head_sha`
 - `review_decision`
 - `checks`
-- `reviews`
 - `timeline_events`
 - `inline_comments`
 - `state`
 
+Compact mode must omit verbose-only top-level data instead of returning empty placeholders for it.
+
 Compact check entries include only:
 
 - `name`
-- `workflow`
 - `status`
 - `conclusion`
-- `details_url`
-
-Compact review entries include only:
-
-- `id`
-- `state`
-- `user`
-- `body`
-- `submitted_at`
-- `commit_id`
-- `html_url`
 
 Compact timeline event entries include only fields needed to detect review-start and review-complete signals:
 
@@ -147,6 +137,33 @@ Compact inline review comment entries include only:
 - `updated_at`
 - `commit_id`
 - `html_url`
+
+Compact `state` includes only:
+
+- `changed_head`
+- `last_checked_at`
+
+The opt-in verbose tier is enabled with `poll --verbose`. Verbose mode is for helper diagnosis and substantive advisory review triage after compact polling shows review activity or the operator needs richer detail.
+
+Verbose-only top-level data and field expansion are:
+
+- `reviews`, with compact review-body entries containing:
+  - `id`
+  - `state`
+  - `user`
+  - `body`
+  - `submitted_at`
+  - `commit_id`
+  - `html_url`
+- `checks` expanded to include:
+  - `workflow`
+  - `details_url`
+- `state` expanded to include:
+  - `file`
+  - `last_timeline_event_id`
+  - `last_review_comment_id`
+
+Verbose mode may add extra timeline-event context when available, but compact mode remains the default contract for routine landing polls.
 
 The helper is not the source of truth for PR state. Its `.local/` markers are derived cache data that can be deleted; deletion only causes the next poll to return currently visible timeline events and inline comments again.
 
