@@ -124,6 +124,54 @@ max_id() {
     jq 'map(.id // 0) | max // 0' <<<"$1"
 }
 
+timeline_jq_filter() {
+    local mode="$1"
+
+    if [ "$mode" = "verbose" ]; then
+        cat <<'EOF'
+.[] | {
+    id,
+    event,
+    created_at,
+    actor,
+    body,
+    submitted_at,
+    url,
+    html_url,
+    requested_reviewer,
+    requested_team,
+    reviewer,
+    user,
+    team,
+    performed_via_github_app,
+    commit_id,
+    commit_oid,
+    review,
+    state
+}
+EOF
+    else
+        cat <<'EOF'
+.[] | {
+    id,
+    event,
+    created_at,
+    actor,
+    requested_reviewer,
+    requested_team,
+    reviewer,
+    user,
+    team,
+    performed_via_github_app,
+    commit_id,
+    commit_oid,
+    review,
+    state
+}
+EOF
+    fi
+}
+
 poll() {
     local repo="$1"
     local pr="$2"
@@ -179,26 +227,7 @@ poll() {
 
     timeline_raw_json=$(
         "$gh_bin" api "repos/${repo}/issues/${pr}/timeline" --paginate \
-            --jq '.[] | {
-                id,
-                event,
-                created_at,
-                actor,
-                body,
-                submitted_at,
-                url,
-                html_url,
-                requested_reviewer,
-                requested_team,
-                reviewer,
-                user,
-                team,
-                performed_via_github_app,
-                commit_id,
-                commit_oid,
-                review,
-                state
-            }' | jq -s '.'
+            --jq "$(timeline_jq_filter "$mode")" | jq -s '.'
     )
 
     inline_comments_raw_json=$(

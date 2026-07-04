@@ -192,7 +192,7 @@ For each new PR, updated PR, or later push to the PR branch, monitor the latest 
    - timeline events from bot or agent actors that indicate review work has started
 8. If advisory reviewer activity has started for the latest head SHA but no final review/comments are visible yet, wait for review completion/comments using the bounded advisory-review cadence below.
 9. If no advisory reviewer activity is present, do not spend the advisory-review wait budget; record that no advisory review start was observed.
-10. Before handoff, use the latest helper output for review summaries and inline review comments. If the helper failed, hand off the failure reason instead of fetching raw review bodies or already-seen comments.
+10. Before handoff, use the latest compact helper output for inline review comments, and use the latest verbose helper output for review summaries when verbose mode was needed. If the helper failed, hand off the failure reason instead of fetching raw review bodies or already-seen comments.
 11. If compact polling shows submitted review activity or deeper helper diagnosis is needed, rerun:
 
    ```sh
