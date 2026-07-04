@@ -182,7 +182,7 @@ For each new PR, updated PR, or later push to the PR branch, monitor the latest 
    skills/review-task/scripts/gh-pr-followup poll <owner/repo> <pr-number>
    ```
 
-   The helper returns the current head SHA, review decision, compact check rollup, review summaries, new timeline events, and new inline review comments. Repeated polls use `.local/gh-pr-followup/` markers so old timeline events and inline comments are not pasted back into the main context.
+   The default helper output returns the current head SHA, review decision, compact required-check rollup, new timeline events, and new inline review comments. Repeated polls use `.local/gh-pr-followup/` markers so old timeline events and inline comments are not pasted back into the main context.
 4. Inspect CI/check status for that SHA from the helper output and continue the CI failure loop below when checks fail or expose actionable logs. This check inspection happens for every pushed PR head SHA.
 5. Inspect new timeline events from the helper output to detect advisory bot/agent reviewer activity.
 6. If the helper is missing or fails, report the failure reason and stop automatic follow-up for this PR head SHA. Do **not** automatically fall back to raw GitHub reads; spending large context on raw timeline/comment JSON is not appropriate for routine hobby-project PR monitoring. Tell the user the PR can be checked later, or run a targeted raw `gh` command only if the user explicitly asks or the helper itself needs diagnosis.
@@ -192,9 +192,16 @@ For each new PR, updated PR, or later push to the PR branch, monitor the latest 
    - timeline events from bot or agent actors that indicate review work has started
 8. If advisory reviewer activity has started for the latest head SHA but no final review/comments are visible yet, wait for review completion/comments using the bounded advisory-review cadence below.
 9. If no advisory reviewer activity is present, do not spend the advisory-review wait budget; record that no advisory review start was observed.
-10. Before handoff, use the latest helper output for review summaries and inline review comments. If the helper failed, hand off the failure reason instead of fetching raw review bodies or already-seen comments.
-11. Triage substantive advisory bot/agent findings from the implementation context and decide whether each item should be fixed in the current PR, deferred, or treated as no action.
-12. Re-check the PR head SHA before handoff. If it changed, restart this loop for the new SHA.
+10. Before handoff, use the latest compact helper output for inline review comments, and use the latest verbose helper output for review summaries when verbose mode was needed. If the helper failed, hand off the failure reason instead of fetching raw review bodies or already-seen comments.
+11. If compact polling shows submitted review activity or deeper helper diagnosis is needed, rerun:
+
+   ```sh
+   skills/review-task/scripts/gh-pr-followup poll --verbose <owner/repo> <pr-number>
+   ```
+
+   Use verbose mode only when review bodies, expanded check metadata, or state-marker detail is actually needed.
+12. Triage substantive advisory bot/agent findings from the implementation context and decide whether each item should be fixed in the current PR, deferred, or treated as no action.
+13. Re-check the PR head SHA before handoff. If it changed, restart this loop for the new SHA.
 
 CI settling cadence by workflow step:
 
