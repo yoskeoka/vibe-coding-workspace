@@ -271,7 +271,7 @@ The follow-up loop can stop when one of these is true:
 
 Wait for GitHub PR review approval before merging into `main`.
 
-When the PR reaches a human-review handoff, end with a compact separate-session prompt that future follow-up for the same PR should start in a new session. Keep it to about 3 lines and include the PR number, branch name, and requested follow-up scope.
+When the PR reaches a human-review handoff, include the PR URL and current worktree path so a human can inspect or patch the branch locally without searching for it. End with a compact separate-session prompt that future follow-up for the same PR should start in a new session. Keep the prompt itself to about 3 lines and include the PR number, branch name, requested follow-up scope, PR URL, and worktree path.
 
 ## Verification First Principle
 

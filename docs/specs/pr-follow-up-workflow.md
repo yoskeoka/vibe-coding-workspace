@@ -190,7 +190,7 @@ Do not silently auto-apply every suggestion. Use implementer judgment to keep br
 
 Any in-PR advisory remediation push restarts required CI/check inspection for the new head SHA. Restart the longer advisory wait only when new review-start activity appears for that SHA or the human explicitly asks to wait.
 
-When handing a PR to human review after the remediation loop stops, end the handoff with a compact separate-session prompt template that asks future PR-follow-up requests for that branch to continue in a new session. Keep it to about 3 lines and include the PR number, branch name, and requested follow-up scope.
+When handing a PR to human review after the remediation loop stops, include the PR URL and current worktree path alongside the handoff so a human can open the branch locally without searching for it. End the handoff with a compact separate-session prompt template that asks future PR-follow-up requests for that branch to continue in a new session. Keep the prompt itself to about 3 lines and include the PR number, branch name, requested follow-up scope, PR URL, and worktree path.
 
 ## Stop Conditions
 

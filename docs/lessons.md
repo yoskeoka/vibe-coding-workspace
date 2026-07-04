@@ -150,3 +150,10 @@ Agent note: do not add a lesson when the same mistake is already tracked by an i
 - Pattern: When adapting an existing workflow, it is easy to keep setup steps in their old order even if the new helper can cheaply prove the job has nothing to do.
 - Rule: If a workflow can cheaply determine that no target files need processing, run that eligibility check before expensive dependency installation or tool bootstrap.
 - Applied: GitHub Actions workflows that lint only changed files, especially `.github/workflows/japanese-textlint.yml`.
+
+## Human Review Handoff Should Include PR And Worktree Location
+
+- Mistake: I handed off a review-ready PR with the URL and new-session prompt but without the local worktree location a human would need to run or patch it quickly.
+- Pattern: It is easy to optimize the handoff for GitHub-only review and forget that local validation or small human edits often start from finding the active worktree first.
+- Rule: When handing a PR to human review, always include both the PR URL and the current worktree path alongside the follow-up prompt so the human can open, run, or patch the exact branch without extra lookup.
+- Applied: `review-task` handoffs, execution summaries after PR creation, and any workflow session that leaves a branch ready for human inspection.
