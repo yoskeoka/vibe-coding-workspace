@@ -101,14 +101,16 @@ PR creation is not the terminal workflow action. For every new PR, updated PR, o
 
 - Planning PRs and execution PRs use the same completion boundary: the caller must not report the task complete before `review-task` reaches a documented stop condition for the latest pushed head SHA.
 - CI failures are mechanical verification failures. Investigate failing checks and fix them in-branch when the logs are actionable and the fix stays within scope; then re-run verification, push, and restart monitoring for the new head SHA.
-- Advisory bot/agent review comments from Copilot, Claude, `gh aw`, agent workflow reviews, or other configured automation are human-review input. Do not edit files, apply suggestions, commit, or push in response to those findings unless the human explicitly approves that specific follow-up or a prior human instruction already authorized implementing that exact review feedback.
+- Advisory bot/agent review comments from Copilot, Claude, `gh aw`, agent workflow reviews, or other configured automation are advisory review input. Inspect them even when the overall review state is passing or approving.
 - Handoffs must group substantive advisory findings by source reviewer/workflow and include the source, location/link, extracted summary, implementer's view, 1-2 line explanation, and recommendation: fix in this PR, defer, or no action.
+- If the implementer's view is `fix in this PR` and the change stays reasonably scoped, `review-task` should apply that follow-up before handoff. If the larger change is clearly separate, defer it by creating a new exec plan when the direction is known or a `docs/issues/` item when the solution is still unsettled.
 - Passing or approving advisory bot/agent checks can still contain substantive observations in review bodies, so inspect review summaries and inline comments even when the overall state is not blocking.
 - After PR creation or a later push, wait 30 seconds before the first CI/check and timeline inspection. Only spend the longer advisory-review wait budget when the timeline shows bot/agent review-start activity for the latest head SHA, such as `copilot_work_started`, or when the human explicitly asks to wait.
 - For a non-blocked PR creation or update flow, the shared minimum landing path starts as: `commit -> push -> PR create/update -> 30-second wait -> initial follow-up poll`, with checks, timeline events, review summaries, and inline comments inspected from that poll.
 - Planning PRs may stop after that initial poll when no other stop-condition work remains. Execution PRs use a bounded CI-settling window in the landing check: if required checks are still pending after the initial poll, add up to two more `30-second wait -> poll` turns before handoff, unless checks finish earlier, advisory-review waiting starts, the head SHA changes, the helper fails, or the human asks to stop.
-- When advisory bot/agent review has started, use 3 polling turns: wait 5 minutes once, then 1 minute twice, for a 7-minute total budget. After each wait, fetch PR reviews and inline comments. If no review/comments arrive by the end, stop waiting and document the timeout state.
+- When advisory bot/agent review has started, use 4 polling turns: wait 3 minutes, then 2 minutes, then 1 minute twice, for a 7-minute total budget. After each wait, fetch PR reviews and inline comments. If no review/comments arrive by the end, stop waiting and document the timeout state.
 - Advisory review triage is a session handoff, not a PR comment. After implementation, summarize comment response options in the current session unless the user explicitly asks to post them back to the PR.
+- Human-review handoffs should include the PR URL and current worktree path so a human can run or patch the branch locally without searching for it. End with a compact separate-session prompt that future PR follow-up for that branch should continue in a new session. Keep the prompt itself to about 3 lines and include the PR number, branch name, requested follow-up scope, PR URL, and worktree path.
 - Polling-style wait loops should use a low-cost subagent only when the platform supports delegation and the current session explicitly authorizes subagent use; final decisions, fixes, and handoff stay with the main agent.
 
 ---
@@ -166,7 +168,7 @@ Repeat steps 1–3 until the Project Plan is complete.
 - `docs/lessons.md` is append-only in practice for new lessons: add new entries at the end of the file rather than inserting them near the top.
 - When a new rule is learned during planning, execution, or review follow-up, update `docs/lessons.md` in the same branch that captured the lesson.
 - Don't add lessons when the mistake is already the issue tracked or the solution planned.
-- Keep the count of lessons less than 10. Store only effective lessons for now. Remove already solved or countermeasured lessons by Agent harness.
+- Keep the file focused. When the lesson count grows past 10, suggest cleanup so solved or redundant lessons can be removed.
 
 ## Workspace Task Tracking
 

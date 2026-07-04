@@ -1,5 +1,9 @@
 # Lessons Learned
 
+Keep this file focused. When the lesson count grows past 10, suggest cleanup so solved or redundant lessons can be removed.
+
+Agent note: do not add a lesson when the same mistake is already tracked by an issue or an approved plan that will fix it.
+
 ## Video-Backed Notes Need Whole-Video Context
 
 - Mistake: I normalized a video-backed source note around only the article-highlighted segment and did not first capture the broader embedded video structure.
@@ -67,7 +71,7 @@
 
 - Mistake: I created a PR, checked CI and `reviewDecision`, but did not check the GitHub timeline for a pending Copilot review before calling the PR ready.
 - Pattern: `gh pr view` can show `reviewRequests: []` before or after Copilot review activity, while the UI still shows Copilot review-requested / review-started timeline events. Bot reviews can later leave actionable inline comments without changing `reviewDecision` to a blocking state.
-- Rule: After creating or updating a PR, wait 30 seconds, then inspect CI/checks and the issue timeline. Only use the longer Copilot wait when the timeline shows bot review-start activity such as `copilot_work_started`; then wait 5 minutes, 1 minute, and 1 minute, checking PR reviews and inline comments after each wait. Present Copilot comment response options in the current session; do not post triage back to the PR unless explicitly asked.
+- Rule: After creating or updating a PR, wait 30 seconds, then inspect CI/checks and the issue timeline. Only use the longer advisory-review wait when the timeline shows bot review-start activity such as `copilot_work_started`; then wait 3 minutes, 2 minutes, 1 minute, and 1 minute, checking PR reviews and inline comments after each wait. Fix in-scope advisory findings in the current PR by default, and only defer clearly separate larger work into a plan or issue.
 - Applied: All PR handoffs, especially after `review-task` or `execute-task` creates a new PR.
 
 ## Knowledge-Base Ingest Is File-Changing Workflow Work
@@ -81,7 +85,7 @@
 
 - Mistake: I applied an advisory bot review suggestion during PR follow-up before first extracting the comments, adding the implementer's view, and asking whether the item should be fixed in the current PR.
 - Pattern: Treating advisory bot review like an already-approved implementation instruction turns PR follow-up into unreviewed scope changes; treating an approving/pass review state as "no comments to inspect" can also hide minor observations and notes in the review body.
-- Rule: When Copilot, `gh aw`, agent workflow, or another advisory bot leaves review comments or review-body observations, first present each item grouped by source with the implementer's view, a 1-2 line explanation, and a recommendation of whether it should be fixed in the current PR; do not edit or push changes for those comments unless the human explicitly approves.
+- Rule: When Copilot, `gh aw`, agent workflow, or another advisory bot leaves review comments or review-body observations, first present each item grouped by source with the implementer's view, a 1-2 line explanation, and a recommendation of whether it should be fixed in the current PR. If the implementer's view is `fix in this PR` and the work stays reasonably scoped, make that change before handoff; defer clearly separate larger work into a new plan or `docs/issues/` item instead of stretching the current PR.
 - Applied: `review-task` follow-up, `execute-task` PR monitoring, and any workflow that reads bot/agent PR review comments.
 
 ## Token-Saving Helpers Should Fail Closed
@@ -146,3 +150,10 @@
 - Pattern: When adapting an existing workflow, it is easy to keep setup steps in their old order even if the new helper can cheaply prove the job has nothing to do.
 - Rule: If a workflow can cheaply determine that no target files need processing, run that eligibility check before expensive dependency installation or tool bootstrap.
 - Applied: GitHub Actions workflows that lint only changed files, especially `.github/workflows/japanese-textlint.yml`.
+
+## Human Review Handoff Should Include PR And Worktree Location
+
+- Mistake: I handed off a review-ready PR with the URL and new-session prompt but without the local worktree location a human would need to run or patch it quickly.
+- Pattern: It is easy to optimize the handoff for GitHub-only review and forget that local validation or small human edits often start from finding the active worktree first.
+- Rule: When handing a PR to human review, always include both the PR URL and the current worktree path alongside the follow-up prompt so the human can open, run, or patch the exact branch without extra lookup.
+- Applied: `review-task` handoffs, execution summaries after PR creation, and any workflow session that leaves a branch ready for human inspection.

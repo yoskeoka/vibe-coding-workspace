@@ -49,17 +49,18 @@ For each PR head SHA, `review-task` must:
 8. If advisory reviewer activity has started for the latest head SHA but no final review/comments are visible yet, wait for submitted review/comments using the bounded advisory-review cadence below.
 9. If no advisory reviewer activity is present, do not spend the advisory-review wait budget; record that no advisory review start was observed.
 10. Before handoff, use the latest helper output for review summaries and inline review comments. If the helper failed, hand off the failure reason and tell the user that PR follow-up should be checked later rather than spending extra context on raw GitHub API output.
-11. Triage substantive advisory bot/agent findings for human review before any comment-driven branch mutation. Do not edit files, apply suggestions, commit, or push in response to advisory bot/agent findings unless the human explicitly approves that specific follow-up or a prior human instruction already authorized implementing that exact review feedback.
+11. Triage substantive advisory bot/agent findings from the implementation context and decide whether each item should be fixed in the current PR, deferred, or treated as no action.
 12. Before handoff, verify the PR head SHA did not change during monitoring. If it changed, restart from step 1 for the new head SHA.
 
 For Step 3 execution PRs, if step 4 shows required checks still pending and no higher-priority stop condition has already been reached, perform up to two additional `wait 30 seconds -> poll compact helper` turns before handoff.
 
 Bounded advisory-review wait cadence:
 
-- First wait: 5 minutes.
-- Second wait: 1 minute.
+- First wait: 3 minutes.
+- Second wait: 2 minutes.
 - Third wait: 1 minute.
-- Total wait budget: 7 minutes across 3 polling turns.
+- Fourth wait: 1 minute.
+- Total wait budget: 7 minutes across 4 polling turns.
 - After each wait turn, poll with the compact helper. If review/comments were submitted, stop waiting and triage them. If the helper fails, stop the automatic wait loop and report the failure reason.
 
 If advisory bot/agent review has started but no review/comments have been submitted after the 7-minute budget, treat the advisory-review wait as timed out and document the state in the handoff.
@@ -165,7 +166,7 @@ If the failure is not actionable from available logs, is outside scope, or depen
 
 Copilot, Claude, `gh aw`, agent workflow reviews, and other configured bot/agent review comments are advisory review input, not mechanical verification failures.
 
-Agents must not silently auto-apply advisory bot/agent suggestions. Passing or approving advisory bot/agent checks can still contain substantive observations in review bodies, so review summaries must be inspected even when the overall state is not blocking.
+Passing or approving advisory bot/agent checks can still contain substantive observations in review bodies, so review summaries must be inspected even when the overall state is not blocking.
 
 For each substantive advisory finding, the handoff must group findings by source reviewer/workflow and include:
 
@@ -178,7 +179,18 @@ For each substantive advisory finding, the handoff must group findings by source
 
 After the agent has already implemented a change, it should evaluate advisory bot/agent findings from the implementation context and present response options in the current session. Do not post that triage back to the PR unless the user explicitly asks for a PR comment.
 
-Explicit implementation work may follow only if the human asks for it or a prior human instruction already authorized that specific review-feedback implementation work. Larger comment-driven rewrites still count as pushes that restart required CI/check inspection for the new head SHA and may restart the advisory wait only when new review-start activity appears or the human asks to wait.
+If the implementer's view is `fix in this PR` and the change remains reasonably scoped to the current PR, `review-task` should make that follow-up change before handoff rather than waiting for an extra human approval turn.
+
+If the implementer's view is `defer`, route the follow-up based on scope clarity:
+
+- when the larger follow-up has a known solution and belongs in a separate unit of work, create a new `plan-execution` task
+- when the larger follow-up is real but the solution is not yet settled, create a `docs/issues/` item
+
+Do not silently auto-apply every suggestion. Use implementer judgment to keep branch mutations in scope, and treat clearly separate or large rewrites as deferred work instead of stretching the current PR.
+
+Any in-PR advisory remediation push restarts required CI/check inspection for the new head SHA. Restart the longer advisory wait only when new review-start activity appears for that SHA or the human explicitly asks to wait.
+
+When handing a PR to human review after the remediation loop stops, include the PR URL and current worktree path alongside the handoff so a human can open the branch locally without searching for it. End the handoff with a compact separate-session prompt template that asks future PR-follow-up requests for that branch to continue in a new session. Keep the prompt itself to about 3 lines and include the PR number, branch name, requested follow-up scope, PR URL, and worktree path.
 
 ## Stop Conditions
 
@@ -187,7 +199,7 @@ The bounded follow-up cycle may stop when:
 - all required checks pass and no advisory bot/agent review-start activity appears after the 30-second startup wait
 - for Step 2 planning PRs, the initial follow-up poll completed and no other stop-condition work remains
 - for Step 3 execution PRs, the bounded CI-settling window ended after the initial follow-up poll plus up to two additional 30-second CI-settling polls, and required checks are still pending with no advisory bot/agent review-start activity
-- checks pass and available advisory bot/agent findings have been summarized for human review
+- checks pass and any available in-scope advisory bot/agent findings were fixed in the current PR while larger follow-ups were deferred through the documented plan-or-issue split
 - CI fails but cannot be fixed automatically within scope, and the blocker is documented
 - advisory bot/agent review remains pending after review-start activity and the 7-minute wait budget, and the timeout state is documented
 - the compact follow-up helper is missing or fails, and the failure reason is documented
