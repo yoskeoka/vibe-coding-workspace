@@ -71,7 +71,7 @@ Agent note: do not add a lesson when the same mistake is already tracked by an i
 
 - Mistake: I created a PR, checked CI and `reviewDecision`, but did not check the GitHub timeline for a pending Copilot review before calling the PR ready.
 - Pattern: `gh pr view` can show `reviewRequests: []` before or after Copilot review activity, while the UI still shows Copilot review-requested / review-started timeline events. Bot reviews can later leave actionable inline comments without changing `reviewDecision` to a blocking state.
-- Rule: After creating or updating a PR, wait 30 seconds, then inspect CI/checks and the issue timeline. Only use the longer Copilot wait when the timeline shows bot review-start activity such as `copilot_work_started`; then wait 3 minutes, 2 minutes, 1 minute, and 1 minute, checking PR reviews and inline comments after each wait. Fix in-scope advisory findings in the current PR by default, and only defer clearly separate larger work into a plan or issue.
+- Rule: After creating or updating a PR, wait 30 seconds, then inspect CI/checks and the issue timeline. Only use the longer advisory-review wait when the timeline shows bot review-start activity such as `copilot_work_started`; then wait 3 minutes, 2 minutes, 1 minute, and 1 minute, checking PR reviews and inline comments after each wait. Fix in-scope advisory findings in the current PR by default, and only defer clearly separate larger work into a plan or issue.
 - Applied: All PR handoffs, especially after `review-task` or `execute-task` creates a new PR.
 
 ## Knowledge-Base Ingest Is File-Changing Workflow Work
