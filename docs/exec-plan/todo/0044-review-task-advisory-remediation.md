@@ -56,7 +56,8 @@ This supports the workspace goals of keeping hobby token cost low, making the wo
 - `skills/execute-task/SKILL.md` (MODIFY)
   - `PR Workflow` - align Step 3 execution wording with the new remediation-by-default policy and final human-review handoff requirement.
 - `docs/lessons.md` (MODIFY)
-  - append a durable lesson covering prompt-cache-aware wait slicing and the rule that human review should be requested only after the current PR has been driven to the intended review-ready state.
+  - in the top of this file, add one instruction to suggest human to cleanup lessons when the count of lessons is more than 10.
+  - also in the top of this file, add the annotation for agent that "don't add a lesson already issue tracked/planned which will be fixed in the future".
 
 ## Spec Changes
 
