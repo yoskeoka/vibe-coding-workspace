@@ -97,6 +97,11 @@ Check if corrections occurred during the task. If so, create or update `docs/les
 
 > "Be more careful" is not a rule. Rules must be specific and testable.
 
+Note:
+
+- Don't add lessons when the user correction creates issues/plans at the same time.
+- Keep the count of lessons in `docs/lessons.md` under 10. If it exceeds that, propose to the user to remove ineffective lessons or turn them into `docs/issues/` so that AI Agent will never make the same mistake again.
+
 ### 5. Propose CLAUDE.md / AGENTS.md, Skills, Design Decisions Updates
 
 Check if the work revealed knowledge that would reduce future investigation time:

@@ -73,7 +73,7 @@ At the start of a new session, if the user has not given a specific task, sugges
     - If `ww` fails or behaves unexpectedly during normal workflow use, capture it as a first-class workflow output per `docs/specs/ww-dogfooding-workflow.md` instead of silently dropping to raw git. Record the command, cwd, target repo, expected vs actual behavior, relevant output, fallback usage, and impact.
     - Issue Resolution: When an issue in `docs/issues/` is resolved, move the file to `docs/issues/done/`.
     - Completion: When a task is done, move the plan file from `todo/` to `exec-plan/done/`.
-    - Post-Task Review: After completing significant work, run `post-task-review` to log issues, update lessons learned, and propose CLAUDE.md/AGENTS.md updates before creating a PR. Add new `docs/lessons.md` entries at the end of the file.
+    - Post-Task Review: After completing significant work, run `post-task-review` to log issues, update lessons learned, and propose CLAUDE.md/AGENTS.md updates before creating a PR. Add new `docs/lessons.md` entries at the end of the file. (don't add lessons when the mistake is already the issue tracked or the solution planned)
 
 ## When asked to "Start a new feature":
 1.  Create a planning worktree with global `ww`: `ww create plan/feature-name`, then enter it with `cd "$(ww cd plan/feature-name)"`

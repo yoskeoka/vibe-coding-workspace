@@ -165,6 +165,8 @@ Repeat steps 1–3 until the Project Plan is complete.
 
 - `docs/lessons.md` is append-only in practice for new lessons: add new entries at the end of the file rather than inserting them near the top.
 - When a new rule is learned during planning, execution, or review follow-up, update `docs/lessons.md` in the same branch that captured the lesson.
+- Don't add lessons when the mistake is already the issue tracked or the solution planned.
+- Keep the count of lessons less than 10. Store only effective lessons for now. Remove already solved or countermeasured lessons by Agent harness.
 
 ## Workspace Task Tracking
 

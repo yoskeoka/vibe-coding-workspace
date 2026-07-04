@@ -76,7 +76,7 @@ When the matching execution plan resolves an external GitHub issue:
 
 After ANY correction from the user:
 
-1. Create or update `docs/lessons.md` with the pattern, appending new lessons at the end of the file.
+1. Create or update `docs/lessons.md` with the pattern, appending new lessons at the end of the file. (don't add lessons when the user correction creates issues/plans at the same time)
 2. Use this format:
    - Mistake: What went wrong (be specific)
    - Pattern: The underlying cause or anti-pattern
