@@ -177,7 +177,7 @@ After the plan file is created:
 
 1. Commit the plan file and any related `docs/design-decisions/` updates on the branch.
 2. Invoke **`review-task`** before any PR creation work so the branch classification, branch name, PR title, scope, template/body, and bounded post-PR follow-up are checked through the shared PR gate.
-3. Create or update the planning PR through that `review-task` flow, complete the initial CI/Copilot follow-up cycle for the latest PR head SHA, then wait for GitHub PR review approval before merging into `main`.
+3. Create or update the planning PR through that `review-task` flow, complete the initial CI/advisory follow-up cycle for the latest PR head SHA, apply any in-scope advisory fixes that `review-task` judges should land in the current PR, then wait for GitHub PR review approval before merging into `main`.
 4. If the plan's `Addresses:` line includes external GitHub issues, list the same issues in the plan PR body under `Issues` so the later execution PR has an explicit closure target.
 5. Do not report the planning step complete after only creating the local plan file, drafting a commit, or opening the PR. The planning step is complete only after `review-task` reaches a documented stop condition for the latest pushed PR head SHA. For a non-blocked PR create/update flow, that minimum landing path is `commit -> push -> PR create/update -> 30-second wait -> initial follow-up poll`. Unlike Step 3 execution PRs, Step 2 planning PRs do not require the extra CI-settling `30-second wait -> poll` turns unless the human explicitly asks for longer monitoring.
 

@@ -193,7 +193,7 @@ For each new PR, updated PR, or later push to the PR branch, monitor the latest 
 8. If advisory reviewer activity has started for the latest head SHA but no final review/comments are visible yet, wait for review completion/comments using the bounded advisory-review cadence below.
 9. If no advisory reviewer activity is present, do not spend the advisory-review wait budget; record that no advisory review start was observed.
 10. Before handoff, use the latest helper output for review summaries and inline review comments. If the helper failed, hand off the failure reason instead of fetching raw review bodies or already-seen comments.
-11. Triage substantive advisory bot/agent findings for human review before any comment-driven branch mutation. Do **not** edit files, apply suggestions, commit, or push in response to advisory bot/agent findings unless the human explicitly approves that specific follow-up or a prior human instruction already authorized implementing that exact review feedback.
+11. Triage substantive advisory bot/agent findings from the implementation context and decide whether each item should be fixed in the current PR, deferred, or treated as no action.
 12. Re-check the PR head SHA before handoff. If it changed, restart this loop for the new SHA.
 
 CI settling cadence by workflow step:
@@ -205,10 +205,11 @@ CI settling cadence by workflow step:
 
 Bounded advisory-review wait cadence:
 
-- First wait: 5 minutes.
-- Second wait: 1 minute.
+- First wait: 3 minutes.
+- Second wait: 2 minutes.
 - Third wait: 1 minute.
-- Total wait budget: 7 minutes across 3 polling turns.
+- Fourth wait: 1 minute.
+- Total wait budget: 7 minutes across 4 polling turns.
 - After each wait turn, poll with `skills/review-task/scripts/gh-pr-followup`. If review/comments were submitted, stop waiting and triage them. If the helper fails, stop the automatic wait loop and report the failure reason.
 
 If advisory bot/agent review has started but no review/comments have been submitted after the 7-minute budget, treat the advisory-review wait as timed out and document the state in the handoff.
@@ -229,7 +230,7 @@ If the failure is not actionable, outside scope, or caused by external infrastru
 
 ### Advisory Bot/Agent Review Triage
 
-Treat Copilot, Claude, `gh aw`, agent workflow reviews, and other configured bot/agent comments as advisory review input, not automatic patch instructions. Do **not** silently auto-apply advisory bot/agent suggestions.
+Treat Copilot, Claude, `gh aw`, agent workflow reviews, and other configured bot/agent comments as advisory review input, not automatic patch instructions.
 
 Passing or approving advisory bot/agent checks can still contain substantive observations in review bodies. Inspect review summaries and inline comments even when the overall state is not blocking.
 
@@ -244,9 +245,16 @@ For each substantive advisory finding, prepare a concise human-review briefing g
 
 After implementing changes, evaluate advisory bot/agent findings from the implementation context and present response options in the current session. Do not post that triage back to the PR unless the user explicitly asks for a PR comment.
 
-If the next action would mutate the branch because of advisory bot/agent feedback, ask for a human decision first. Explicit implementation work may follow only if the human asks for it or a prior human instruction already authorized that specific review-feedback implementation work.
+When the implementer's view is `fix in this PR` and the change remains reasonably scoped to the current PR, make that follow-up change before handoff rather than asking for another human approval turn.
 
-If later user-approved or workflow-authorized changes are pushed in response to advisory bot/agent or human comments, restart required CI/check inspection for the new head SHA. Skip the longer advisory-review wait unless new review-start activity appears for that SHA or the human asks to wait.
+When the implementer's view is `defer`, route the follow-up based on scope clarity:
+
+- if the separate larger change has a known direction, create a new `plan-execution` task
+- if the separate larger change is real but the solution is still unclear, create a `docs/issues/` item
+
+Do **not** silently auto-apply every suggestion. Use implementer judgment to keep branch mutations in scope, and treat clearly separate or large rewrites as deferred work instead of stretching the current PR.
+
+If later workflow-authorized changes are pushed in response to advisory bot/agent or human comments, restart required CI/check inspection for the new head SHA. Skip the longer advisory-review wait unless new review-start activity appears for that SHA or the human asks to wait.
 
 ### Stop Conditions
 
@@ -255,13 +263,15 @@ The follow-up loop can stop when one of these is true:
 - required checks pass and no advisory bot/agent review-start activity appears after the 30-second startup wait
 - for Step 2 planning PRs, the initial follow-up poll completed and no other stop-condition work remains
 - for Step 3 execution PRs, the bounded CI-settling window ended after the initial follow-up poll plus up to two additional 30-second CI-settling polls, and required checks are still pending with no advisory bot/agent review-start activity
-- required checks pass and available advisory bot/agent findings have been summarized
+- required checks pass and any available in-scope advisory bot/agent findings were fixed in the current PR while larger follow-ups were deferred through the documented plan-or-issue split
 - CI is blocked or not actionable, and the blocker is documented
 - advisory bot/agent review remains pending after review-start activity and the 7-minute wait budget, and the timeout state is documented
 - the compact follow-up helper is missing or fails, and the failure reason is documented
 - the user explicitly asks to stop waiting
 
 Wait for GitHub PR review approval before merging into `main`.
+
+When the PR reaches a human-review handoff, end with a compact separate-session prompt that future follow-up for the same PR should start in a new session. Keep it to about 3 lines and include the PR number, branch name, and requested follow-up scope.
 
 ## Verification First Principle
 
