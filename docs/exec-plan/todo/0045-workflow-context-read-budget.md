@@ -15,7 +15,7 @@ duplicated workflow prose, while all existing enforcement remains observable.
 - `AI_WORKFLOW.md:1-177` — lifecycle, branch, execution, and PR rules.
 - `.github/PULL_REQUEST_TEMPLATE.md:1-134` — conditional PR metadata.
 - `skills/{plan-execution,execute-task,review-task,post-task-review,manage-workflow,plan-project,triage-tasks}/SKILL.md` — phase procedures and duplicate lifecycle text.
-- `docs/design-decisions/adr.md:1-67`, `docs/lessons.md:1-159` — records to migrate.
+- `docs/design-decisions/README.md:1-10`, `docs/design-decisions/adr/*.md`, `docs/lessons.md:1-8` — compact decision and active-exception records to preserve.
 - `tools/workflow-lint.sh:626-809` and `docs/specs/workflow-linter.md` — structural validation conventions.
 
 ## Code Change Map
