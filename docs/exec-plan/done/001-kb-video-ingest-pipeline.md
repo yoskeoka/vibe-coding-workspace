@@ -36,7 +36,7 @@ The intended design is a hybrid pipeline:
 
 ## Relevant Prior Decisions
 
-- `docs/design-decisions/adr.md` records that the knowledge base lives under `docs/kb/` and uses a dedicated `knowledge-base` skill rather than execution-workflow skills.
+- `docs/design-decisions/adr/0002-store-knowledge-base-in-repo.md` records that the knowledge base lives under `docs/kb/` and uses a dedicated `knowledge-base` skill rather than execution-workflow skills.
 - `docs/design-decisions/core-beliefs.md` favors AI-first context structures and spec-code parity. This plan follows that by defining durable artifacts up front and keeping human-readable KB outputs compact.
 
 Apply the same reasoning here: keep KB ingest conceptually separate, preserve AI-friendly artifacts, and avoid turning the repo into a raw media archive.

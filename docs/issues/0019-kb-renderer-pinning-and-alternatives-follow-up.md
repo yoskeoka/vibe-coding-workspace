@@ -24,4 +24,4 @@ During `tools/kb build`, the current `mkdocs-material` release emits an upstream
   - lightweight local build/serve flow
   - GitHub Pages publishing
   - good sidebar/navigation support for the compiled wiki
-- Record an explicit decision in `docs/design-decisions/adr.md` once the trade-off is reviewed.
+- Record an explicit decision in `docs/design-decisions/adr/` and index it from `docs/design-decisions/README.md` once the trade-off is reviewed.

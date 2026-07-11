@@ -16,7 +16,7 @@ The current sync workflow compares the child repo's submodule commit directly ag
 
 - Use a path-limited diff on `skills/` between the child repo's current workflow submodule commit and the pushed workflow commit.
 - Keep the existing stale-PR closing and PR creation flow unchanged for commits that do touch `skills/`.
-- Record the decision in `docs/design-decisions/adr.md`.
+- Record the decision as an indexed file under `docs/design-decisions/adr/`.
 
 ## Code Changes
 

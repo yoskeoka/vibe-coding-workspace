@@ -1,4 +1,5 @@
 # Specifications
 
-Place detailed specifications here.
-Start with `system-overview.md` or similar high-level docs.
+Put detailed observable product and operated-service contracts here. Start with
+`system-overview.md`; workflow-enabled repositories also use
+`workflow-context-contract.md` for documentation ownership and read boundaries.
