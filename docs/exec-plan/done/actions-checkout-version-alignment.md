@@ -19,7 +19,7 @@ Relevant prior guidance:
 
 - `docs/project-plan.md` treats the workflow itself as a first-class deliverable and calls for reusable, mechanically enforced workflow tooling.
 - `docs/design-decisions/core-beliefs.md` favors spec/code parity and avoiding unnecessary refactors.
-- `docs/design-decisions/adr.md` records a dogfooding decision to keep workflow docs, skills, and tooling aligned rather than letting process definitions drift.
+- `docs/design-decisions/adr/0003-dogfood-released-global-ww.md` records a dogfooding decision to keep workflow docs, skills, and tooling aligned rather than letting process definitions drift.
 
 External compatibility note:
 

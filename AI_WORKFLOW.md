@@ -1,177 +1,84 @@
 # AI-Centered Development Workflow
 
-This document outlines the workflow for developing projects with AI as the central driver.
+This is the canonical lifecycle reference. Read the section for the current
+phase; task-specific skills own their procedures. See
+[the context contract](docs/specs/workflow-context-contract.md) for document
+ownership and minimum reads.
 
-## Core Principles
+## Shared rules
 
-1.  **AI-Centric Context**: All necessary information must be immediately accessible to AI in the `docs/` directory. Files should be structured for easy parsing and context retrieval.
-2.  **Spec-Code Parity**: `docs/specs/` must strictly match the actual code. No PR is reviewable without verification that specs and code are in sync.
-3.  **Verification First**: Human review happens *after* mechanical tests and "visual" verification data are ready.
+- Every change uses a clean branch from current `main` and GitHub PR review.
+  Start normally with `ww create <type>/<name>` and `cd "$(ww cd <type>/<name>)"`.
+  From the workspace root for a child repo, use `ww create --repo <repo> ...`.
+- Branches are `<type>/<description>` using `plan`, `feat`, `fix`, `chore`, or
+  `docs`; descriptions are kebab-case. `feat` and `fix` names map to a matching
+  numbered plan suffix. Active plans and local issues are `<sequence>-<name>.md`.
+- Raw Git branch creation is only for documented `ww` bootstrap/recovery or
+  unreleased `ww` work. Record a normal-workflow `ww` failure with command, cwd,
+  target, expected/actual result, fallback, and impact.
+- `docs/specs/` describes observable product and operated-service behavior, not
+  local harness or CI mechanics. Update it before code.
+- Keep unrelated findings in `docs/issues/`; move resolved local issues to
+  `docs/issues/done/`. Read the [design-decision index](docs/design-decisions/README.md)
+  and core beliefs before making a design decision.
 
-## Directory Structure
+## Project planning
 
-- `docs/project-plan.md`: The single source of truth for the project's goals, significance, and requirements.
-- `docs/design-decisions/`:
-    - `adr.md`: Append-only log of architectural decisions.
-    - `core-beliefs.md`: Guiding principles for trade-offs.
-    - `rejected-ideas.md`: Append-only log for no-go project ideas (with rationale and revisit conditions).
-- `docs/specs/`: Detailed specifications. Must match implementation.
-- `docs/exec-plan/`:
-    - `todo/`: Active execution plans.
-    - `done/`: Completed execution plans.
-- `docs/references/`: Context for external tools/protocols (e.g., `fastapi-llms.txt`).
-- `docs/lessons.md`: Accumulated lessons learned. Reviewed at session start, with new lessons appended at the end of the file.
-- `docs/issues/`: Local issue tracking for people developing through this workspace workflow. Avoids confusion with GitHub Issues during active "exec-plan" cycles.
-    - When feedback comes from outside this workspace and naturally lives in the target repository's GitHub Issues, keep that GitHub issue as the canonical tracker instead of mirroring it into `docs/issues/` unless separate workspace-only follow-up is needed.
-    - `done/`: Resolved issues (moved here after fix is merged).
-- `.local/pj/`: Derived local cache for workspace-level GitHub Projects triage. This cache is non-canonical and must stay untracked.
+Update `docs/project-plan.md` when goals, significance, or requirements change.
+Use a `plan/<name>` worktree and `plan-project`; submit the project-plan PR
+through [PR and follow-up](#pr-and-follow-up).
 
-## Workflow Cycle
+## Execution planning
 
-### 0. New Project Intake (Pre-Step, optional but recommended for vague ideas)
-- Use this when an idea is still fuzzy and not ready for a full `project-plan`.
-- Activities:
-    1. Idea sparring (pain points, desired experience, target users)
-    2. Existing-solution research
-    3. Go/No-Go decision
-- Before asking what to do next after a non-trivial intake checkpoint, compress the current findings into `docs/issues/<descriptive-name>.md` with the preserved problem framing, conclusion, next questions, and source links so later sessions can resume without replaying the full research context.
-- If **No-Go**: append findings to `docs/design-decisions/rejected-ideas.md` and stop.
-- If **Go**: create/bootstrap the child project repo, update workspace meta entries, then continue to Step 1 (`plan-project`).
+Use `plan/<name>` and create a numbered plan under `docs/exec-plan/todo/`.
+Each executable plan has an external completion boundary, concrete existing
+references (paths, symbols, ranges), a `(NEW)/(MODIFY)/(DELETE)` change map,
+black-box spec changes, applicable `Addresses:`, dependencies/parallelism, and
+the `/execute-task` instruction directly below its title. A high-level parent
+uses `N/A - detail required before execution` and is split before execution.
 
-> **Rule**: Every step that produces changes MUST go through a GitHub PR review — including doc-only changes like Project Plan and Execution Plan updates. AI Agents must always create a new clean branch from the latest `main` before starting any work.
+Plan PRs use [PR and follow-up](#pr-and-follow-up). External issues listed in a
+plan are also listed under the plan PR's Issues section.
 
-### Branch Setup (applies to every step below)
-- Default operator path: use the globally installed `ww` CLI for normal plan/execution startup instead of raw git branch creation.
-- From the target repo root:
-    ```sh
-    ww create <type>/<description>
-    cd "$(ww cd <type>/<description>)"
-    ```
-- From the workspace root when targeting a child repo:
-    ```sh
-    ww create --repo <repo> <type>/<description>
-    cd "$(ww cd --repo <repo> <type>/<description>)"
-    ```
-- Never reuse an existing feature branch or task worktree silently; each active task should get its own `ww` worktree.
-- Raw git branch creation is reserved for `ww` bootstrap/recovery cases and for developing or verifying unreleased `ww` behavior inside `ww/`. If `ww` fails unexpectedly, follow `docs/specs/ww-dogfooding-workflow.md` instead of bypassing it silently.
-- When capturing a `ww` failure, record the command, cwd, target repo, expected behavior, actual behavior, relevant output, fallback usage, and impact so the finding can feed back into `ww`.
-- This startup contract is fully migrated for the workflow docs and skills covered by `docs/specs/ww-dogfooding-workflow.md`, including adjacent project planning, PR review, and workflow bootstrap skills.
+## Execution
 
-#### Branch Naming Convention
+Use `feat/<name>` or `fix/<name>` only after the matching plan is merged. Follow
+this order: spec update, implementation, scoped issue logging, verification,
+then move the completed plan to `docs/exec-plan/done/`. Move local issues named
+on `Addresses:` to `docs/issues/done/`; for external issues, the implementation
+PR includes `Closes #<n>` (same repo) or `Closes <URL>`, unless it explains why
+the issue stays open. Invoke `post-task-review` for significant work, then
+[PR and follow-up](#pr-and-follow-up).
 
-Branch names MUST match the pattern `<type>/<description>`:
+## PR and follow-up
 
-| Type   | Purpose                                     | Example                        |
-|--------|---------------------------------------------|--------------------------------|
-| `plan` | Execution plan creation/update              | `plan/feature-name`            |
-| `feat` | Feature implementation (from an exec-plan)  | `feat/feature-name`            |
-| `fix`  | Bug fix implementation (from an exec-plan)  | `fix/bug-name`                 |
-| `chore`| Non-functional changes (CI, tooling, deps)  | `chore/update-ci`              |
-| `docs` | Documentation-only changes                  | `docs/update-readme`           |
+Run applicable lint, tests, builds, and required visual/manual checks before PR
+creation. `review-task` verifies scope, title, applicable template fields, and
+the latest-head landing loop. Before every push to a PR branch, confirm the PR
+is still open. After create/update: wait 30 seconds, inspect checks, timeline,
+review summaries, and inline comments. For execution PRs with pending required
+checks, make up to two additional 30-second polls. If advisory review starts,
+poll at 3m, 2m, 1m, and 1m; inspect every review body and inline comment.
 
-The `<description>` is free-form kebab-case. Do not add workflow sequence numbers to branch names; ordering lives in active plan and issue filenames instead.
+Fix actionable, in-scope CI failures and advisory findings in the PR; defer a
+clearly separate larger item to a plan or issue. The handoff groups advisory
+findings by source and gives the PR URL, worktree path, and a short
+fresh-session prompt. Wait for human approval before merging.
 
-#### Active Plan / Issue Naming
+## Post-task review
 
-- Active execution plans under `docs/exec-plan/todo/` MUST use `<sequence>-<name>.md`.
-- Active local issues under `docs/issues/` MUST use `<sequence>-<name>.md`.
-- Sequence numbers use four-digit zero padding from `0001` through `9999`.
-- Sequence numbers at `10000` or above MUST be written without zero padding.
-- `README.md` is exempt in both directories.
-- New active files should take the next available sequence number in their directory family so creation order remains visible without opening Git history.
+For significant completion, use `post-task-review` to capture unrecorded intent,
+surface concrete follow-ups for human approval, and maintain active exceptions.
+Do not create speculative issues or generic lessons.
 
-#### Exec-Plan Mapping
+## Workflow setup
 
-The branch description and the exec-plan basename suffix MUST share the same name:
+Use `manage-workflow` to bootstrap a repository. It creates the docs structure,
+keeps `AGENTS.md` canonical with `CLAUDE.md` as a symlink, and installs the
+workflow assets. Do not overwrite project-specific guidance.
 
-- `plan/<name>` branch creates `docs/exec-plan/todo/<sequence>-<name>.md`
-- `feat/<name>` or `fix/<name>` branch expects one matching active or completed plan whose basename suffix is `-<name>.md`
-- Historical completed plans in `docs/exec-plan/done/` may still use older non-numbered filenames and remain valid
-- After execution is complete, the plan file is moved from `todo/` to `done/`
-- Branches of type `chore` and `docs` are exempt (no exec-plan required)
+## Task triage
 
-### PR Workflow (applies to every step below)
-1. **Verify** — Run **all** project lint and test commands using non-AI tooling (e.g., `make lint`, `npm run lint`, `go vet`, `pytest`, `npm test`, or whatever the project defines). If any check fails, fix the issue in the same branch and re-run until **all pass**. Skip this for doc-only PRs when no lint/test tooling covers documentation.
-2. **Create PR and follow up** — Push the branch and create or update the PR through the shared `review-task` gate when using project workflow skills. Use the **PR template** and fill in all sections. Template priority: **current repo template > workspace root repo template > vendored workflow template > workflow-repo template** — if the current repo has `.github/PULL_REQUEST_TEMPLATE.md`, use that; otherwise, when working in a child repo inside this workspace, use the workspace root repo template at `<workspace-root>/.github/PULL_REQUEST_TEMPLATE.md`; otherwise, in child repos that vendor this workflow, use `.claude/vendor/workflow/.github/PULL_REQUEST_TEMPLATE.md`; otherwise use the workflow repo's `.github/PULL_REQUEST_TEMPLATE.md`. After PR creation or update, `review-task` owns the bounded initial monitoring loop for the current PR head SHA: wait for CI/checks to settle, inspect for configured advisory bot/agent review activity, and collect review signals before handoff. A workflow step that routes into `review-task` is not complete until that gate reaches a documented stop condition for the latest pushed PR head SHA.
-3. **Review** — Wait for GitHub PR review approval before merging into `main`.
-
-#### Post-PR Follow-up
-
-PR creation is not the terminal workflow action. For every new PR, updated PR, or later push to the PR branch, required CI/check inspection restarts for the new head SHA:
-
-- Planning PRs and execution PRs use the same completion boundary: the caller must not report the task complete before `review-task` reaches a documented stop condition for the latest pushed head SHA.
-- CI failures are mechanical verification failures. Investigate failing checks and fix them in-branch when the logs are actionable and the fix stays within scope; then re-run verification, push, and restart monitoring for the new head SHA.
-- Advisory bot/agent review comments from Copilot, Claude, `gh aw`, agent workflow reviews, or other configured automation are advisory review input. Inspect them even when the overall review state is passing or approving.
-- Handoffs must group substantive advisory findings by source reviewer/workflow and include the source, location/link, extracted summary, implementer's view, 1-2 line explanation, and recommendation: fix in this PR, defer, or no action.
-- If the implementer's view is `fix in this PR` and the change stays reasonably scoped, `review-task` should apply that follow-up before handoff. If the larger change is clearly separate, defer it by creating a new exec plan when the direction is known or a `docs/issues/` item when the solution is still unsettled.
-- Passing or approving advisory bot/agent checks can still contain substantive observations in review bodies, so inspect review summaries and inline comments even when the overall state is not blocking.
-- After PR creation or a later push, wait 30 seconds before the first CI/check and timeline inspection. Only spend the longer advisory-review wait budget when the timeline shows bot/agent review-start activity for the latest head SHA, such as `copilot_work_started`, or when the human explicitly asks to wait.
-- For a non-blocked PR creation or update flow, the shared minimum landing path starts as: `commit -> push -> PR create/update -> 30-second wait -> initial follow-up poll`, with checks, timeline events, review summaries, and inline comments inspected from that poll.
-- Planning PRs may stop after that initial poll when no other stop-condition work remains. Execution PRs use a bounded CI-settling window in the landing check: if required checks are still pending after the initial poll, add up to two more `30-second wait -> poll` turns before handoff, unless checks finish earlier, advisory-review waiting starts, the head SHA changes, the helper fails, or the human asks to stop.
-- When advisory bot/agent review has started, use 4 polling turns: wait 3 minutes, then 2 minutes, then 1 minute twice, for a 7-minute total budget. After each wait, fetch PR reviews and inline comments. If no review/comments arrive by the end, stop waiting and document the timeout state.
-- Advisory review triage is a session handoff, not a PR comment. After implementation, summarize comment response options in the current session unless the user explicitly asks to post them back to the PR.
-- Human-review handoffs should include the PR URL and current worktree path so a human can run or patch the branch locally without searching for it. End with a compact separate-session prompt that future PR follow-up for that branch should continue in a new session. Keep the prompt itself to about 3 lines and include the PR number, branch name, requested follow-up scope, PR URL, and worktree path.
-- Polling-style wait loops should use a low-cost subagent only when the platform supports delegation and the current session explicitly authorizes subagent use; final decisions, fixes, and handoff stay with the main agent.
-
----
-
-### 1. Project Plan (`docs/project-plan.md`) — **requires PR**
-- Create a new `ww` worktree/branch (e.g., `ww create plan/project-plan-v1`).
-- Define or update the Goal, Significance, and Requirements.
-- Follow the **PR Workflow** above to merge the plan into `main`.
-- Update this as the project evolves (each update = new branch + PR).
-
-### 2. Execution Plan (`docs/exec-plan/todo/`) — **requires PR**
-- Create a new `ww` worktree/branch (e.g., `ww create plan/initial-setup`).
-- Create a new numbered plan file (e.g., `0007-initial-setup.md`) in `todo/`.
-- Detail:
-    - Objective with a concrete external completion boundary.
-    - Existing implementation references: file paths, symbols, and line ranges for the code reviewed during planning and expected to be re-read during execution.
-    - Code Change Map: files marked `(NEW)`, `(MODIFY)`, or `(DELETE)` plus the symbols/modules to touch and a one-line change summary.
-    - Spec changes (How `docs/specs/` will change), limited to black-box product behavior and production infrastructure contracts for operated services rather than local harness/CI details.
-    - `Addresses:` entries for any tracked issues that this execution work is expected to resolve:
-      - local workspace issues under `docs/issues/`
-      - external GitHub issues when the canonical feedback lives in the target repo issue tracker
-    - Use full GitHub issue URLs in `Addresses:` for external issues, for example `Addresses: https://github.com/yoskeoka/ww/issues/227`.
-    - Break down large tasks into smaller sub-plans if needed.
-- If the file is intentionally a high-level parent plan and those details are not yet knowable, write `N/A - detail required before execution` instead of vague placeholders, then split into child plans before implementation.
-- Immediately below the H1 title in every executable plan file, add:
-  - `> **Execution**: Use \`/execute-task\` to implement this plan. After implementation is complete, use \`/review-task\` to prepare and create the PR.`
-- Review/Update `design-decisions/` if architectural choices are made.
-- Follow the **PR Workflow** above to merge the plan into `main`.
-- If the plan is driven by an external GitHub issue, the plan PR should link that issue in its PR body under `Issues` so reviewers can trace the execution target before implementation starts.
-
-### 3. Execution — **requires PR**
-- Create a new `ww` worktree/branch (e.g., `ww create feat/initial-setup`).
-- Spec First: Update `docs/specs/` *before* modifying code.
-- Implement: Write the code to match the spec.
-- Issues: If unrelated problems are found, log them in `docs/issues/<sequence>-<name>.md`. Do not fix them within the current plan unless blocking.
-- Issue Resolution: When an issue is resolved, move its file from `docs/issues/` to `docs/issues/done/`. If the matching execution plan declares that issue in `Addresses:`, the implementation branch should include the move unless the PR body explicitly explains why the issue remains open.
-- External GitHub Issue Resolution: When the matching execution plan declares external GitHub issues in `Addresses:`, the implementation PR must include corresponding closing keywords unless the PR body explicitly explains why the issue remains open.
-  - For same-repo issues, use `Closes #<number>` such as `Closes #227`.
-  - For cross-repo issues, use the full URL such as `Closes https://github.com/yoskeoka/ww/issues/227`.
-- Completion: Move the plan file from `docs/exec-plan/todo/` to `docs/exec-plan/done/`.
-- Follow the **PR Workflow** above (Verify → Create PR → Review).
-- The PR must include:
-    - Code changes.
-    - Spec updates.
-    - The plan file moved to `done/`.
-    - Any resolved linked local issue files moved to `docs/issues/done/`, or an explicit PR-body justification for leaving them open.
-    - `Closes` entries for external GitHub issues declared in the plan's `Addresses:` line, or an explicit PR-body justification for leaving them open.
-    - Verification artifacts (test results, screenshots, logs) for human review.
-    - Post-PR follow-up status for the latest pushed head SHA.
-
-Repeat steps 1–3 until the Project Plan is complete.
-
-## Lessons Maintenance
-
-- `docs/lessons.md` is append-only in practice for new lessons: add new entries at the end of the file rather than inserting them near the top.
-- When a new rule is learned during planning, execution, or review follow-up, update `docs/lessons.md` in the same branch that captured the lesson.
-- Don't add lessons when the mistake is already the issue tracked or the solution planned.
-- Keep the file focused. When the lesson count grows past 10, suggest cleanup so solved or redundant lessons can be removed.
-
-## Workspace Task Tracking
-
-- GitHub Projects is the canonical remote state for workspace task triage.
-- `.local/pj/` is the only supported local workspace-triage state in the current workflow.
-- Committed legacy tracker runtime artifacts and local database state are not part of the supported workflow contract.
+Use `triage-tasks` for workspace priorities. GitHub Projects is canonical;
+`.local/pj/` is derived cache only. Execution plans and local issues remain the
+implementation trackers after task selection.

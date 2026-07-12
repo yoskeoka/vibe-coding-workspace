@@ -41,7 +41,7 @@ Addresses:
 
 ## Design Decisions
 
-- Record the storage-location decision in `docs/design-decisions/adr.md`.
+- Record the storage-location decision as an indexed file under `docs/design-decisions/adr/`.
 - Keep the knowledge base in-repo rather than using GitHub Wiki.
 
 ## Sub-tasks

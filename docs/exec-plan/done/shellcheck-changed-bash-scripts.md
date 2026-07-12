@@ -10,7 +10,7 @@ Add a CI check that runs ShellCheck only against Bash script files changed by a 
 
 - Current CI includes `workflow-lint.yml`, which enforces AI workflow rules.
 - `docs/specs/workflow-linter.md` explicitly treats project-specific lint as out of scope for the workflow linter.
-- Past decision in `docs/design-decisions/adr.md`: use focused workflows that only fan out when their inputs matter, such as the child-repo sync workflow checking `skills/` changes before opening PRs.
+- Past decision in `docs/design-decisions/adr/0001-skip-child-workflow-prs-without-skill-changes.md`: use focused workflows that only fan out when their inputs matter, such as the child-repo sync workflow checking `skills/` changes before opening PRs.
 - Core belief: correctness over speed. Applying ShellCheck to changed Bash scripts gives useful mechanical feedback without making unrelated script history a blocker.
 
 ## Code changes

@@ -73,6 +73,7 @@ tools/workflow-lint.sh --mode=ci [--pr-title=TITLE] [--pr-body=BODY] [--report-f
 | 6 | Linked local issue resolution | `fixable` | pre-push, ci | For `feat/*` and `fix/*` branches whose matching exec-plan is completed in `docs/exec-plan/done/` and whose `Addresses:` line names local issue paths under `docs/issues/`, each linked issue must also be moved to `docs/issues/done/` in the same branch unless the PR body explicitly justifies leaving it open (for example `remains open: <reason>`). | AI_WORKFLOW.md Step 3: "Issue Resolution" |
 | 6a | Linked external GitHub issue closure metadata | `fixable` | ci only | For `feat/*` and `fix/*` branches whose matching exec-plan is completed in `docs/exec-plan/done/` and whose `Addresses:` line names external GitHub issue URLs, the PR body must include matching closing keywords (`Closes #123` for same-repo issues or `Closes <full-url>` for cross-repo issues) unless the PR body explicitly justifies leaving the issue open. | AI_WORKFLOW.md Step 3: "External GitHub Issue Resolution" |
 | 7 | Active plan / issue naming | `fixable` | pre-push, ci | Active files under `docs/exec-plan/todo/` and `docs/issues/` must use `<sequence>-<name>.md`, with four-digit zero padding through `9999` and unpadded numbers at `10000+`. `README.md` is exempt. | AI_WORKFLOW.md: "Active Plan / Issue Naming" |
+| 8 | Workflow context contract | `fixable` | pre-push, ci | In the workspace repo, require the layered entrypoint/lifecycle/spec files and links, indexed per-record Michael Nygard ADRs, no monolithic `adr.md`, and at most ten active lesson exceptions with remediation/review metadata. | docs/specs/workflow-context-contract.md |
 
 The missing-base-ref and diff-failure advisories are environment-sensitive guardrail behavior, not repo-policy checks. They exist to keep shallow, partially fetched, or otherwise unusual repository states from producing a misleading "no changes" result while still preserving non-diff checks.
 
@@ -104,6 +105,17 @@ The missing-base-ref and diff-failure advisories are environment-sensitive guard
 
 **Exit codes:**
 - Always 0 (warnings only)
+
+### Workflow context contract check
+
+The structural check applies only to the workspace repository; child repositories
+may consume distributed skills without carrying workspace-owned workflow docs.
+It verifies required files and lifecycle links, ADR index discoverability and
+record headings, removal of the old monolithic ADR, and the active-exceptions
+register. It intentionally has no generic documentation line-count limit.
+
+Run `./tools/test-workflow-context-contract.sh` for the focused positive
+contract check, then run the normal linter gate.
 
 ### `.githooks/pre-push`
 

@@ -163,7 +163,7 @@ Possible shape:
 - Preserve source provenance explicitly when the input is a local file or document URL
 - Do not bundle optional OCR/plugin paths into the first implementation unless the comparison plan proves they are needed
 
-If the fallback path needs a default OCR/provider decision, record that separately in `docs/design-decisions/adr.md`.
+If the fallback path needs a default OCR/provider decision, record that separately as an indexed file in `docs/design-decisions/adr/`.
 
 ## Sub-tasks
 

@@ -69,7 +69,7 @@ This supports the project-plan goals of treating the workflow as a first-class p
 Past decisions reviewed before planning:
 
 - `docs/design-decisions/core-beliefs.md` favors AI-first context retrieval, correctness over speed, human review over token burn, and trimming tool output at the source.
-- `docs/design-decisions/adr.md` records that normal workflow startup should dogfood the released global `ww` binary.
+- `docs/design-decisions/adr/0003-dogfood-released-global-ww.md` records that normal workflow startup should dogfood the released global `ww` binary.
 - `docs/exec-plan/done/review-task-post-pr-follow-up.md` established `review-task` as the owner of PR readiness and initial post-PR monitoring.
 - `docs/exec-plan/done/review-task-pr-workflow-guard.md` strengthened `review-task` as the shared PR gate instead of adding overlapping PR workflow skills.
 - `docs/exec-plan/done/gh-pr-followup-token-trimming.md` added the compact PR follow-up helper so repeated polling does not flood the main context.
