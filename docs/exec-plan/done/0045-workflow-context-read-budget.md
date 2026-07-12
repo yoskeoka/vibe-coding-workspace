@@ -1,7 +1,7 @@
 # Workflow context read budget
 > **Execution**: Use `/execute-task` to implement this plan. After implementation is complete, use `/review-task` to prepare and create the PR.
 
-Addresses: docs/issues/0026-workflow-context-read-budget.md
+Addresses: docs/issues/done/0026-workflow-context-read-budget.md
 
 ## Objective
 
@@ -36,9 +36,9 @@ duplicated workflow prose, while all existing enforcement remains observable.
 
 ## Sub-tasks
 
-- [ ] [parallel] Establish contract, lifecycle links, and compact PR entrypoints.
-- [ ] [parallel] Migrate ADRs, lessons, and workflow templates.
-- [ ] [depends on: contract, migration] Add and run structural workflow-lint checks.
+- [x] [parallel] Establish contract, lifecycle links, and compact PR entrypoints.
+- [x] [parallel] Migrate ADRs, lessons, and workflow templates.
+- [x] [depends on: contract, migration] Add and run structural workflow-lint checks.
 
 ## Verification
 
