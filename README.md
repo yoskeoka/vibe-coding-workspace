@@ -34,7 +34,8 @@ This workspace is managed using a strict **AI-first workflow**. The core idea is
 2.  **Plan**: Create a specific execution plan in `docs/exec-plan/todo/` to achieve a goal.
 3.  **Spec**: Update `docs/specs/` to reflect the change *before* coding.
 4.  **Code**: Implement the change.
-5.  **Verify**: Ensure specs and code match, then move the plan to `done/`.
+5.  **Verify**: Ensure specs and code match, then delete the resolved plan and
+    retrieve it later through the PR or Git history.
 
 For normal day-to-day task startup, use the globally installed `ww` CLI instead of raw `git switch -c` so the workflow continuously dogfoods the released tool:
 

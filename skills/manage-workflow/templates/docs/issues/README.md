@@ -1,4 +1,5 @@
 Place issue files here. Format: `<sequence>-issue-name.md`.
 Use this for tracking bugs/refactors discovered during an exec-plan that are out of scope for the current plan.
 
-When an issue is resolved, move its file to `done/`.
+When an issue is resolved by an execution plan, delete it in the same branch as
+the plan. Use the implementation PR or Git history to retrieve resolved issues.

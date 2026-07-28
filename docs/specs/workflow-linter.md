@@ -64,14 +64,13 @@ tools/workflow-lint.sh --mode=ci [--pr-title=TITLE] [--pr-body=BODY] [--report-f
 
 | # | Check | Class | Mode | Description | Rule Source |
 |---|-------|-------|------|-------------|-------------|
-| 1 | Issue lifecycle | `fixable` | pre-push, ci | Files removed from `docs/issues/` must appear in `docs/issues/done/` (moved, not deleted) | AI_WORKFLOW.md Step 3: "Issue Resolution" |
 | 2 | Docs-change hint | `advisory` | ci only | If code files changed but no `docs/` files changed, and PR title/body does not contain `[trivial]`, emit warning | AI_WORKFLOW.md: "Spec-Code Parity" principle |
 | 3 | Branch naming | `fixable` | pre-push, ci | Branch name must match `<type>/<description>` where type is `plan\|feat\|fix\|chore\|docs` and description is non-empty kebab-case. `main` is exempt. | AI_WORKFLOW.md: "Branch Naming Convention" |
-| 4 | Exec-plan existence | `fixable` | pre-push, ci | For `feat/*` and `fix/*` branches, a matching exec-plan must exist whose basename suffix is `-<name>.md`, where `<name>` is the branch description. Historical completed plans may still use `docs/exec-plan/done/<name>.md`. `plan/*`, `chore/*`, `docs/*` branches are exempt. | AI_WORKFLOW.md: "Exec-Plan Mapping" |
-| 4a | Ambiguous exec-plan mapping | `fixable` | pre-push, ci | For `feat/*` and `fix/*` branches, if multiple active or completed exec-plans share the same `-<name>.md` suffix in one directory, emit a warning because suffix-based mapping is ambiguous and must be cleaned up. | AI_WORKFLOW.md: "Exec-Plan Mapping" |
+| 4 | Exec-plan existence | `fixable` | pre-push, ci | For `feat/*` and `fix/*` branches, a matching active exec-plan must exist under `docs/exec-plan/todo/` whose basename suffix is `-<name>.md`, where `<name>` is the branch description. A branch that deletes its matching plan in the merge-base diff is a valid closeout transition. `plan/*`, `chore/*`, `docs/*` branches are exempt. | AI_WORKFLOW.md: "Exec-Plan Mapping" |
+| 4a | Ambiguous exec-plan mapping | `fixable` | pre-push, ci | For `feat/*` and `fix/*` branches, if multiple active plans or multiple deleted matching plans share the same `-<name>.md` suffix, emit a warning because suffix-based mapping is ambiguous and must be cleaned up. | AI_WORKFLOW.md: "Exec-Plan Mapping" |
 | 5 | Workflow startup wording | `fixable` | pre-push, ci | If changed migrated workflow-facing docs or skills reintroduce raw startup snippets like `git fetch origin` or `git switch -c`, emit a warning to keep global `ww` as the default operator path. Covered skills include `plan-execution`, `execute-task`, `triage-tasks`, `plan-project`, `review-task`, and `manage-workflow`. | docs/specs/ww-dogfooding-workflow.md: "Workflow lint guard" |
-| 6 | Linked local issue resolution | `fixable` | pre-push, ci | For `feat/*` and `fix/*` branches whose matching exec-plan is completed in `docs/exec-plan/done/` and whose `Addresses:` line names local issue paths under `docs/issues/`, each linked issue must also be moved to `docs/issues/done/` in the same branch unless the PR body explicitly justifies leaving it open (for example `remains open: <reason>`). | AI_WORKFLOW.md Step 3: "Issue Resolution" |
-| 6a | Linked external GitHub issue closure metadata | `fixable` | ci only | For `feat/*` and `fix/*` branches whose matching exec-plan is completed in `docs/exec-plan/done/` and whose `Addresses:` line names external GitHub issue URLs, the PR body must include matching closing keywords (`Closes #123` for same-repo issues or `Closes <full-url>` for cross-repo issues) unless the PR body explicitly justifies leaving the issue open. | AI_WORKFLOW.md Step 3: "External GitHub Issue Resolution" |
+| 6 | Linked local issue resolution | `fixable` | pre-push, ci | For `feat/*` and `fix/*` branches that delete their matching plan, workflow-lint reads that plan from the merge-base side of the diff. If its `Addresses:` line names local issue paths under `docs/issues/`, each linked issue must be deleted in the same branch unless the PR body explicitly justifies leaving it open (for example `remains open: <reason>`). | AI_WORKFLOW.md Execution |
+| 6a | Linked external GitHub issue closure metadata | `fixable` | ci only | For `feat/*` and `fix/*` branches that delete their matching plan, workflow-lint reads external GitHub issue URLs from the merge-base-side plan. The PR body must include matching closing keywords (`Closes #123` for same-repo issues or `Closes <full-url>` for cross-repo issues) unless it explicitly justifies leaving the issue open. | AI_WORKFLOW.md Execution |
 | 7 | Active plan / issue naming | `fixable` | pre-push, ci | Active files under `docs/exec-plan/todo/` and `docs/issues/` must use `<sequence>-<name>.md`, with four-digit zero padding through `9999` and unpadded numbers at `10000+`. `README.md` is exempt. | AI_WORKFLOW.md: "Active Plan / Issue Naming" |
 | 8 | Workflow context contract | `fixable` | pre-push, ci | In the workspace repo, require the layered entrypoint/lifecycle/spec files and links, indexed per-record Michael Nygard ADRs, no monolithic `adr.md`, and at most ten active lesson exceptions with remediation/review metadata. | docs/specs/workflow-context-contract.md |
 
@@ -86,14 +85,14 @@ The missing-base-ref and diff-failure advisories are environment-sensitive guard
 
 **Exec-plan filename convention:**
 - Active exec-plan filenames use `<sequence>-<name>.md`.
-- For execution branches, the exec-plan basename suffix must match the branch description. For example, `feat/workflow-linter` maps to `docs/exec-plan/todo/0042-workflow-linter.md` during execution and `docs/exec-plan/done/0042-workflow-linter.md` after completion.
-- Historical completed artifacts may still use older non-numbered filenames in `docs/exec-plan/done/`, and workflow-lint must keep tolerating them.
+- For execution branches, the exec-plan basename suffix must match the branch description. For example, `feat/workflow-linter` maps to `docs/exec-plan/todo/0042-workflow-linter.md` during execution. Completion deletes that matching path; the linter reads its base-side content from the merge-base diff.
+- Completed plans and local issues are retrieved through their implementation PR or Git history, not a checked-out `done/` directory.
 - Active local issue filenames use the same `<sequence>-<name>.md` rule under `docs/issues/`.
 
 **`Addresses:` convention for local issues:**
 - Execution plans that expect to resolve tracked local issues should include a single `Addresses:` line.
 - That line lists one or more local issue paths under `docs/issues/`, for example `Addresses: docs/issues/0019-bug-name.md`.
-- `workflow-lint` treats those paths as explicit completion metadata only for the matching `feat/<name>` or `fix/<name>` execution branch after the plan has moved to `docs/exec-plan/done/<sequence>-<name>.md` or a tolerated historical `docs/exec-plan/done/<name>.md`.
+- `workflow-lint` treats those paths as explicit completion metadata only for the matching `feat/<name>` or `fix/<name>` execution branch after its matching plan is deleted from `docs/exec-plan/todo/` in that branch diff.
 - The parser must accept both same-line `Addresses: docs/issues/...` entries and the common multi-line form where `Addresses:` is followed by bullet lines.
 - The linked-local-issue check stays narrow on purpose: it does not try to infer issue closure from arbitrary code changes or unrelated branches.
 
@@ -101,7 +100,7 @@ The missing-base-ref and diff-failure advisories are environment-sensitive guard
 - When the canonical tracker is an external GitHub issue in the target repository, list the issue on the same `Addresses:` line using the full issue URL, for example `Addresses: https://github.com/yoskeoka/ww/issues/227`.
 - Use full URLs in plans so the closure target stays unambiguous even when the plan is reviewed from the workspace root or copied across repos.
 - `workflow-lint` only checks external issue closure metadata in CI mode because the PR body is required input.
-- The CI check is narrow on purpose: it only verifies that explicitly linked issues from the completed plan appear in PR-body closing keywords or are intentionally left open with justification.
+- The CI check is narrow on purpose: it only verifies that explicitly linked issues from the deleted plan's merge-base content appear in PR-body closing keywords or are intentionally left open with justification.
 
 **Exit codes:**
 - Always 0 (warnings only)

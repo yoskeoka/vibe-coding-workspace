@@ -170,7 +170,8 @@ The `triage-tasks` skill may use the local cache and/or the CLI output as its wo
 - Full re-triage MUST only create a new Project item when no equivalent existing item can be reconciled.
 - Reconciliation MUST handle local sources in all of these states:
   - still present in `docs/exec-plan/todo/` or `docs/issues/`
-  - moved to `docs/exec-plan/done/` or `docs/issues/done/`
+  - deleted by a completed execution and retrievable through its PR or Git
+    history
   - missing locally because the repo checkout is unavailable
   - missing locally because the file no longer exists
 - Reconciliation MUST handle remote sources in all of these states:

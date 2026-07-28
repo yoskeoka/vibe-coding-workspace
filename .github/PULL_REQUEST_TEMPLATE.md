@@ -28,7 +28,7 @@
 
 - [ ] Fresh branch from current `main`
 - [ ] Specs updated before code, if code changed
-- [ ] Plan and linked local issues moved to `done/`, if resolved
+- [ ] Resolved plan and linked local issues deleted, if applicable
 - [ ] Fixable workflow-linter findings resolved or justified
 - [ ] No unresolved blockers
 
