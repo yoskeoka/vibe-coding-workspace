@@ -16,7 +16,7 @@ only `todo/` and `docs/issues/` has only unresolved issues; neither checked-out
 accepts and validates the new completion transition without weakening the
 pre-implementation plan requirement or external GitHub issue closure check.
 
-Addresses: docs/issues/0027-historical-workflow-artifact-retention.md
+Addresses: docs/issues/0028-historical-workflow-artifact-retention.md
 
 ## Confirmed decision
 
