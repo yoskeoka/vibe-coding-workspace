@@ -2,11 +2,11 @@
 
 > **Execution**: Use `/execute-task` to implement this plan. After implementation is complete, use `/review-task` to prepare and create the PR.
 
-## Objective and completion boundary
+## Objective
 
 Prevent a Codex agent from treating a progress update as completion while it is carrying out a workspace workflow task. On the first `Stop` event of a turn in a workspace `plan/*`, `feat/*`, or `fix/*` worktree, Codex must receive one concise continuation prompt that asks it to check the user-requested completion boundary. When an active matching execution plan is available, that prompt must name its objective or completion boundary. The second `Stop` event for that same turn must be allowed so a genuinely complete task can hand off normally.
 
-Completion is a workspace-local configuration, script, specification, and focused-test change that is ready for a reviewable PR. It does not change child-repository hooks or make a hook an unconditional blocker.
+Completion boundary: This is a workspace-local configuration, script, specification, and focused-test change that is ready for a reviewable PR. It does not change child-repository hooks or make a hook an unconditional blocker.
 
 Addresses: N/A
 
