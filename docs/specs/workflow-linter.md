@@ -1,4 +1,4 @@
-# Spec: Workflow Linter
+# Spec: Workflow linter
 
 ## Goal
 
@@ -50,7 +50,7 @@ tools/workflow-lint.sh --mode=ci [--pr-title=TITLE] [--pr-body=BODY] [--report-f
   - `finding`
   - `why`
   - `fix`
-- Counts warnings by finding block, not by output line
+- Counts each finding block
 - Prints summary totals by warning class
 - Prints a final reminder when any `fixable` warnings remain
 - Appends one JSON Lines summary record when `--report-file` is provided:
@@ -74,7 +74,7 @@ tools/workflow-lint.sh --mode=ci [--pr-title=TITLE] [--pr-body=BODY] [--report-f
 | 7 | Active plan / issue naming | `fixable` | pre-push, ci | Active files under `docs/exec-plan/todo/` and `docs/issues/` must use `<sequence>-<name>.md`, with four-digit zero padding through `9999` and unpadded numbers at `10000+`. `README.md` is exempt. | AI_WORKFLOW.md: "Active Plan / Issue Naming" |
 | 8 | Workflow context contract | `fixable` | pre-push, ci | In the workspace repo, require the layered entrypoint/lifecycle/spec files and links, indexed per-record Michael Nygard ADRs, no monolithic `adr.md`, and at most ten active lesson exceptions with remediation/review metadata. | docs/specs/workflow-context-contract.md |
 
-The missing-base-ref and diff-failure advisories are environment-sensitive guardrail behavior, not repo-policy checks. They exist to keep shallow, partially fetched, or otherwise unusual repository states from producing a misleading "no changes" result while still preserving non-diff checks.
+The missing-base-ref and diff-failure advisories protect unusual environments. They prevent a misleading "no changes" result in shallow or partial clones while preserving non-diff checks.
 
 **Operating rule:**
 - `fixable` warnings should normally be resolved before push/PR
@@ -89,14 +89,14 @@ The missing-base-ref and diff-failure advisories are environment-sensitive guard
 - Use the implementation PR or Git history to retrieve completed plans and local issues.
 - Active local issue filenames use the same `<sequence>-<name>.md` rule under `docs/issues/`.
 
-**`Addresses:` convention for local issues:**
+**Local-issue `Addresses` entries**
 - Execution plans that expect to resolve tracked local issues should include a single `Addresses:` line.
 - That line lists one or more local issue paths under `docs/issues/`, for example `Addresses: docs/issues/0019-bug-name.md`.
 - `workflow-lint` treats those paths as explicit completion metadata only for the matching `feat/<name>` or `fix/<name>` execution branch after its matching plan is deleted from `docs/exec-plan/todo/` in that branch diff.
 - The parser must accept both same-line `Addresses: docs/issues/...` entries and the common multi-line form where `Addresses:` is followed by bullet lines.
 - The linked-local-issue check stays narrow on purpose: it does not try to infer issue closure from arbitrary code changes or unrelated branches.
 
-**`Addresses:` convention for external GitHub issues:**
+**External-GitHub-issue `Addresses` entries**
 - When the canonical tracker is an external GitHub issue in the target repository, list the issue on the same `Addresses:` line using the full issue URL, for example `Addresses: https://github.com/yoskeoka/ww/issues/227`.
 - Use full URLs in plans so the closure target stays unambiguous even when the plan is reviewed from the workspace root or copied across repos.
 - `workflow-lint` only checks external issue closure metadata in CI mode because the PR body is required input.
