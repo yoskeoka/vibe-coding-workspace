@@ -86,7 +86,7 @@ The missing-base-ref and diff-failure advisories are environment-sensitive guard
 **Exec-plan filename convention:**
 - Active exec-plan filenames use `<sequence>-<name>.md`.
 - For execution branches, the exec-plan basename suffix must match the branch description. For example, `feat/workflow-linter` maps to `docs/exec-plan/todo/0042-workflow-linter.md` during execution. Completion deletes that matching path; the linter reads its base-side content from the merge-base diff.
-- Completed plans and local issues are retrieved through their implementation PR or Git history, not a checked-out `done/` directory.
+- Use the implementation PR or Git history to retrieve completed plans and local issues.
 - Active local issue filenames use the same `<sequence>-<name>.md` rule under `docs/issues/`.
 
 **`Addresses:` convention for local issues:**
