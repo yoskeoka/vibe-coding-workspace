@@ -21,10 +21,11 @@ is not a source of truth for CI, pull-request, or review state.
 
 ## Reminder content
 
-When an active plan in `docs/exec-plan/todo/` has a filename suffix matching
-the current branch description, the reminder includes a bounded heading and
-objective or completion-boundary summary from that plan. It never reads the
-unstable transcript interface.
+When exactly one active plan in `docs/exec-plan/todo/` has a filename suffix
+matching a non-empty, path-safe current branch description, the reminder
+includes a bounded heading and objective or completion-boundary summary from
+that plan. Ambiguous or unsafe branch descriptions use the generic reminder.
+It never reads the unstable transcript interface.
 
 For `plan/*`, the prompt asks the agent to continue unless it can affirm that
 the reviewable plan PR and its initial latest-head follow-up are complete, or

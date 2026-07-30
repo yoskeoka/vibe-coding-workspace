@@ -79,9 +79,19 @@ class StopGoalReminderTests(unittest.TestCase):
         self.assertEqual("block", result["decision"])
         self.assertNotIn("Matching plan:", result["reason"])
 
+    def test_ambiguous_or_unsafe_plan_suffix_has_no_summary(self) -> None:
+        self.branch("feat/ambiguous")
+        self.plan("ambiguous")
+        second = self.workspace / "docs/exec-plan/todo/0048-ambiguous.md"
+        second.write_text("# Other Plan\n", encoding="utf-8")
+        self.assertIsNone(reminder.matching_plan_summary(self.workspace, "feat/ambiguous"))
+        self.assertIsNone(reminder.matching_plan_summary(self.workspace, "feat/"))
+        self.assertIsNone(reminder.matching_plan_summary(self.workspace, "feat/foo/bar"))
+
     def test_second_stop_passes_through(self) -> None:
         self.branch("feat/stop-goal-reminder")
         self.assertIsNone(self.evaluate({"cwd": str(self.workspace), "stop_hook_active": True}))
+        self.assertIsNone(self.evaluate({"cwd": str(self.workspace), "stop_hook_active": "true"}))
 
     def test_child_repository_is_out_of_scope(self) -> None:
         self.branch("feat/stop-goal-reminder")

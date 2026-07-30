@@ -36,8 +36,10 @@ def compact(text: str) -> str:
 
 def matching_plan_summary(workspace_root: Path, branch: str) -> str | None:
     description = branch.split("/", 1)[1]
+    if not description or "/" in description or "\\" in description:
+        return None
     plans = sorted((workspace_root / "docs/exec-plan/todo").glob(f"*-{description}.md"))
-    if not plans:
+    if len(plans) != 1:
         return None
 
     try:
@@ -80,7 +82,7 @@ def reminder(branch: str, summary: str | None) -> str:
 
 
 def evaluate(payload: dict[object, object]) -> dict[str, str] | None:
-    if payload.get("stop_hook_active") is True:
+    if payload.get("stop_hook_active"):
         return None
     cwd = payload.get("cwd")
     if not isinstance(cwd, str) or not cwd:
