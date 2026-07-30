@@ -27,6 +27,12 @@
             "command": "python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/dispatch_hook.py\" stop",
             "timeout": 180,
             "statusMessage": "Dispatching child-repo quality gates"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/stop_goal_reminder.py\"",
+            "timeout": 10,
+            "statusMessage": "Checking workflow completion boundary"
           }
         ]
       }

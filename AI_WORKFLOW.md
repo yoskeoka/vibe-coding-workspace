@@ -53,6 +53,11 @@ issues, the implementation PR includes `Closes #<n>` (same repo) or `Closes
 for significant work, then
 [PR and follow-up](#pr-and-follow-up).
 
+The workspace-local Codex Stop reminder is a guardrail that asks an agent to
+confirm this completion boundary. It does not replace this caller's workflow
+responsibility, a user-directed stop, or `review-task` ownership of the
+latest-head follow-up.
+
 ## PR and follow-up
 
 Run applicable lint, tests, builds, and required visual/manual checks before PR
