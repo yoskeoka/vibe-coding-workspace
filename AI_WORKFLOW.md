@@ -18,9 +18,11 @@ ownership and minimum reads.
   target, expected/actual result, fallback, and impact.
 - `docs/specs/` describes observable product and operated-service behavior, not
   local harness or CI mechanics. Update it before code.
-- Keep unrelated findings in `docs/issues/`; move resolved local issues to
-  `docs/issues/done/`. Read the [design-decision index](docs/design-decisions/README.md)
-  and core beliefs before making a design decision.
+- Keep unrelated findings in `docs/issues/`; delete resolved local issues with
+  their completed execution plan after verification and PR preparation. Retrieve
+  completed tracker details from the implementation PR or Git history. Read the
+  [design-decision index](docs/design-decisions/README.md) and core beliefs before
+  making a design decision.
 
 ## Project planning
 
@@ -44,10 +46,11 @@ plan are also listed under the plan PR's Issues section.
 
 Use `feat/<name>` or `fix/<name>` only after the matching plan is merged. Follow
 this order: spec update, implementation, scoped issue logging, verification,
-then move the completed plan to `docs/exec-plan/done/`. Move local issues named
-on `Addresses:` to `docs/issues/done/`; for external issues, the implementation
-PR includes `Closes #<n>` (same repo) or `Closes <URL>`, unless it explains why
-the issue stays open. Invoke `post-task-review` for significant work, then
+then delete the completed plan. Delete local issues named on `Addresses:` in the
+same branch; retrieve them later through the PR or Git history. For external
+issues, the implementation PR includes `Closes #<n>` (same repo) or `Closes
+<URL>`, unless it explains why the issue stays open. Invoke `post-task-review`
+for significant work, then
 [PR and follow-up](#pr-and-follow-up).
 
 ## PR and follow-up

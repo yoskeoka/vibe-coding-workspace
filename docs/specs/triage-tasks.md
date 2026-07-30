@@ -1,4 +1,4 @@
-# Spec: Triage Tasks — GitHub Projects Workflow
+# Triage tasks in a GitHub Projects workflow
 
 ## Goal
 Provide a low-friction workspace triage flow where GitHub Projects is the canonical remote task board and a local CLI keeps an AI-friendly structured cache for fast reads and session handoff.
@@ -19,14 +19,14 @@ A short entry in `AGENTS.md` MUST propose triage at the start of every new sessi
 ### 2. Canonical state
 - The canonical remote source of workspace triage state is a GitHub Project (ProjectV2).
 - The workspace MUST use a dedicated ProjectV2 named `Workspace Task Triage` for cross-project task coordination.
-- The canonical ProjectV2 is owner-scoped (`user` or `org`), not repository-owned.
+- The canonical ProjectV2 has one owner scope: `user` or `org`.
 - The canonical ProjectV2 SHOULD be linked to this workspace repository so it appears in the repository's Projects tab for discoverability.
 - GitHub only supports linking a ProjectV2 to repositories owned by the same user or organization as the Project owner; if the workspace later moves to an organization-owned board, the linked workspace repository must be owned by that same organization.
 - This board is reserved for workspace triage data; unrelated personal/work boards MUST NOT be reused as the canonical workspace tracker.
 - Workspace triage MUST begin with an explicit bootstrap step, `pj init --owner <owner> --owner-type user|org`, which resolves the canonical board by name and creates it when absent.
 - If `Workspace Task Triage` does not exist yet, `pj init` MUST create it before later `pj` commands manage items on it.
 - The active owner target for that board MUST be stored explicitly in `.local/pj/config.json`.
-- A single local workspace operates against one owner scope at a time. Switching from a personal board to an organization board later requires an explicit configuration change, not a different one-off flag on a later command.
+- A local workspace uses one owner scope at a time. Switch boards through an explicit configuration change.
 - `.local/pj/` is the only supported local workspace-triage state for the current workflow.
 - The workspace MUST NOT depend on committed legacy tracker runtime artifacts or local database state for current task coordination.
 - The local cache is derived data only. Deleting it must not lose task state.
@@ -40,14 +40,23 @@ The workflow depends on these GitHub Project fields:
 - `Priority`
 
 `Status`, `Workspace Repo`, `Kind`, and `Priority` MUST be available as single-select fields on the canonical workspace board.
+
 `pj init` MUST provision the custom `Workspace Repo`, `Kind`, and `Priority` fields when they are missing, deriving the `Workspace Repo` display values from `setup.sh` plus the workspace repository itself and using the workspace's canonical non-repo option sets for the spike.
+
 Provisioning MUST be idempotent for an already-compatible board; later `pj init` runs must reuse existing compatible fields instead of creating duplicates.
+
 The canonical `Workspace Repo` option display values for the current workspace are the basenames of those setup-derived repositories, including `vibe-coding-workspace`, `ww`, `ai-arena`, `reversi-adventure`, `vim-learning-game`, and `envdiff`.
+
 The local cache MUST include ordered enriched repo metadata so operators can resolve `--repo` by display basename, `owner/repo`, `github.com/owner/repo`, unique prefix, or stable integer index without depending on GitHub's display labels alone.
+
 The canonical `Kind` options for the spike are `Feature`, `Bug`, `Chore`, and `Research`.
+
 The canonical `Priority` options for the spike are `High`, `Medium`, and `Low`.
+
 GitHub currently rejects `Repo` as a custom ProjectV2 field name, so the workflow MUST use `Workspace Repo` as the remote field name while keeping `--repo` as the CLI/operator-facing flag.
+
 If one of those required field names already exists with the wrong field type or without the required canonical options, `pj init` MUST fail with a compatibility error instead of rewriting the field automatically.
+
 No other custom fields are required for the workflow to function.
 
 ### 4. Local cache
@@ -130,14 +139,14 @@ A workspace-local Go CLI provides the task operations. The initial command set i
 The `triage-tasks` skill may use the local cache and/or the CLI output as its workspace-task source instead of historical local-priority-file flows.
 - The skill MUST bootstrap or refresh the cache with `pj init` and/or `pj sync` before relying on local task state.
 - The skill MUST treat `pj list` output plus the cached `Priority` field as the day-to-day "what next?" view; the current spike does not provide a separate `ready` command.
-- The canonical Project used by this workflow MUST include a `Priority` field; fallback ranking applies when an item's `Priority` value is empty, unset, or otherwise unknown, not when the field is absent from the Project schema.
+- The workflow Project MUST include a `Priority` field. Fallback ranking handles an empty, unset, or unknown item value.
 - The skill MUST create new triage items with `pj add` and claim or complete them by changing `Status` with `pj update --item <id> --status <value>`.
 - The skill SHOULD use `pj add --body-file` for generated startup handoff bodies that are long enough to make inline shell quoting awkward.
 - The skill MAY correct existing items through `pj update` instead of forcing manual GitHub edits or item recreation for `Repo`, `Kind`, and `Priority`.
 - During full re-triage, the skill MAY build a short mutation plan first and apply existing-item corrections with `pj update-batch` when that command is available.
 - The skill MUST continue using `pj add` for genuinely missing items; `pj update-batch` only changes items that already exist.
 - If `pj update-batch` is unavailable or fails, the skill MUST remain compatible with one-item-at-a-time `pj update`.
-- During full re-triage, every newly created `pj add` item MUST include a compact body that acts as a remote-facing startup handoff, not only a source note.
+- During full re-triage, every new `pj add` item MUST include a compact, remote-facing startup handoff.
 - The Project item body MUST stay concise enough for GitHub Project scanning and SHOULD be a short Markdown block with these minimum fields:
   - `Source`: the local plan, local issue, GitHub PR, GitHub Issue, or discovered source reference
   - `Repo`: the target workspace repo
@@ -150,14 +159,14 @@ The `triage-tasks` skill may use the local cache and/or the CLI output as its wo
 - For local issue follow-up items, the body SHOULD recommend `plan-execution` when the issue is non-trivial, include the issue path, and suggest a `plan/<issue-name>` startup command.
 - For open PR review or follow-up items, the body SHOULD avoid a misleading implementation startup when the action is review, approval, or post-review response; it SHOULD use `Manual triage` or a specific review skill only when clear, include the PR URL, and name the expected review/follow-up goal.
 - For open GitHub Issue items, the body SHOULD use `Manual triage` unless the issue clearly maps to planning or execution, include the issue URL, and avoid inventing local plan paths that do not exist yet.
-- If a concrete startup prompt is not meaningful, the body MUST still include source, repo, initial reading context, and a short goal, but SHOULD set `Next: Manual triage` and `Start: Not yet specified`.
+- When a concrete startup prompt is unavailable, the body MUST include source, repo, initial reading context, and a short goal. It SHOULD set `Next: Manual triage` and `Start: Not yet specified`.
 - After `pj init` or `pj sync`, the skill SHOULD include the canonical GitHub Project URL in the briefing by using `pj url` when the cache is available.
 - When an item's `Priority` value is empty, unset, incomplete, or displayed as unknown (for example `-` in `pj list`), the skill MUST still rank a small shortlist using explicit heuristics such as: active execution plans over vague future ideas, broken/failing workflow items over aspirational enhancements, and tasks in the currently active repo over distant backlog items.
 - The skill SHOULD present the top-priority shortlist before dumping the full board so the user can choose quickly, while still making the Project URL from `pj url` or full list available.
 - After presenting the current task list, the skill MUST offer the next step as explicit numbered choices:
   `1. Pick a task`, `2. Update the list`, `3. Full re-triage`.
 - After offering those choices, the skill MUST wait for user confirmation instead of auto-choosing one of them.
-- During full re-triage, the skill MAY delegate repo-by-repo read-only exploration to subagents in order to keep the main context smaller.
+- During full re-triage, the skill MAY delegate repo-by-repo read-only exploration to subagents to keep the main context smaller.
 - When delegating that exploration, the skill SHOULD explicitly choose an available low-cost small model for routine read-only collection unless the repo question needs deeper reasoning, but MUST avoid hard-coding a specific model version name in the workflow contract.
 - The main agent MUST keep responsibility for final prioritization, Project mutations, and the handoff prompt even when read-only exploration is delegated.
 - Full re-triage MUST classify collected findings before mutating the Project:
@@ -170,7 +179,8 @@ The `triage-tasks` skill may use the local cache and/or the CLI output as its wo
 - Full re-triage MUST only create a new Project item when no equivalent existing item can be reconciled.
 - Reconciliation MUST handle local sources in all of these states:
   - still present in `docs/exec-plan/todo/` or `docs/issues/`
-  - moved to `docs/exec-plan/done/` or `docs/issues/done/`
+  - deleted by a completed execution and retrievable through its PR or Git
+    history
   - missing locally because the repo checkout is unavailable
   - missing locally because the file no longer exists
 - Reconciliation MUST handle remote sources in all of these states:

@@ -17,8 +17,9 @@ and [PR follow-up](../../AI_WORKFLOW.md#pr-and-follow-up) for shared lifecycle r
    `docs/design-decisions/README.md`. Discuss meaningful alternatives with the
    human before recording a new decision.
 2. Create the next numbered `docs/exec-plan/todo/<sequence>-<name>.md`. Use the
-   same `<name>` as the branch. A split parent keeps a shared base name and is
-   moved unchanged to `done/` only after its scope is fully migrated.
+   same `<name>` as the branch. A split parent keeps a shared base name until
+   its scope is fully migrated; completed plans are removed and remain
+   retrievable through their PR and Git history.
 3. Directly below the H1, add:
    `> **Execution**: Use \`/execute-task\` to implement this plan. After implementation is complete, use \`/review-task\` to prepare and create the PR.`
 4. Include: user-visible objective/completion boundary; exact references with

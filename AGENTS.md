@@ -13,9 +13,10 @@ document named below rather than loading every workflow document.
 - Every change, including docs-only work, goes through a PR. Run applicable
   non-AI quality gates, resolve fixable workflow-linter findings, push, and use
   `review-task` for the bounded latest-head follow-up before handoff.
-- An execution branch moves its plan and linked local issues to `done/` when
-  resolved; linked external GitHub issues need matching `Closes` metadata unless
-  the PR explains why they remain open.
+- An execution branch deletes its resolved plan and linked local issues after
+  verification and PR preparation; retrieve them through PR/Git history. Linked
+  external GitHub issues need matching `Closes` metadata unless the PR explains
+  why they remain open.
 - Serialize Git writes in one worktree. Read design decisions before making a
   new architectural choice.
 
