@@ -13,5 +13,6 @@ envdiff/
 .local/
 .worktrees/
 node_modules/
+.pnpm-store/
 __pycache__/
 *.py[cod]
