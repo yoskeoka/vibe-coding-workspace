@@ -4,13 +4,14 @@
 
 Run `slopless` on eligible changed Markdown in pull requests to `main`.
 Show CI findings as GitHub Actions warnings and keep one PR comment up to date.
-Use the same plan-file exclusion in the local post-edit hook.
+Use the same plan-file exclusion in the workspace local post-edit hook.
 
 ## Scope
 
 - Repositories: `vibe-coding-workspace` and managed child repositories that run Slopless CI
 - Trigger: GitHub Actions `pull_request` events targeting `main`
-- Common exclusion: Markdown under `docs/exec-plan/` is never linted by CI or the local hook
+- CI exclusion: Markdown under `docs/exec-plan/` is never linted in the workspace or managed child projects
+- Local hook exclusion: the workspace post-edit Slopless hook skips Markdown under `docs/exec-plan/`
 - Trigger exclusion: a change only under `docs/exec-plan/` does not trigger Slopless CI
 - Workspace files considered: changed Markdown under `docs/specs/`, `docs/design-decisions/`, `docs/development/`, `docs/kb/`, and `docs/references/`
 - Child project files considered: changed Markdown in each project's current Slopless scope, excluding `docs/exec-plan/`
@@ -65,10 +66,12 @@ tools/list-changed-markdown.sh [base-ref]
 
 ## Local Post-Edit Check
 
-The local post-edit Slopless check follows the same `docs/exec-plan/` exclusion.
-An execution-plan file is skipped even when an edit event includes it alongside
-other Markdown files. The shared hook change must reach child projects through
-the workflow submodule sync.
+The workspace post-edit Slopless hook follows the same `docs/exec-plan/`
+exclusion. An execution-plan file is skipped even when an edit event includes
+it alongside other Markdown files. The hook is configured at the workspace
+root; the child workflow sync does not install or enable this local hook in
+child repositories. Child projects receive the CI exclusion through their
+repository-owned Slopless workflows.
 
 ## GitHub Actions Workflow
 

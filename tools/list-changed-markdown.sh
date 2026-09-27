@@ -31,6 +31,9 @@ while IFS= read -r path; do
     [ -f "$path" ] || continue
 
     case "$path" in
+        docs/exec-plan/*)
+            continue
+            ;;
         docs/specs/*.md|docs/design-decisions/*.md|docs/development/*.md|docs/kb/*.md|docs/references/*.md)
             contains_japanese_text "$path" && continue
             printf '%s\n' "$path"

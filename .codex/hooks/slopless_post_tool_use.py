@@ -44,8 +44,13 @@ def normalize_path(candidate: str, cwd: Path, root: Path) -> Path | None:
     else:
         path = path.resolve()
     try:
-        path.relative_to(root)
+        relative = path.relative_to(root)
     except ValueError:
+        return None
+    if any(
+        relative.parts[index : index + 2] == ("docs", "exec-plan")
+        for index in range(len(relative.parts) - 1)
+    ):
         return None
     return path
 
