@@ -51,7 +51,8 @@ jobs:
             .githooks/pre-push \
             tools/workflow-lint.sh \
             .github/workflows/workflow-lint.yml \
-            .codex/hooks/slopless_post_tool_use.py; then
+            docs/specs/slopless-ci.md \
+            docs/specs/workflow-sync-to-child-repos.md; then
             echo "skip=true" >> $GITHUB_OUTPUT
             echo "No child-consumed workflow changes between $CURRENT_SHA and $NEW_SHA, skipping."
           else
@@ -120,7 +121,8 @@ jobs:
             .githooks/pre-push \
             tools/workflow-lint.sh \
             .github/workflows/workflow-lint.yml \
-            .codex/hooks/slopless_post_tool_use.py)
+            docs/specs/slopless-ci.md \
+            docs/specs/workflow-sync-to-child-repos.md)
           DIFF_STAT=$(git diff --stat --cached)
           COMMIT_MSG=$(cat << EOF
           chore: sync workflow assets to ${SHORT_SHA}

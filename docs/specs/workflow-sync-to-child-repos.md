@@ -6,8 +6,8 @@ The `Sync Workflow to Child Repos` GitHub Actions workflow keeps the `.claude/ve
 
 Child repositories consume workflow changes through two surfaces:
 
-- the vendored workflow submodule itself (`.claude/vendor/workflow`), including
-  shared local hooks such as `.codex/hooks/slopless_post_tool_use.py`
+- the vendored workflow submodule itself (`.claude/vendor/workflow`), for
+  skills and source files that child configuration explicitly references
 - copied runtime assets installed from that submodule into the child repo:
   - `.githooks/pre-push`
   - `tools/workflow-lint.sh`
@@ -28,12 +28,18 @@ For each child repository:
    - `.githooks/pre-push`
    - `tools/workflow-lint.sh`
    - `.github/workflows/workflow-lint.yml`
-   - `.codex/hooks/slopless_post_tool_use.py`
+   - `docs/specs/slopless-ci.md`
+   - `docs/specs/workflow-sync-to-child-repos.md`
 4. If the commit range contains none of those paths, skip PR creation for that child repo.
 5. If the commit range includes at least one of those paths, continue with the existing sync flow:
    - close stale `workflow-sync` PRs
    - create a new PR that updates `.claude/vendor/workflow`
    - run `tools/install-hooks.sh` from the updated submodule against the child repo so the copied runtime assets stay aligned with the new workflow commit without re-running full submodule/bootstrap setup
+
+The presence of a file in the vendored submodule does not by itself install or
+enable it in the child repository. In particular, the Slopless post-edit hook
+is configured for the workspace root only; child projects enforce the common
+Slopless exclusion through their own CI workflows.
 
 ## PR Expectations
 
