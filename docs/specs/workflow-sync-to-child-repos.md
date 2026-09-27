@@ -6,7 +6,8 @@ The `Sync Workflow to Child Repos` GitHub Actions workflow keeps the `.claude/ve
 
 Child repositories consume workflow changes through two surfaces:
 
-- the vendored workflow submodule itself (`.claude/vendor/workflow`)
+- the vendored workflow submodule itself (`.claude/vendor/workflow`), including
+  shared local hooks such as `.codex/hooks/slopless_post_tool_use.py`
 - copied runtime assets installed from that submodule into the child repo:
   - `.githooks/pre-push`
   - `tools/workflow-lint.sh`
@@ -27,6 +28,7 @@ For each child repository:
    - `.githooks/pre-push`
    - `tools/workflow-lint.sh`
    - `.github/workflows/workflow-lint.yml`
+   - `.codex/hooks/slopless_post_tool_use.py`
 4. If the commit range contains none of those paths, skip PR creation for that child repo.
 5. If the commit range includes at least one of those paths, continue with the existing sync flow:
    - close stale `workflow-sync` PRs
