@@ -2,32 +2,38 @@
 
 ## Goal
 
-Run `slopless` in CI for changed Markdown in pull requests to `main`.
-Show findings as GitHub Actions warnings.
-Keep one PR comment up to date with the latest findings and repair hints.
+Run `slopless` on eligible changed Markdown in pull requests to `main`.
+Show CI findings as GitHub Actions warnings and keep one PR comment up to date.
+Use the same plan-file exclusion in the local post-edit hook.
 
 ## Scope
 
-- Repository: `vibe-coding-workspace`
+- Repositories: `vibe-coding-workspace` and managed child repositories that run Slopless CI
 - Trigger: GitHub Actions `pull_request` events targeting `main`
-- Files considered: changed Markdown under `docs/specs/`, `docs/design-decisions/`, `docs/development/`, `docs/kb/`, and `docs/references/`
+- Common exclusion: Markdown under `docs/exec-plan/` is never linted by CI or the local hook
+- Trigger exclusion: a change only under `docs/exec-plan/` does not trigger Slopless CI
+- Workspace files considered: changed Markdown under `docs/specs/`, `docs/design-decisions/`, `docs/development/`, `docs/kb/`, and `docs/references/`
+- Child project files considered: changed Markdown in each project's current Slopless scope, excluding `docs/exec-plan/`
 - Non-goal: linting every historical Markdown file on every pull request
 - Non-goal: reproducing the local Codex hook behavior inside CI
 
 ## Changed Markdown Definition
 
-A file counts as changed Markdown when all of these are true:
+A file counts as eligible changed Markdown when all of these are true:
 
 1. The file appears in `git diff --name-only --diff-filter=AMR <base-ref>...HEAD`.
 2. The file still exists in the worktree after checkout.
-3. The path is under one of these directories:
-   - `docs/specs/`
-   - `docs/design-decisions/`
-   - `docs/development/`
-   - `docs/kb/`
-   - `docs/references/`
-4. The path ends with `.md`.
-5. The file content does not contain characters from the helper's Japanese-writing ranges:
+3. The root-relative path is not under `docs/exec-plan/`.
+4. The path is within the repository's Slopless scope:
+   - In `vibe-coding-workspace`, it is under one of these directories:
+     - `docs/specs/`
+     - `docs/design-decisions/`
+     - `docs/development/`
+     - `docs/kb/`
+     - `docs/references/`
+   - In managed child projects, it matches that project's existing workflow scope.
+5. The path ends with `.md`.
+6. The file content does not contain characters from the helper's Japanese-writing ranges:
    - Hiragana and fullwidth Katakana (`U+3040`-`U+30FF`)
    - Katakana Phonetic Extensions (`U+31F0`-`U+31FF`)
    - CJK Unified Ideographs Extension A (`U+3400`-`U+4DBF`)
@@ -37,7 +43,9 @@ A file counts as changed Markdown when all of these are true:
 
 ## Helper Script
 
-`tools/list-changed-markdown.sh` is the source of truth for local and CI detection.
+In `vibe-coding-workspace`, `tools/list-changed-markdown.sh` is the source of
+truth for local and CI detection. Child project workflows apply the common
+exclusion in both their trigger and candidate selection.
 
 ### Interface
 
@@ -51,8 +59,16 @@ tools/list-changed-markdown.sh [base-ref]
 - compares `${base_ref}...HEAD`
 - emits one matching path per line
 - ignores deleted files
+- excludes all paths under `docs/exec-plan/`, even if a future scope change adds a broader Markdown pattern
 - limits eligibility to Markdown under `docs/specs/`, `docs/design-decisions/`, `docs/development/`, `docs/kb/`, and `docs/references/`
 - skips files whose content contains any character from those Japanese-writing ranges, even if they also contain ASCII, punctuation, or emoji
+
+## Local Post-Edit Check
+
+The local post-edit Slopless check follows the same `docs/exec-plan/` exclusion.
+An execution-plan file is skipped even when an edit event includes it alongside
+other Markdown files. The shared hook change must reach child projects through
+the workflow submodule sync.
 
 ## GitHub Actions Workflow
 
@@ -62,6 +78,7 @@ tools/list-changed-markdown.sh [base-ref]
 
 - triggers on pull requests targeting `main`
 - starts only for the scoped long-lived Markdown paths and the workflow/helper/spec files
+- excludes `docs/exec-plan/**` from triggers and candidate sets in managed child workflows, while preserving each project's current path scope
 - uses the repository-standard `actions/checkout` reference managed through `pinact`
 - provisions a pinned Node runtime before calling `npm view` or `npx`
 - checks out with full history (`fetch-depth: 0`) so `<base-ref>...HEAD` resolves cleanly
