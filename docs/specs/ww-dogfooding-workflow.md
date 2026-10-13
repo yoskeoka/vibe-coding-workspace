@@ -97,3 +97,23 @@ This execution change defines the required operator-facing touchpoints to align 
 - Replacing git for all low-level operations inside `ww`
 - Requiring unreleased `ww` features before the workflow can function
 - Eliminating every emergency fallback path on day one
+
+## Recorded dogfooding observations
+
+### 2026-10-14: `ww list` produced no output
+
+- Binary: `ww version 0.5.4` at `/home/linuxbrew/.linuxbrew/bin/ww`.
+- Exact command: `rtk ww list`.
+- Working directories: the workspace root and its `reversi-adventure` child
+  repository, targeting the active worktrees in this workspace.
+- Expected: list active worktrees and return.
+- Actual: no stdout or stderr and no exit after more than 30 seconds from the
+  workspace root and more than 15 seconds from the child repository. Both
+  invocations were interrupted with Ctrl+C (exit code 130).
+- Fallback: none. `rtk ww create --repo reversi-adventure
+  docs/efficiency8-closeout-update` succeeded, so the required task worktree
+  could still be created without raw Git branch creation.
+- Impact: listing existing worktrees was unavailable during the task; fresh
+  worktree creation and the requested documentation work continued.
+
+This records observed behavior only; the cause and resolution are unknown.
