@@ -31,6 +31,7 @@ related_pages:
 - `Sprite Fusion Pixel Snapper` は、それらを clean な grid に snap し、palette も整理して、より本物の pixel art に近づける。
 - browser flow も単純で覚えやすい。image を upload し、`Colors` slider で色数を選び、zoom tool で結果を確認し、download する。
 - さらに `Hugo-Dz/spritefusion-pixel-snapper` という self-hostable 実装があり、Rust CLI 風に `cargo run input.png output.png 16` で使える。
+- repository には現在の native CLI、directory batch 処理、`--pixel-size` と `--palette` option、WebAssembly interface が記載されている。導入と呼び出し方法は[repository の source note](2026-11-28-hugo-dz-spritefusion-pixel-snapper-repo.md)を参照。
 
 ## ワークスペースでの含意
 

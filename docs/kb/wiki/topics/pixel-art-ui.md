@@ -6,6 +6,7 @@ sources:
   - ../../sources/2026/2026-04-11-phaser-pixui.md
   - ../../sources/2026/2026-05-15-npaka-agent-sprite-forge.md
   - ../../sources/2026/2026-05-16-gigazine-sprite-fusion-pixel-snapper.md
+  - ../../sources/2026/2026-11-28-hugo-dz-spritefusion-pixel-snapper-repo.md
 ---
 
 # Pixel Art UI
@@ -25,6 +26,7 @@ Pixel-art-specific UI tooling is worth tracking because generic UI stacks often 
 - `PixUI` remains the main UI-specific reference for Phaser-side widget work.
 - `Agent Sprite Forge` is relevant when a prototype needs pixel-adjacent sprites, maps, or prop packs generated fast enough to unblock implementation.
 - `Sprite Fusion Pixel Snapper` is the post-processing anchor when AI outputs are visually close but fail actual grid or palette discipline.
+- Its open-source repository adds a native Rust CLI for single images and directory batches, explicit `--pixel-size` / `--palette` controls, and a WebAssembly `process_image` interface for in-browser pipelines.
 
 ## Practical rule
 
