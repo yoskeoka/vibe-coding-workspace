@@ -12,6 +12,9 @@ sources:
   - ../../sources/2026/2026-04-10-sonicmoov-next2d-origin-story.md
   - ../../sources/2026/2026-04-13-gamespark-luminary-family-coop-arpg.md
   - ../../sources/2026/2026-05-15-npaka-agent-sprite-forge.md
+  - ../../sources/2026/2026-11-28-cubepart-open-vocabulary-3d-generator.md
+  - ../../sources/2026/2026-11-28-donchitos-claude-code-game-studios.md
+  - ../../sources/2026/2026-11-28-kenney-game-assets.md
 ---
 
 # AI 補助ゲーム開発
@@ -34,6 +37,9 @@ sources:
 - `Luminary` interview はよい対照になる。AI が開発に入っても、よい game-design の参照は別途必要であり、shared solo / co-op progression や punishment の削減は残すべき具体アンカーである。
 - branching narrative system は固有の spec surface を要する。dialogue-heavy な game では、authoring tool、state-variable convention、feedback point、validation check を、content が膨らむ前に記録しておくべき。
 - `Agent Sprite Forge` は asset 側の signal を足す。自然言語から sprite や map の候補を作り、local cleanup と export を通して engine-usable な出力に整える流れが重要である。
+- `Claude Code Game Studios` は短い設計対話から確認可能な brief と browser prototype を作り、自動チェックと人間によるプレイを分けて引き渡す template workflow である。engine 経路の成熟度については project 自身の評価範囲も確認する。
+- `CubePart` は prompt と part schema から複数パーツの3D素材を作り、animation や scripted behavior につなげる研究例である。production pipeline とみなす前に論文・実装の利用可能性を確認する。
+- `Kenney` は prototype 用の無料 game asset、tool、starter kit のカタログを提供する。公開する素材は個別 pack の license を確認する。
 
 ## 再利用できるパターン
 
@@ -47,6 +53,7 @@ sources:
 - accessibility-first な RPG では、どの friction system を意図的に外すかを早めに決める。「accessible」は tuning だけでなく system choice である。
 - narrative-heavy な prototype では、authoring loop を plain-text で検索可能にし、launch 前に automated check を入れる。`Esoteric Ebb` の具体参照は `Ink` で、比較候補として `Yarn Spinner`、`Arcweave`、`articy:draft` を残しておく。
 - asset が不足しがちな prototype では、`generate -> local cleanup -> engine export` 自体を 1 つの milestone として扱う。速く生成できても、runtime に入れられなければ value が出ない。
+- 既製素材、生成2D/3D素材、part-controllable な研究系素材を要件に合わせて選び、import 時に出典と license 確認を記録する。
 
 ## Open questions
 

@@ -12,6 +12,9 @@ sources:
   - ../../sources/2026/2026-04-10-sonicmoov-next2d-origin-story.md
   - ../../sources/2026/2026-04-13-gamespark-luminary-family-coop-arpg.md
   - ../../sources/2026/2026-05-15-npaka-agent-sprite-forge.md
+  - ../../sources/2026/2026-11-28-cubepart-open-vocabulary-3d-generator.md
+  - ../../sources/2026/2026-11-28-donchitos-claude-code-game-studios.md
+  - ../../sources/2026/2026-11-28-kenney-game-assets.md
   - ../../sources/2026/2026-05-30-npaka-codex-agent-sprite-forge-action-game.md
 ---
 
@@ -35,6 +38,9 @@ The `Esoteric Ebb` postmortem adds a non-agentic but important production signal
 - The `Luminary` interview is a useful counterweight: good game-design references are still needed even when AI is part of development. Shared solo/co-op progression and reduced punishment are concrete design anchors worth keeping.
 - Branching narrative systems need their own spec surface. For dialogue-heavy games, record the authoring tool, state-variable conventions, feedback points, and validation checks before content scale makes branch debt hard to reason about.
 - `Agent Sprite Forge` adds a more production-minded asset angle: generate candidate sprites or maps from language, then run local cleanup and export steps until the results are engine-usable.
+- `Claude Code Game Studios` turns a short design conversation into a reviewable brief, a browser prototype, and explicit automated-check / human-play handoff evidence. Its own notes qualify the maturity of its engine routes.
+- `CubePart` is a research reference for prompt-and-schema-driven multi-part 3D assets that can map to animation and scripted behavior; validate the research artifact and available implementation before treating it as a production pipeline.
+- `Kenney` provides a broad catalog of free game assets, tools, and starter kits for rapid prototyping. Confirm the license for each asset pack before shipping.
 - npaka's Phaser action-game walkthrough adds a concrete iteration sequence from image-guided generation through level geometry, enemies, UI, a map editor, and audio. It highlights checking editor/runtime parity and save behavior, and reviewing generated walk cycles for repeated leading-foot poses.
 
 ## Reusable pattern
@@ -49,6 +55,7 @@ The `Esoteric Ebb` postmortem adds a non-agentic but important production signal
 - For accessibility-first RPGs, decide early which friction systems are intentionally removed; "accessible" is a systems choice, not only a tuning pass.
 - For narrative-heavy prototypes, keep the authoring loop plain-text-searchable and add automated checks before launch. `Ink` is the concrete reference from `Esoteric Ebb`, with `Yarn Spinner`, `Arcweave`, and `articy:draft` worth comparing.
 - For asset-starved prototypes, treat `generate -> local cleanup -> engine export` as its own milestone. Fast asset generation only helps if the outputs can actually enter the runtime without manual salvage work.
+- Choose pre-made assets, generated 2D/3D assets, and part-controllable research systems based on the prototype's needs; record asset provenance and license checks as part of the import step.
 
 ## Open questions
 
