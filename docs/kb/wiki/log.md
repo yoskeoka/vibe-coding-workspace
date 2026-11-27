@@ -7,6 +7,8 @@ sources: []
 
 # Knowledge Base Log
 
+- 2026-11-28: added CubePart, Claude Code Game Studios, Kenney, and BRSF's React `useActionState` article; checked the React examples against official docs, created a React Form Actions topic, and refreshed AI game-development guidance
+
 - 2026-04-11: seeded `docs/kb/` with schema, ingest guide, initial source notes, topic pages, project pages, tool pages, MkDocs config, and Pages publishing workflow
 - 2026-04-11: re-ingested Karpathy's `LLM Knowledge Bases` X post, the `llm-wiki` gist, and the Classmethod article; added the original X post as a source note and updated compiled pages to preserve concrete anchors like `Obsidian`, `Obsidian Web Clipper`, `Mem0`, `pgvector`, `/kb-compile`, `index.md`, and `log.md`
 - 2026-04-13: ingested Qiita article `趣味開発Webアプリケーションのほぼ0円インフラ構成`; added a source note and updated deployment pages with the concrete `Cloudflare DNS Proxy + Cloud Connector` -> `Cloud Run` / `Cloud Storage` routing pattern, `TiDB Serverless`, `Cloudflare WAF`, and explicit notes about cold-start, preview/beta maturity, and cross-cloud cost trade-offs
@@ -19,4 +21,5 @@ sources: []
 - 2026-05-19: ingested Mametter's `6x6リバーシの神`; added `sources/2021/2021-12-30-mametter-6x6-reversi-god.md`, the `browser-perfect-play-games` pattern page, and refreshed `reversi-adventure`
 - 2026-05-19: ingested y-tetsu's `〖リバーシ(オセロ)〗変形ボードの強解決！`; added `sources/2023/2023-12-10-y-tetsu-variant-board-reversi-strong-solve.md` and refreshed `browser-perfect-play-games` / `reversi-adventure` with `Edax`, `hole` masks, `setboard`, and record-replay workflow anchors
 - 2026-11-28: added the official `Hugo-Dz/spritefusion-pixel-snapper` repository as a source for the existing Pixel Snapper entry; recorded Rust CLI and batch usage, pixel-size and palette options, and its WebAssembly interface, then refreshed the Pixel Art UI page and source-note mirrors
+- 2026-11-28: ingested npaka's `Codex + Agent Sprite Forge でアクションゲームの生成を試す`; added the source note and Japanese mirror, then refreshed `agent-sprite-forge` and `ai-game-dev` with Phaser iteration, editor/runtime parity, save behavior, and walk-cycle review anchors
 - 2026-05-19: ingested six mixed-source notes covering `remoteStorage`, `slopless`, `Agent Sprite Forge`, a low-cost AWS Minecraft server pattern, `Sprite Fusion Pixel Snapper`, and a local `Claude Code` runtime guide; added `agentic-coding-workflows`, `slopless`, `agent-sprite-forge`, and `user-owned-storage-webapps`; refreshed deployment, cheap-hosting, AI game development, pixel-art UI, and the top-level KB index
