@@ -35,6 +35,25 @@ rules and [the PR template](../../.github/PULL_REQUEST_TEMPLATE.md) for author f
    findings by source, location, summary, implementer's view, explanation, and
    recommendation; fix reasonable in-scope work, otherwise defer to a plan or
    issue.
-4. Handoff with PR URL, worktree path, latest-head status, grouped advisory
-   triage, and a compact fresh-session prompt. Human approval remains required
-   before merge.
+4. Hand off the PR URL, worktree path, latest-head status, and grouped advisory
+   triage. The human owns PR review, approval, and merge. Omit prompts asking a
+   new session to review or merge the PR.
+
+## Post-merge plan prompt
+
+Give a short, copyable prompt for a concrete next task. Say to start after
+the current PR merges, and use the actual project repo path and exact plan
+file path in the prompt.
+
+- For a plan PR that adds an executable plan, use
+  `$execute-task <project-repo> <exec-plan-file-path>` for that plan.
+- For an implementation PR with a scheduled executable successor, use
+  `$execute-task <project-repo> <exec-plan-file-path>` for the successor.
+- If the implemented plan filled a gap in a parent or originating plan that
+  needs reconsideration, use
+  `$plan-execution <project-repo> <originating-plan-file-path>` and specify
+  what to revisit. For a removed plan, include its former path and a PR or
+  Git reference that retrieves it.
+
+Omit the prompt when there is no concrete related next task with a known plan
+path. A parent marked as requiring more detail is ineligible for `$execute-task`.

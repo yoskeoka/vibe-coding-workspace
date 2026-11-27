@@ -27,8 +27,9 @@ and [PR follow-up](../../AI_WORKFLOW.md#pr-and-follow-up) for shared lifecycle r
    changes; `Addresses:` for relevant local or full external issue URLs;
    concrete sub-tasks/dependencies/parallelism; and verification. Use
    `N/A - detail required before execution` only for an intentional parent.
-5. Send the plan PR through `review-task`. Put any external `Addresses:` issue
-   under Issues in the plan PR body.
+5. Send the plan PR through `review-task` with the project repo path, new plan
+   file path, and whether the plan is executable. Put any external
+   `Addresses:` issue under Issues in the plan PR body.
 
 Do not implement the plan in this branch. After merge, start a matching
 `feat/<name>` or `fix/<name>` branch with `execute-task`.

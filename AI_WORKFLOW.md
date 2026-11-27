@@ -70,8 +70,10 @@ poll at 3m, 2m, 1m, and 1m; inspect every review body and inline comment.
 
 Fix actionable, in-scope CI failures and advisory findings in the PR; defer a
 clearly separate larger item to a plan or issue. The handoff groups advisory
-findings by source and gives the PR URL, worktree path, and a short
-fresh-session prompt. Wait for human approval before merging.
+findings by source and reports the PR URL, worktree path, and latest-head
+status. The human owns PR review, approval, and merge. Include a
+[post-merge plan prompt](docs/specs/pr-follow-up-workflow.md#post-merge-plan-handoff)
+when there is a concrete next planning or implementation task.
 
 ## Post-task review
 
