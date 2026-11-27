@@ -16,7 +16,9 @@ Use only after the matching execution plan has merged. The shared lifecycle is
 2. Update the applicable black-box spec first, then implement exactly that
    contract. Log non-blocking unrelated findings as a numbered local issue.
 3. Run all applicable project quality gates and capture reviewable evidence.
-4. Delete the completed plan and linked resolved local issues after capturing
+4. Before deleting the completed plan, note any documented successor or
+   originating plan that needs reconsideration for the post-merge handoff.
+   Delete the completed plan and linked resolved local issues after capturing
    verification evidence and preparing the PR. Preserve full external issue URLs
    for the PR's conditional closure metadata; use the PR or Git history to
    retrieve removed local artifacts.

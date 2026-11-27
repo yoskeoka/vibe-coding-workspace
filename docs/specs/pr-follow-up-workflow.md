@@ -207,7 +207,27 @@ Do not silently auto-apply every suggestion. Use implementer judgment to keep br
 
 Any in-PR advisory remediation push restarts required CI/check inspection for the new head SHA. Restart the longer advisory wait only when new review-start activity appears for that SHA or the human explicitly asks to wait.
 
-When handing a PR to human review after the remediation loop stops, include the PR URL and current worktree path alongside the handoff so a human can open the branch locally without searching for it. End the handoff with a compact separate-session prompt template that asks future PR-follow-up requests for that branch to continue in a new session. Keep the prompt itself to about 3 lines and include the PR number, branch name, requested follow-up scope, PR URL, and worktree path.
+When the remediation loop stops, report the PR URL, current worktree path, and latest-head status. The human owns PR review, approval, and merge. The default handoff omits prompts to review or merge the PR.
+
+## Post-merge plan handoff
+
+When there is a concrete next planning or implementation task, provide a short,
+copyable prompt that explicitly says to start after the current PR merges.
+Use the actual project repository path and the exact plan file path.
+
+- After an execution-plan PR, use `$execute-task <project-repo> <exec-plan-file-path>`
+  for the executable plan introduced by the PR.
+- After an implementation PR, use the same form for an identified executable
+  successor scheduled to follow the completed plan.
+- If the completed plan addressed a gap in a parent or originating plan that
+  still needs reconsideration, use
+  `$plan-execution <project-repo> <originating-plan-file-path>` and name what
+  to reconsider. If the originating plan was removed, supply its former path
+  and a PR or Git reference where it can be retrieved.
+
+Omit the next-session prompt when there is no concrete related task with a
+known plan path. A parent marked as requiring more detail is ineligible for
+`$execute-task`.
 
 ## Stop Conditions
 
