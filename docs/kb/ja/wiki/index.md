@@ -24,6 +24,8 @@ sources: []
 - [ai-game-dev](topics/ai-game-dev.md)
 - [deployment-options](topics/deployment-options.md)
 - [pixel-art-ui](topics/pixel-art-ui.md)
+- [react-form-actions](topics/react-form-actions.md)
+- [react-form-actions](topics/react-form-actions.md)
 
 ### ツール
 
@@ -46,6 +48,8 @@ sources: []
 
 ## 最近の更新
 
+- 2026-11-28: CubePart、Claude Code Game Studios、Kenney、React `useActionState` 記事を取り込み、AI game development を更新し、検証上の注意を含む React Form Actions ページを追加した
+
 - 2026-04-11: `LLM Knowledge Base` 参照、deployment 指針、Phaser / game-development 関連の初期ページで KB を立ち上げた
 - 2026-04-11: Karpathy の X 投稿、gist、Classmethod 記事を concrete anchor を保つ形で再取り込みした
 - 2026-04-13: `Cloudflare DNS Proxy + Cloud Connector`、`Cloud Run`、`Cloud Storage`、`TiDB Serverless`、`Cloudflare WAF` を組み合わせた、ほぼ 0 円 hobby web app 構成を取り込んだ
@@ -57,6 +61,7 @@ sources: []
 - 2026-05-19: まめめもの 6x6 リバーシ記事を取り込み、`browser-perfect-play-games` パターンを追加し、`reversi-adventure` を更新した
 - 2026-05-19: y-tetsu の変形盤面リバーシ記事を取り込み、`Edax`、`hole` mask、custom board の authoring / replay を `browser-perfect-play-games` と `reversi-adventure` に反映した
 - 2026-05-19: `remoteStorage`、`slopless`、`Agent Sprite Forge`、低コスト AWS game server、`Sprite Fusion Pixel Snapper`、local `Claude Code` の 6 件を取り込み、`agentic-coding-workflows`、`slopless`、`agent-sprite-forge`、`user-owned-storage-webapps` を追加し、deployment / pixel-art 系ページを更新した
+- 2026-11-28: CubePart、Claude Code Game Studios、Kenney、React `useActionState` 記事を取り込み、AI game development を更新し、検証上の注意を含む React Form Actions ページを追加した
 
 ## ログ
 

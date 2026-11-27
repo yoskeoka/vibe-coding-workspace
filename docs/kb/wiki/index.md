@@ -24,6 +24,8 @@ This is the compiled wiki for `vibe-coding-workspace`.
 - [ai-game-dev](topics/ai-game-dev.md)
 - [deployment-options](topics/deployment-options.md)
 - [pixel-art-ui](topics/pixel-art-ui.md)
+- [react-form-actions](topics/react-form-actions.md)
+- [react-form-actions](topics/react-form-actions.md)
 
 ### Tools
 
@@ -46,6 +48,8 @@ This is the compiled wiki for `vibe-coding-workspace`.
 
 ## Recent ingests
 
+- 2026-11-28: added CubePart, Claude Code Game Studios, Kenney, and a React `useActionState` article; updated AI game-development guidance and added a React Form Actions topic with verification notes
+
 - 2026-04-11: seeded the knowledge base with LLM Knowledge Base references, deployment guidance, and Phaser/game-development references
 - 2026-04-11: re-ingested the Karpathy X post, gist, and Classmethod article with stronger concrete-anchor preservation for KB workflow notes
 - 2026-04-13: ingested a concrete near-zero-cost hobby web app architecture using `Cloudflare DNS Proxy + Cloud Connector`, `Cloud Run`, `Cloud Storage`, `TiDB Serverless`, and `Cloudflare WAF`
@@ -57,6 +61,7 @@ This is the compiled wiki for `vibe-coding-workspace`.
 - 2026-05-19: ingested Mametter's 6x6 Reversi post; added a `browser-perfect-play-games` pattern page and refreshed `reversi-adventure`
 - 2026-05-19: ingested y-tetsu's variant-board Reversi article; refreshed `browser-perfect-play-games` and `reversi-adventure` with `Edax`, `hole` masks, and custom-board authoring / replay anchors
 - 2026-05-19: ingested six mixed KB sources covering `remoteStorage`, `slopless`, `Agent Sprite Forge`, low-cost AWS game-server hosting, `Sprite Fusion Pixel Snapper`, and local `Claude Code`; added `agentic-coding-workflows`, `slopless`, `agent-sprite-forge`, and `user-owned-storage-webapps`, then refreshed deployment and pixel-art pages
+- 2026-11-28: added CubePart, Claude Code Game Studios, Kenney, and a React `useActionState` article; updated AI game-development guidance and added a React Form Actions topic with verification notes
 
 ## Logs
 
