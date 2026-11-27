@@ -4,6 +4,7 @@ last_reviewed: 2026-05-19
 status: seed
 sources:
   - ../../sources/2026/2026-05-15-npaka-agent-sprite-forge.md
+  - ../../sources/2026/2026-05-30-npaka-codex-agent-sprite-forge-action-game.md
 ---
 
 # Agent Sprite Forge
@@ -18,6 +19,7 @@ sources:
 - Useful output anchors include transparent sprite sheets, extracted animation frames, GIF previews, layered map assets, prop packs, collision metadata, and engine-ready exports.
 - The important workflow detail is the local finishing pass: background removal, alignment, slicing, validation, and export are part of the value proposition.
 - This makes it relevant not only for art ideation but also for "how do we get a playable prototype asset set quickly enough to unblock implementation?"
+- npaka's Phaser action-game example shows how to connect reference images, sprite revision, background-loop cleanup, and gameplay iteration. It also surfaces practical validation points: jumpable gaps, consistent editor/runtime tiles, save behavior, and repeated leading-foot poses in generated walk cycles.
 
 ## Related pages
 
