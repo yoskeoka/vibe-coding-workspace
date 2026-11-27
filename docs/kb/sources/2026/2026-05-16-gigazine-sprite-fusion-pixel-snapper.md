@@ -31,6 +31,7 @@ This is a concrete post-generation cleanup tool for AI-made pixel art, which is 
 - `Sprite Fusion Pixel Snapper` corrects those issues by snapping pixels to a clean grid and reducing colors into a more coherent palette.
 - The browser flow is simple and memorable: upload the image, choose the target color count with a `Colors` slider, inspect the result with the zoom tool, and download the cleaned output.
 - The article also points to a self-hostable implementation via `Hugo-Dz/spritefusion-pixel-snapper`, with a Rust CLI-style invocation such as `cargo run input.png output.png 16`.
+- The project's repository documents the current native CLI, batch-directory processing, `--pixel-size` and `--palette` options, and a WebAssembly interface. See [the repository source note](2026-11-28-hugo-dz-spritefusion-pixel-snapper-repo.md) for installation and invocation details.
 
 ## Workspace takeaways
 
