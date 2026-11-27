@@ -12,6 +12,7 @@ sources:
   - ../../sources/2026/2026-04-10-sonicmoov-next2d-origin-story.md
   - ../../sources/2026/2026-04-13-gamespark-luminary-family-coop-arpg.md
   - ../../sources/2026/2026-05-15-npaka-agent-sprite-forge.md
+  - ../../sources/2026/2026-05-30-npaka-codex-agent-sprite-forge-action-game.md
 ---
 
 # AI-Assisted Game Development
@@ -34,6 +35,7 @@ The `Esoteric Ebb` postmortem adds a non-agentic but important production signal
 - The `Luminary` interview is a useful counterweight: good game-design references are still needed even when AI is part of development. Shared solo/co-op progression and reduced punishment are concrete design anchors worth keeping.
 - Branching narrative systems need their own spec surface. For dialogue-heavy games, record the authoring tool, state-variable conventions, feedback points, and validation checks before content scale makes branch debt hard to reason about.
 - `Agent Sprite Forge` adds a more production-minded asset angle: generate candidate sprites or maps from language, then run local cleanup and export steps until the results are engine-usable.
+- npaka's Phaser action-game walkthrough adds a concrete iteration sequence from image-guided generation through level geometry, enemies, UI, a map editor, and audio. It highlights checking editor/runtime parity and save behavior, and reviewing generated walk cycles for repeated leading-foot poses.
 
 ## Reusable pattern
 
